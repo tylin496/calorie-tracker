@@ -90,6 +90,19 @@ function formatMonthDay(dateString) {
   return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
+function getDatesBetween(start, end) {
+  const dates = [];
+  const current = new Date(`${start}T12:00:00`);
+  const final = new Date(`${end}T12:00:00`);
+
+  while (current <= final) {
+    dates.push(`${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}-${String(current.getDate()).padStart(2, "0")}`);
+    current.setDate(current.getDate() + 1);
+  }
+
+  return dates;
+}
+
 function getDietDayLabel() {
   const isViewingToday = currentDate === getDietDate();
   return `${isViewingToday ? "Today" : "Viewing"} · ${formatMonthDay(currentDate)}`;
@@ -257,14 +270,32 @@ function renderSummary(summary) {
   const weekRange = formatShortDateRange(summary.weekStart, summary.weekEnd);
   // const isViewingToday = currentDate === getDietDate();
   const loggedStatus = todayEntry ? "Logged" : "Missing";
-  const dailyRows = summary.entries
-    .map((entry) => `
-      <div class="daily-row">
-        <span>${getWeekdayLabel(entry.date)} ${formatMonthDay(entry.date)}</span>
-        <span>${entry.calories} kcal</span>
-        <span>${entry.protein}g</span>
-      </div>
-    `)
+  const entriesByDate = new Map(
+    summary.entries.map((entry) => [entry.date, entry])
+  );
+
+  const dailyRows = getDatesBetween(summary.weekStart, summary.weekEnd)
+    .map((date) => {
+      const entry = entriesByDate.get(date);
+
+      if (!entry) {
+        return `
+          <div class="daily-row missing-day">
+            <span>${getWeekdayLabel(date)} ${formatMonthDay(date)}</span>
+            <span>—</span>
+            <span>—</span>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="daily-row">
+          <span>${getWeekdayLabel(entry.date)} ${formatMonthDay(entry.date)}</span>
+          <span>${entry.calories} kcal</span>
+          <span>${entry.protein}g</span>
+        </div>
+      `;
+    })
     .join("");
 
   const todayHtml = todayEntry
@@ -525,13 +556,13 @@ const appTitle = document.querySelector("h1");
 
 if (appTitle) {
   appTitle.insertAdjacentHTML(
-    "beforebegin",
+    "afterend",
     `<div class="top-controls"><button id="prevDayBtn" class="chip">‹</button><button id="diet-day" class="chip"></button><button id="nextDayBtn" class="chip">›</button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log Entry</button><button id="refreshSummaryBtn" class="secondary-action">↻</button></div>`
   );
 } else {
   document.body.insertAdjacentHTML(
     "afterbegin",
-    `<div class="top-controls"><button id="prevDayBtn" class="chip">‹</button><button id="diet-day" class="chip"></button><button id="nextDayBtn" class="chip">›</button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log Entry</button><button id="refreshSummaryBtn" class="secondary-action">↻</button></div>`
+    `<h1>Calorie Tracker</h1><div class="top-controls"><button id="prevDayBtn" class="chip">‹</button><button id="diet-day" class="chip"></button><button id="nextDayBtn" class="chip">›</button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log Entry</button><button id="refreshSummaryBtn" class="secondary-action">↻</button></div>`
   );
 }
 

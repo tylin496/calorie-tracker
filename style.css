@@ -28,7 +28,7 @@ body {
 }
 
 h1 {
-  margin: 20px 0 18px;
+  margin: 8px 0 18px;
   font-size: 32px;
   line-height: 1.05;
   letter-spacing: -0.04em;
@@ -75,26 +75,34 @@ button {
 
 .top-controls {
   display: grid;
-  grid-template-columns: 44px 1fr 44px 1fr;
+  grid-template-columns: 48px 1fr 48px;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+}
+
+#diet-day {
+  grid-column: 2;
+}
+
+#tdee-display {
+  grid-column: 1 / -1;
 }
 
 .chip {
   width: 100%;
-  padding: 10px 12px;
+  padding: 10px 8px;
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
-  font-size: 13px;
+  font-size: 12px;
   text-align: center;
 }
 
 #prevDayBtn,
 #nextDayBtn {
   padding-inline: 0;
-  font-size: 20px;
+  font-size: 22px;
 }
 
 #status {
@@ -106,7 +114,7 @@ button {
 
 .action-row {
   display: grid;
-  grid-template-columns: 1fr 52px;
+  grid-template-columns: 1fr 56px;
   gap: 10px;
   margin-bottom: 18px;
 }
@@ -298,11 +306,12 @@ button {
 
 .daily-row {
   display: grid;
-  grid-template-columns: 52px 1fr 58px;
+  grid-template-columns: 74px 1fr 58px;
   gap: 8px;
   padding: 9px 0;
   border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
   font-size: 14px;
+  align-items: center;
 }
 
 .daily-row:last-child {
@@ -347,9 +356,10 @@ button {
 }
 
 .entry-hint {
-  margin: -8px 0 14px;
+  margin: 0 0 8px;
   color: var(--muted);
   font-size: 13px;
+  line-height: 1.35;
 }
 
 .toast {
@@ -375,11 +385,12 @@ button {
 }
 
 #manual-entry {
-  margin: 12px 0 0;
-  padding: 12px;
+  margin: 8px 0 0;
+  padding: 8px 10px;
   border: 1px solid var(--border);
   border-radius: 18px;
   background: var(--surface);
+  opacity: 0.75;
 }
 
 #manual-entry summary {
@@ -387,10 +398,12 @@ button {
   color: var(--muted);
   font-size: 13px;
   font-weight: 750;
+  opacity: 0.7;
 }
 
 #manual-entry[open] summary {
   margin-bottom: 12px;
+  opacity: 1;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -419,7 +432,11 @@ button {
   }
 
   .top-controls {
-    grid-template-columns: 38px 1fr 38px;
+    grid-template-columns: 42px 1fr 42px;
+  }
+
+  #diet-day {
+    grid-column: 2;
   }
 
   #tdee-display {
