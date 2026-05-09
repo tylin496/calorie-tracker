@@ -190,8 +190,53 @@ function resetDietDay() {
   loadWeekSummary(false);
 }
 
+function setDietDay(nextDate) {
+  if (!isValidDateString(nextDate)) {
+    alert("Invalid date");
+    return;
+  }
+
+  currentDate = nextDate;
+  todayLogged = false;
+  todayEntry = null;
+  updateQuickEntryButton();
+
+  updateDietDayDisplay();
+  document.getElementById("calories").value = "";
+  document.getElementById("protein").value = "";
+  loadWeekSummary(false);
+}
+
+function openDietDayPicker() {
+  let datePicker = document.getElementById("dietDayPicker");
+
+  if (!datePicker) {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<input id="dietDayPicker" type="date" class="hidden-date-picker" />`
+    );
+
+    datePicker = document.getElementById("dietDayPicker");
+
+    datePicker.addEventListener("change", () => {
+      if (datePicker.value) {
+        setDietDay(datePicker.value);
+      }
+    });
+  }
+
+  datePicker.value = currentDate;
+
+  if (typeof datePicker.showPicker === "function") {
+    datePicker.showPicker();
+  } else {
+    datePicker.click();
+    datePicker.focus();
+  }
+}
+
 function editDietDay() {
-  resetDietDay();
+  openDietDayPicker();
 }
 
 function updateTodayInputs(entry) {
@@ -263,9 +308,22 @@ function renderSummary(summary) {
   const todayEntry = summary.todayEntry;
   const todayDeficit = todayEntry ? (todayEntry.tdee || TDEE) - todayEntry.calories : 0;
   const todayStatus = getDeficitLabel(todayDeficit);
-  const compliance = Math.round((summary.count / 7) * 100);
   const averageDailyDeficit = summary.count ? Math.round(summary.totalDeficit / summary.count) : 0;
-  const fatProgress = Math.min(Math.round(Math.abs(summary.fatLossKg) * 100), 100);
+  const calorieDeviation = summary.entries.length
+    ? Math.round(
+        Math.sqrt(
+          summary.entries.reduce((sum, entry) => {
+            const diff = entry.calories - summary.averageCalories;
+            return sum + diff * diff;
+          }, 0) / summary.entries.length
+        )
+      )
+    : 0;
+  const FAT_TARGET_KG = 0.5;
+  const fatProgress = Math.min(
+    Math.round((Math.abs(summary.fatLossKg) / FAT_TARGET_KG) * 100),
+    100
+  );
   const fatProgressLabel = summary.fatLossKg >= 0 ? "Fat loss progress" : "Surplus progress";
   const weekRange = formatShortDateRange(summary.weekStart, summary.weekEnd);
   // const isViewingToday = currentDate === getDietDate();
@@ -354,16 +412,8 @@ function renderSummary(summary) {
       </div>
 
       <div class="progress-row">
-        <span>Compliance</span>
-        <span>${summary.count} / 7 days · ${compliance}%</span>
-      </div>
-      <div class="progress-track">
-        <div class="progress-fill" style="width: ${Math.min(compliance, 100)}%"></div>
-      </div>
-
-      <div class="progress-row">
         <span>${fatProgressLabel}</span>
-        <span>${Math.abs(summary.fatLossKg).toFixed(2)} / 1.00 kg · ${fatProgress}%</span>
+        <span>${Math.abs(summary.fatLossKg).toFixed(2)} / ${FAT_TARGET_KG.toFixed(2)} kg · ${fatProgress}%</span>
       </div>
       <div class="progress-track">
         <div class="progress-fill ${summary.fatLossKg >= 0 ? "deficit-fill" : "surplus-fill"}" style="width: ${fatProgress}%"></div>
@@ -375,8 +425,8 @@ function renderSummary(summary) {
           <span class="metric-value">${summary.averageCalories}</span>
         </div>
         <div class="metric">
-          <span class="metric-label">Avg protein</span>
-          <span class="metric-value">${summary.averageProtein}g</span>
+          <span class="metric-label">Consistency</span>
+          <span class="metric-value">±${calorieDeviation}</span>
         </div>
         <div class="metric">
           <span class="metric-label">Avg deficit/day</span>
@@ -560,12 +610,12 @@ if (appTitle && document.body.firstElementChild !== appTitle) {
 if (appTitle) {
   appTitle.insertAdjacentHTML(
     "afterend",
-    `<div class="top-controls"><button id="prevDayBtn" class="chip">‹</button><button id="diet-day" class="chip"></button><button id="nextDayBtn" class="chip">›</button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log Entry</button><button id="refreshSummaryBtn" class="secondary-action">↻</button></div>`
+    `<div class="top-controls"><button id="prevDayBtn" class="chip">‹</button><button id="diet-day" class="chip"></button><button id="nextDayBtn" class="chip">›</button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log Entry</button></div>`
   );
 } else {
   document.body.insertAdjacentHTML(
     "afterbegin",
-    `<h1>Calorie Tracker</h1><div class="top-controls"><button id="prevDayBtn" class="chip">‹</button><button id="diet-day" class="chip"></button><button id="nextDayBtn" class="chip">›</button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log Entry</button><button id="refreshSummaryBtn" class="secondary-action">↻</button></div>`
+    `<h1>Calorie Tracker</h1><div class="top-controls"><button id="prevDayBtn" class="chip">‹</button><button id="diet-day" class="chip"></button><button id="nextDayBtn" class="chip">›</button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log Entry</button></div>`
   );
 }
 
@@ -577,7 +627,7 @@ document.body.insertAdjacentHTML(
         <h2>Log Entry</h2>
         <p id="modal-date" class="subtle-text"></p>
         <p class="entry-hint">Example: 2200180 = 2200 kcal / 180g protein</p>
-        <p class="entry-hint">Use ‹ / › to change the day.</p>
+        <p class="entry-hint">Use ‹ / › or tap the date to change the day.</p>
         <input id="modal-entry" type="number" inputmode="numeric" pattern="[0-9]*" maxlength="7" placeholder="2200180" />
         <button id="modalSaveBtn" class="primary-action">Save</button>
         <button id="modalCancelBtn" class="secondary-action">Cancel</button>
@@ -598,9 +648,6 @@ document.getElementById("diet-day")?.addEventListener("click", editDietDay);
 document.getElementById("prevDayBtn")?.addEventListener("click", () => shiftDietDay(-1));
 document.getElementById("nextDayBtn")?.addEventListener("click", () => shiftDietDay(1));
 document.getElementById("quickEntryBtn")?.addEventListener("click", openQuickEntry);
-document.getElementById("refreshSummaryBtn")?.addEventListener("click", () => {
-  loadWeekSummary(false);
-});
 
 document.getElementById("modalSaveBtn")?.addEventListener("click", submitQuickEntry);
 document.getElementById("modalCancelBtn")?.addEventListener("click", closeQuickEntry);

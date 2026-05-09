@@ -114,7 +114,7 @@ button {
 
 .action-row {
   display: grid;
-  grid-template-columns: 1fr 56px;
+  grid-template-columns: 1fr;
   gap: 10px;
   margin-bottom: 18px;
 }
@@ -142,6 +142,16 @@ button {
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border);
+}
+
+.hidden-date-picker {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 #today-form {
@@ -324,6 +334,16 @@ button {
   font-weight: 700;
 }
 
+.daily-row.missing-day {
+  color: var(--muted);
+  opacity: 0.65;
+}
+
+.daily-row.missing-day span:nth-child(2),
+.daily-row.missing-day span:nth-child(3) {
+  font-weight: 650;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -390,7 +410,7 @@ button {
   border: 1px solid var(--border);
   border-radius: 18px;
   background: var(--surface);
-  opacity: 0.75;
+  opacity: 0.55;
 }
 
 #manual-entry summary {
