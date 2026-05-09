@@ -1,4 +1,4 @@
-const TDEE = 2856;
+const TDEE = 2705;
 const API_BASE = "https://calorie-tracker-omega-ten.vercel.app";
 
 function getDietDate() {
