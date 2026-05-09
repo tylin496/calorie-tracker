@@ -14,6 +14,11 @@ function getDietDate() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
+function getTodayDate() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
 function isValidDateString(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return false;
@@ -30,6 +35,10 @@ function isValidDateString(value) {
     date.getMonth() + 1 === month &&
     date.getDate() === day
   );
+}
+
+function isFutureDate(dateString) {
+  return new Date(`${dateString}T12:00:00`) > new Date(`${getTodayDate()}T12:00:00`);
 }
 
 function parseQuickEntry(value) {
@@ -166,7 +175,9 @@ function updateDietDayDisplay() {
 function shiftDietDay(days) {
   const date = new Date(`${currentDate}T12:00:00`);
   date.setDate(date.getDate() + days);
-
+  if (date > new Date(`${getTodayDate()}T12:00:00`)) {
+    return;
+  }
   currentDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
   todayLogged = false;
   todayEntry = null;
@@ -195,6 +206,10 @@ function setDietDay(nextDate) {
     alert("Invalid date");
     return;
   }
+  if (isFutureDate(nextDate)) {
+    alert("Cannot select future date");
+    return;
+  }
 
   currentDate = nextDate;
   todayLogged = false;
@@ -212,36 +227,76 @@ function openDietDayPicker() {
 }
 
 function editDietDay() {
-  const choice = window.prompt(
-    "Enter date (YYYY-MM-DD) or type: today / yesterday / tomorrow",
-    currentDate
-  );
+  let menu = document.getElementById("dietDayMenu");
 
-  if (!choice) return;
+  if (!menu) {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `
+      <div id="dietDayMenu" class="dropdown-menu" style="
+        position: fixed;
+        top: 60px;
+        right: 16px;
+        background: var(--surface, #222);
+        border: 1px solid var(--border, #333);
+        border-radius: 12px;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        z-index: 9999;
+      ">
+        <button data-action="today">Today</button>
+        <button data-action="yesterday">Yesterday</button>
+        <button data-action="tomorrow">Tomorrow</button>
+        <button data-action="custom">Pick Date</button>
+      </div>
+      `
+    );
 
-  const lower = choice.toLowerCase();
+    menu = document.getElementById("dietDayMenu");
 
-  if (lower === "today") {
-    resetDietDay();
-    return;
+    menu.addEventListener("click", (e) => {
+      const action = e.target?.dataset?.action;
+      if (!action) return;
+
+      if (action === "today") {
+        resetDietDay();
+      }
+
+      if (action === "yesterday") {
+        shiftDietDay(-1);
+      }
+
+      if (action === "tomorrow") {
+        shiftDietDay(1);
+      }
+
+      if (action === "custom") {
+        const input = window.prompt("Enter date (YYYY-MM-DD)", currentDate);
+        if (input && isValidDateString(input)) {
+          if (isFutureDate(input)) {
+            alert("Cannot select future date");
+            return;
+          }
+
+          setDietDay(input);
+        }
+      }
+
+      menu.remove();
+    });
+
+    // click outside to close
+    document.addEventListener("click", function closeMenu(ev) {
+      if (!menu.contains(ev.target) && ev.target.id !== "diet-day") {
+        menu.remove();
+        document.removeEventListener("click", closeMenu);
+      }
+    });
+  } else {
+    menu.remove();
   }
-
-  if (lower === "yesterday") {
-    shiftDietDay(-1);
-    return;
-  }
-
-  if (lower === "tomorrow") {
-    shiftDietDay(1);
-    return;
-  }
-
-  if (!isValidDateString(choice)) {
-    alert("Invalid date format");
-    return;
-  }
-
-  setDietDay(choice);
 }
 
 function updateTodayInputs(entry) {
@@ -329,6 +384,12 @@ function renderSummary(summary) {
     : calorieDeviation <= 200
     ? "Moderate"
     : "Volatile";
+  const stabilityClass =
+    calorieDeviation <= 100
+      ? "stability-stable"
+      : calorieDeviation <= 200
+      ? "stability-moderate"
+      : "stability-volatile";
   const FAT_TARGET_KG = 0.5;
   const fatProgress = Math.round(
     (Math.abs(summary.fatLossKg) / FAT_TARGET_KG) * 100
@@ -431,7 +492,7 @@ function renderSummary(summary) {
         </div>
         <div class="metric">
           <span class="metric-label">Consistency</span>
-          <span class="metric-value">${stabilityLabel}</span>
+          <span class="metric-value ${stabilityClass}">${stabilityLabel}</span>
         </div>
         <div class="metric">
           <span class="metric-label">Avg deficit/day</span>
