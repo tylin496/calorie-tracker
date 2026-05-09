@@ -179,30 +179,88 @@ function renderSummary(summary) {
   if (!el) return;
 
   const today = summary.todayEntry;
+  const isViewingToday = currentDate === getDietDate();
 
-  const todayCard = today
-    ? `
+  let todayHtml = "";
+
+  if (today) {
+    const todayDeficit = TDEE - today.calories;
+    const todayStatus = todayDeficit >= 0 ? "deficit" : "surplus";
+    const loggedStatus = "Logged";
+
+    todayHtml = `
       <section class="card today-card logged">
-        <h2>Today</h2>
-        <div>Calories: ${today.calories}</div>
-        <div>Protein: ${today.protein}g</div>
-      </section>
-    `
-    : `
-      <section class="card today-card">
-        <h2>Today</h2>
-        <p>No entry</p>
+        <div class="card-header">
+          <h2>${isViewingToday ? "Today" : "Selected Day"}</h2>
+
+          <div class="pill-row">
+            <span class="status-pill logged">${loggedStatus}</span>
+            <span class="status-pill ${todayStatus}">
+              ${todayStatus}
+            </span>
+          </div>
+        </div>
+
+        ${isViewingToday ? "" : `<p class="warning-text">Viewing historical day: ${currentDate}</p>`}
+
+        <div class="metric-grid">
+          <div class="metric">
+            <span class="metric-label">Calories</span>
+            <span class="metric-value">${today.calories}</span>
+          </div>
+
+          <div class="metric">
+            <span class="metric-label">Protein</span>
+            <span class="metric-value">${today.protein}g</span>
+          </div>
+
+          <div class="metric">
+            <span class="metric-label">Deficit</span>
+            <span class="metric-value">${todayDeficit >= 0 ? "-" : "+"}${Math.abs(todayDeficit)} kcal</span>
+          </div>
+        </div>
       </section>
     `;
+  } else {
+    todayHtml = `
+      <section class="card today-card">
+        <div class="card-header">
+          <h2>${isViewingToday ? "Today" : "Selected Day"}</h2>
+          <span class="status-pill missing">Missing</span>
+        </div>
+
+        ${isViewingToday ? "" : `<p class="warning-text">Viewing historical day: ${currentDate}</p>`}
+
+        <p class="empty-state">No entry for this day yet.</p>
+      </section>
+    `;
+  }
+
+  const weekHtml = `
+    <section class="card week-card">
+      <div class="card-header">
+        <h2>This Week</h2>
+      </div>
+
+      <div class="metric-grid">
+        <div class="metric">
+          <span class="metric-label">Avg kcal</span>
+          <span class="metric-value">${summary.averageCalories}</span>
+        </div>
+
+        <div class="metric">
+          <span class="metric-label">Fat loss</span>
+          <span class="metric-value">${summary.fatLossKg.toFixed(2)} kg</span>
+        </div>
+      </div>
+
+      <p class="subtle-text">Consistency: ${summary.consistency || "—"}</p>
+    </section>
+  `;
 
   el.innerHTML = `
-    ${todayCard}
-
-    <section class="card week-card">
-      <h2>Week</h2>
-      <div>Avg: ${summary.averageCalories} kcal</div>
-      <div>Fat loss: ${summary.fatLossKg.toFixed(2)} kg</div>
-    </section>
+    ${todayHtml}
+    ${weekHtml}
   `;
 }
 
