@@ -1,5 +1,6 @@
 let TDEE = Number(localStorage.getItem("tdee")) || 2705;
 const API_BASE = "https://calorie-tracker-omega-ten.vercel.app";
+let todayLogged = false;
 
 function getDietDate() {
   const now = new Date();
@@ -43,9 +44,8 @@ function editTDEE() {
 
   TDEE = parsedValue;
   localStorage.setItem("tdee", TDEE);
-  localStorage.setItem("tdee_default", "2705");
   updateTDEEDisplay();
-  loadWeekSummary();
+  loadWeekSummary(false);
 }
 
 function renderSummary(summary) {
@@ -74,11 +74,11 @@ function renderSummary(summary) {
   `;
 }
 
-async function loadWeekSummary() {
+async function loadWeekSummary(shouldPromptIfMissing = false) {
   setStatus("Loading weekly summary...");
 
   try {
-    const response = await fetch(`${API_BASE}/api/save?today=${today}`);
+    const response = await fetch(`${API_BASE}/api/summary?today=${today}&tdee=${TDEE}`);
     const result = await response.json();
 
     if (!response.ok) {
@@ -87,8 +87,13 @@ async function loadWeekSummary() {
       return;
     }
 
+    todayLogged = Boolean(result.summary.todayLogged);
     renderSummary(result.summary);
     setStatus("Ready.");
+
+    if (shouldPromptIfMissing && !todayLogged) {
+      openQuickEntry();
+    }
   } catch (error) {
     console.error(error);
     setStatus(`Summary network error: ${error.message}`);
@@ -107,7 +112,8 @@ async function saveEntry(calories, protein) {
       body: JSON.stringify({
         date: today,
         calories,
-        protein
+        protein,
+        tdee: TDEE
       })
     });
 
@@ -123,12 +129,13 @@ async function saveEntry(calories, protein) {
     const deficit = TDEE - calories;
     const fatLoss = deficit / 7700;
 
-    renderSummary(result.summary);
     setStatus(result.mode === "updated" ? "Updated today's entry." : "Saved to Notion.");
 
     alert(
       `${result.mode === "updated" ? "Updated" : "Saved"}\nDeficit: ${deficit}\nFat: ${fatLoss.toFixed(2)}kg`
     );
+
+    await loadWeekSummary(false);
   } catch (error) {
     console.error(error);
     setStatus(`Network error: ${error.message}`);
@@ -205,8 +212,4 @@ saveButton.addEventListener("click", async () => {
   await saveEntry(calories, protein);
 });
 
-loadWeekSummary();
-
-setTimeout(() => {
-  openQuickEntry();
-}, 500);
+loadWeekSummary(true);
