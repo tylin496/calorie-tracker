@@ -173,6 +173,24 @@ async function deleteEntry() {
 /* -----------------------------
    SUMMARY RENDER (SIMPLIFIED UX)
 ----------------------------- */
+function calculateRecovery(today, summary) {
+  if (!today) return 0;
+
+  const calorieScore =
+    Math.max(0, 1 - Math.abs(TDEE - today.calories) / TDEE) * 40;
+
+  const proteinScore =
+    Math.min(today.protein / 170, 1) * 30;
+
+  const consistencyScore =
+    summary.consistency === "Stable"
+      ? 30
+      : summary.consistency === "Moderate"
+      ? 20
+      : 10;
+
+  return Math.round(calorieScore + proteinScore + consistencyScore);
+}
 
 function renderSummary(summary) {
   const el = document.getElementById("weekly-summary");
@@ -187,13 +205,15 @@ function renderSummary(summary) {
     const todayDeficit = TDEE - today.calories;
     const statusLabel = todayDeficit >= 0 ? "On track" : "Off track";
     const insightLabel =
-      todayDeficit >= 0
-        ? "Good control today"
-        : "Over target today";
+      todayDeficit >= 0 ? "Good control today" : "Over target today";
 
-    const todayDeficit = TDEE - today.calories;
-    const todayStatus = todayDeficit >= 0 ? "deficit" : "surplus";
-    const loggedStatus = "Logged";
+    const recovery = calculateRecovery(today, summary);
+    const recoveryLabel =
+      recovery >= 80
+        ? "High recovery"
+        : recovery >= 50
+        ? "Moderate recovery"
+        : "Low recovery";
 
     todayHtml = `
       <section class="card today-card logged">
@@ -201,9 +221,9 @@ function renderSummary(summary) {
           <h2>${isViewingToday ? "Today" : "Selected Day"}</h2>
 
           <div class="pill-row">
-            <span class="status-pill logged">${loggedStatus}</span>
-            <span class="status-pill ${todayStatus}">
-              ${todayStatus}
+            <span class="status-pill logged">Logged</span>
+            <span class="status-pill ${todayDeficit >= 0 ? "deficit" : "surplus"}">
+              ${todayDeficit >= 0 ? "deficit" : "surplus"}
             </span>
           </div>
         </div>
@@ -223,10 +243,17 @@ function renderSummary(summary) {
 
           <div class="metric">
             <span class="metric-label">Deficit</span>
-            <span class="metric-value">${todayDeficit >= 0 ? "-" : "+"}${Math.abs(todayDeficit)} kcal</span>
+            <span class="metric-value">
+              ${todayDeficit >= 0 ? "-" : "+"}${Math.abs(todayDeficit)} kcal
+            </span>
           </div>
         </div>
+
         <div class="subtle-text" style="margin-top:10px;">
+          Recovery: ${recovery} / 100 · ${recoveryLabel}
+        </div>
+
+        <div class="subtle-text">
           ${statusLabel} · ${insightLabel}
         </div>
       </section>
