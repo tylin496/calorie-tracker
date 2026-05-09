@@ -1,36 +1,26 @@
 const TDEE = 2856;
-
+const API_BASE = "https://calorie-tracker-68955s4cu-tylin.vercel.app";
 
 function getDietDate() {
-
   const now = new Date();
 
   if (now.getHours() < 3) {
-    now.setDate(
-      now.getDate() - 1
-    );
+    now.setDate(now.getDate() - 1);
   }
 
-  return now
-    .toISOString()
-    .slice(0, 10);
-
+  return now.toISOString().slice(0, 10);
 }
 
-
 const today = getDietDate();
-
 
 document.body.insertAdjacentHTML(
   "afterbegin",
   `<p>Diet Day: ${today}</p>`
 );
 
-
 document
   .getElementById("saveBtn")
-  .addEventListener("click", () => {
-
+  .addEventListener("click", async () => {
     const calories = Number(
       document.getElementById("calories").value
     );
@@ -39,22 +29,27 @@ document
       document.getElementById("protein").value
     );
 
-    const deficit =
-      TDEE - calories;
-
-    const fatLoss =
-      deficit / 7700;
-
-    console.log({
-      date: today,
-      calories,
-      protein,
-      deficit,
-      fatLoss
+    const response = await fetch(`${API_BASE}/api/save`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        date: today,
+        calories,
+        protein
+      })
     });
 
-    alert(
-      `saved\nDeficit: ${deficit}\nFat: ${fatLoss.toFixed(2)}kg`
-    );
+    if (!response.ok) {
+      alert("Save failed");
+      return;
+    }
 
-});
+    const deficit = TDEE - calories;
+    const fatLoss = deficit / 7700;
+
+    alert(
+      `Saved to Notion\nDeficit: ${deficit}\nFat: ${fatLoss.toFixed(2)}kg`
+    );
+  });
