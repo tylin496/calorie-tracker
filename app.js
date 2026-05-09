@@ -226,6 +226,9 @@ function renderSummary(summary) {
   const todayDeficit = todayEntry ? (todayEntry.tdee || TDEE) - todayEntry.calories : 0;
   const todayStatus = getDeficitLabel(todayDeficit);
   const compliance = Math.round((summary.count / 7) * 100);
+  const averageDailyDeficit = summary.count ? Math.round(summary.totalDeficit / summary.count) : 0;
+  const fatProgress = Math.min(Math.round(Math.abs(summary.fatLossKg) * 100), 100);
+  const fatProgressLabel = summary.fatLossKg >= 0 ? "Fat loss progress" : "Surplus progress";
   const weekRange = formatShortDateRange(summary.weekStart, summary.weekEnd);
   const isViewingToday = currentDate === getDietDate();
   const loggedStatus = todayEntry ? "Logged" : "Missing";
@@ -295,11 +298,19 @@ function renderSummary(summary) {
       </div>
 
       <div class="progress-row">
-        <span>${summary.count} / 7 days</span>
-        <span>${compliance}%</span>
+        <span>Compliance</span>
+        <span>${summary.count} / 7 days · ${compliance}%</span>
       </div>
       <div class="progress-track">
         <div class="progress-fill" style="width: ${Math.min(compliance, 100)}%"></div>
+      </div>
+
+      <div class="progress-row">
+        <span>${fatProgressLabel}</span>
+        <span>${Math.abs(summary.fatLossKg).toFixed(2)} / 1.00 kg · ${fatProgress}%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill ${summary.fatLossKg >= 0 ? "deficit-fill" : "surplus-fill"}" style="width: ${fatProgress}%"></div>
       </div>
 
       <div class="metric-grid">
@@ -312,11 +323,11 @@ function renderSummary(summary) {
           <span class="metric-value">${summary.averageProtein}g</span>
         </div>
         <div class="metric">
-          <span class="metric-label">Weekly deficit</span>
-          <span class="metric-value">${formatSignedKcal(summary.totalDeficit)}</span>
+          <span class="metric-label">Avg deficit/day</span>
+          <span class="metric-value">${formatSignedKcal(averageDailyDeficit)}</span>
         </div>
         <div class="metric">
-          <span class="metric-label">Fat</span>
+          <span class="metric-label">Weekly fat</span>
           <span class="metric-value">${summary.fatLossKg.toFixed(2)}kg</span>
         </div>
       </div>
@@ -503,7 +514,8 @@ document.body.insertAdjacentHTML(
       <div class="modal-card">
         <h2>Log Entry</h2>
         <p id="modal-date" class="subtle-text"></p>
-        <input id="modal-entry" type="number" inputmode="numeric" placeholder="CCCCPPP, e.g. 2200180" />
+        <p class="entry-hint">Example: 2200180 = 2200 kcal / 180g protein</p>
+        <input id="modal-entry" type="number" inputmode="numeric" pattern="[0-9]*" maxlength="7" placeholder="2200180" />
         <button id="modalSaveBtn" class="primary-action">Save</button>
         <button id="modalCancelBtn" class="secondary-action">Cancel</button>
       </div>
