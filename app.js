@@ -1,5 +1,5 @@
 const TDEE = 2856;
-const API_BASE = "https://calorie-tracker-tylin.vercel.app";
+const API_BASE = "https://calorie-tracker-omega-ten.vercel.app";
 
 function getDietDate() {
   const now = new Date();
