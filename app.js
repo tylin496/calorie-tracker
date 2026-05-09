@@ -1,18 +1,15 @@
 let TDEE = Number(localStorage.getItem("tdee")) || 2705;
+const PROTEIN_TARGET = Number(localStorage.getItem("proteinTarget")) || 170;
 const API_BASE = "https://calorie-tracker-omega-ten.vercel.app";
 
 let todayLogged = false;
 let todayEntry = null;
 let currentDate = getDietDate();
-
-/* -----------------------------
-   DATE SYSTEM
------------------------------ */
+let toastTimer = null;
 
 function getDietDate() {
   const now = new Date();
   if (now.getHours() < 3) now.setDate(now.getDate() - 1);
-
   return formatDate(now);
 }
 
@@ -25,52 +22,96 @@ function formatDate(date) {
 }
 
 function isValidDateString(value) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
 function isFutureDate(dateString) {
   return new Date(`${dateString}T12:00:00`) > new Date(`${getTodayDate()}T12:00:00`);
 }
 
-/* -----------------------------
-   STATE MODEL
------------------------------ */
-
-function getDayState() {
-  if (todayLogged && todayEntry) return "committed";
-  if (todayLogged) return "logged";
-  return "draft";
-}
-
-/* -----------------------------
-   UI HELPERS
------------------------------ */
-
 function setStatus(msg) {
-  document.getElementById("status").textContent = msg;
+  const el = document.getElementById("status");
+  if (el) el.textContent = msg;
 }
 
-function updateQuickEntryButton() {
-  const btn = document.getElementById("quickEntryBtn");
-  if (!btn) return;
+function showToast(message) {
+  let toast = document.querySelector(".toast");
 
-  btn.textContent = todayLogged ? "Edit Entry" : "Commit Entry";
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.className = "toast";
+    document.body.appendChild(toast);
+  }
+
+  toast.textContent = message;
+  toast.classList.add("visible");
+
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("visible");
+  }, 2200);
 }
 
-/* -----------------------------
-   DATE CONTROL (UX CLEAN)
------------------------------ */
+function updateDietDayDisplay() {
+  const btn = document.getElementById("diet-day");
+  const nextBtn = document.getElementById("nextDayBtn");
+
+  if (btn) {
+    const label = currentDate === getDietDate() ? "Today" : currentDate;
+    btn.textContent = label;
+    btn.setAttribute("aria-label", `Selected day ${currentDate}`);
+  }
+
+  if (nextBtn) {
+    nextBtn.disabled = currentDate === getTodayDate();
+  }
+}
+
+function updateEntryForm() {
+  const calories = document.getElementById("calories");
+  const protein = document.getElementById("protein");
+  const deleteBtn = document.getElementById("deleteBtn");
+  const saveBtn = document.getElementById("saveBtn");
+  const isViewingToday = currentDate === getDietDate();
+
+  if (calories) calories.value = todayEntry ? todayEntry.calories : "";
+  if (protein) protein.value = todayEntry ? todayEntry.protein : "";
+  if (deleteBtn) deleteBtn.hidden = !todayEntry;
+  if (saveBtn) {
+    if (todayEntry) {
+      saveBtn.textContent = "Update Entry";
+    } else {
+      saveBtn.textContent = isViewingToday ? "Commit Today" : `Save ${currentDate}`;
+    }
+  }
+}
+
+function setLoading(isLoading) {
+  const saveBtn = document.getElementById("saveBtn");
+  const deleteBtn = document.getElementById("deleteBtn");
+
+  if (saveBtn) saveBtn.disabled = isLoading;
+  if (deleteBtn) deleteBtn.disabled = isLoading;
+}
 
 function editDietDay() {
   const input = document.createElement("input");
   input.type = "date";
   input.max = getTodayDate();
   input.value = currentDate;
-
   input.style.position = "fixed";
   input.style.opacity = "0";
 
   document.body.appendChild(input);
+
+  const removeInput = () => {
+    if (input.parentNode) input.parentNode.removeChild(input);
+  };
 
   input.addEventListener("change", () => {
     const value = input.value;
@@ -81,7 +122,11 @@ function editDietDay() {
       alert("Invalid or future date not allowed");
     }
 
-    document.body.removeChild(input);
+    removeInput();
+  });
+
+  input.addEventListener("blur", () => {
+    setTimeout(removeInput, 100);
   });
 
   input.showPicker?.();
@@ -93,9 +138,9 @@ function setDietDay(date) {
   todayLogged = false;
   todayEntry = null;
 
-  updateQuickEntryButton();
   updateDietDayDisplay();
-  loadWeekSummary(false);
+  updateEntryForm();
+  loadWeekSummary();
 }
 
 function shiftDietDay(days) {
@@ -107,171 +152,244 @@ function shiftDietDay(days) {
   setDietDay(formatDate(d));
 }
 
-/* -----------------------------
-   SAVE / DELETE (CORE UX)
------------------------------ */
+function getFormValues() {
+  const calories = Number(document.getElementById("calories")?.value);
+  const protein = Number(document.getElementById("protein")?.value);
 
-async function saveEntry(calories, protein) {
-  document.getElementById("calories")?.blur();
-  document.getElementById("protein")?.blur();
+  if (!Number.isFinite(calories) || calories < 0) {
+    throw new Error("Calories must be a valid number");
+  }
 
-  setStatus("Saving...");
+  if (!Number.isFinite(protein) || protein < 0) {
+    throw new Error("Protein must be a valid number");
+  }
 
-  const res = await fetch(`${API_BASE}/api/save`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      date: currentDate,
-      calories,
-      protein,
-      tdee: TDEE
-    })
-  });
+  return {
+    calories,
+    protein
+  };
+}
 
-  const result = await res.json();
+async function fetchJson(url, options) {
+  const res = await fetch(url, options);
+  let data = null;
+
+  try {
+    data = await res.json();
+  } catch {
+    data = {};
+  }
 
   if (!res.ok) {
+    throw new Error(data.error || data.detail?.message || "Request failed");
+  }
+
+  return data;
+}
+
+async function saveEntry(calories, protein) {
+  setLoading(true);
+  setStatus("Saving...");
+
+  try {
+    await fetchJson(`${API_BASE}/api/save`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date: currentDate,
+        calories,
+        protein,
+        tdee: TDEE
+      })
+    });
+
+    todayLogged = true;
+    setStatus(`Saved · ${TDEE - calories} kcal`);
+    showToast(`Saved · ${TDEE - calories} kcal`);
+    await loadWeekSummary("Entry saved");
+  } catch (error) {
     setStatus("Save failed");
-    alert("Save failed");
-    return;
+    alert(error.message || "Save failed");
+  } finally {
+    setLoading(false);
   }
-
-  todayLogged = true;
-
-  setStatus(`Daily completed ✓ · ${TDEE - calories} kcal`);
-
-  const card = document.querySelector(".today-card");
-  if (card) {
-    card.classList.add("logged");
-    setTimeout(() => card.classList.remove("logged"), 600);
-  }
-
-  showToast(`Saved • ${TDEE - calories} kcal`);
-
-  await loadWeekSummary(false);
 }
 
 async function deleteEntry() {
-  if (!confirm("Delete this entry?")) return;
+  if (!todayEntry || !confirm("Delete this entry?")) return;
 
+  setLoading(true);
   setStatus("Deleting...");
 
-  await fetch(`${API_BASE}/api/delete`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ date: currentDate })
-  });
+  try {
+    await fetchJson(`${API_BASE}/api/delete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: currentDate })
+    });
 
-  todayLogged = false;
-  todayEntry = null;
-
-  document.getElementById("calories").value = "";
-  document.getElementById("protein").value = "";
-
-  setStatus("Deleted");
-
-  await loadWeekSummary(false);
+    todayLogged = false;
+    todayEntry = null;
+    updateEntryForm();
+    setStatus("Deleted");
+    showToast("Entry deleted");
+    await loadWeekSummary("Entry deleted");
+  } catch (error) {
+    setStatus("Delete failed");
+    alert(error.message || "Delete failed");
+  } finally {
+    setLoading(false);
+  }
 }
 
-/* -----------------------------
-   SUMMARY RENDER (SIMPLIFIED UX)
------------------------------ */
 function calculateRecovery(today, summary) {
   if (!today) return 0;
 
-  const calorieScore =
-    Math.max(0, 1 - Math.abs(TDEE - today.calories) / TDEE) * 40;
-
-  const proteinScore =
-    Math.min(today.protein / 170, 1) * 30;
-
-  const consistencyScore =
-    summary.consistency === "Stable"
-      ? 30
-      : summary.consistency === "Moderate"
-      ? 20
-      : 10;
+  const calorieScore = Math.max(0, 1 - Math.abs(TDEE - today.calories) / TDEE) * 40;
+  const proteinScore = Math.min(today.protein / PROTEIN_TARGET, 1) * 30;
+  const consistencyScore = summary.consistency === "Stable" ? 30 : summary.consistency === "Moderate" ? 20 : 10;
 
   return Math.round(calorieScore + proteinScore + consistencyScore);
 }
 
+function getConsistency(entries) {
+  if (entries.length < 3) return "Building";
+
+  const deficits = entries.map((entry) => (entry.tdee || TDEE) - entry.calories);
+  const average = deficits.reduce((sum, value) => sum + value, 0) / deficits.length;
+  const variance = deficits.reduce((sum, value) => sum + Math.abs(value - average), 0) / deficits.length;
+
+  if (variance < 250) return "Stable";
+  if (variance < 500) return "Moderate";
+  return "Variable";
+}
+
+function getDayLabel() {
+  return currentDate === getDietDate() ? "Today" : `Editing ${currentDate}`;
+}
+
+function getCalorieResult(calories) {
+  const deficit = TDEE - calories;
+
+  return {
+    deficit,
+    tone: deficit >= 0 ? "deficit" : "surplus",
+    status: deficit >= 0 ? "On track" : "Over target",
+    detail: deficit >= 0 ? `${deficit} kcal under TDEE` : `${Math.abs(deficit)} kcal above TDEE`
+  };
+}
+
+function getProteinResult(protein) {
+  const gap = Math.max(PROTEIN_TARGET - protein, 0);
+
+  if (gap === 0) {
+    return {
+      status: "Protein target hit",
+      detail: `${protein}g / ${PROTEIN_TARGET}g`
+    };
+  }
+
+  return {
+    status: gap <= 10 ? "Almost there" : "Protein short",
+    detail: `${protein}g / ${PROTEIN_TARGET}g · ${gap}g short`
+  };
+}
+
+function renderTrendBars(entries) {
+  const weekEntries = entries || [];
+  const maxCalories = Math.max(TDEE, ...weekEntries.map((entry) => entry.calories || 0));
+
+  if (!weekEntries.length) {
+    return `<p class="empty-state">No weekly trend yet.</p>`;
+  }
+
+  return `
+    <div class="trend-bars" aria-label="Weekly calorie trend">
+      ${weekEntries
+        .map((entry) => {
+          const height = Math.max(18, Math.round(((entry.calories || 0) / maxCalories) * 76));
+          const isSelected = entry.date === currentDate;
+          const day = new Date(`${entry.date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short" });
+
+          return `
+            <div class="trend-day ${isSelected ? "selected" : ""}">
+              <div class="trend-bar" style="height:${height}px" title="${entry.date}: ${entry.calories} kcal"></div>
+              <span>${day}</span>
+            </div>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
 function renderSummary(summary) {
-  const el = document.getElementById("weekly-summary");
-  if (!el) return;
+  const dailyEl = document.getElementById("daily-result");
+  const weeklyEl = document.getElementById("weekly-summary");
+  if (!dailyEl || !weeklyEl) return;
 
   const today = summary.todayEntry;
-  const isViewingToday = currentDate === getDietDate();
-
-  let todayHtml = "";
+  const consistency = summary.consistency || getConsistency(summary.entries || []);
+  let dailyHtml = "";
 
   if (today) {
-    const todayDeficit = TDEE - today.calories;
-    const statusLabel = todayDeficit >= 0 ? "On track" : "Off track";
-    const insightLabel =
-      todayDeficit >= 0 ? "Good control today" : "Over target today";
+    const calorieResult = getCalorieResult(today.calories);
+    const proteinResult = getProteinResult(today.protein);
+    const recovery = calculateRecovery(today, { ...summary, consistency });
+    const recoveryLabel = recovery >= 80 ? "High recovery" : recovery >= 50 ? "Moderate recovery" : "Low recovery";
 
-    const recovery = calculateRecovery(today, summary);
-    const recoveryLabel =
-      recovery >= 80
-        ? "High recovery"
-        : recovery >= 50
-        ? "Moderate recovery"
-        : "Low recovery";
+    dailyHtml = `
+      <section class="daily-card ${calorieResult.tone}">
+        <div class="daily-card-top">
+          <span class="day-label">${getDayLabel()}</span>
+          <span class="status-pill logged">Logged</span>
+        </div>
 
-    todayHtml = `
-      <section class="card today-card logged">
-        <div class="card-header">
-          <h2>${isViewingToday ? "Today" : "Selected Day"}</h2>
-
-          <div class="pill-row">
-            <span class="status-pill logged">Logged</span>
-            <span class="status-pill ${todayDeficit >= 0 ? "deficit" : "surplus"}">
-              ${todayDeficit >= 0 ? "deficit" : "surplus"}
-            </span>
+        <div class="hero-result">
+          <div>
+            <span class="hero-value">${today.calories.toLocaleString()}</span>
+            <span class="hero-unit">kcal</span>
+          </div>
+          <div>
+            <span class="hero-value secondary">${today.protein}</span>
+            <span class="hero-unit">g protein</span>
           </div>
         </div>
 
-        ${isViewingToday ? "" : `<p class="warning-text">Viewing historical day: ${currentDate}</p>`}
-
-        <div class="metric-grid">
-          <div class="metric">
-            <span class="metric-label">Calories</span>
-            <span class="metric-value">${today.calories}</span>
+        <div class="settlement-lines">
+          <div>
+            <strong>${calorieResult.status}</strong>
+            <span>${calorieResult.detail}</span>
           </div>
-
-          <div class="metric">
-            <span class="metric-label">Protein</span>
-            <span class="metric-value">${today.protein}g</span>
+          <div>
+            <strong>${proteinResult.status}</strong>
+            <span>${proteinResult.detail}</span>
           </div>
-
-          <div class="metric">
-            <span class="metric-label">Deficit</span>
-            <span class="metric-value">
-              ${todayDeficit >= 0 ? "-" : "+"}${Math.abs(todayDeficit)} kcal
-            </span>
+          <div>
+            <strong>${recoveryLabel}</strong>
+            <span>Recovery ${recovery} / 100</span>
           </div>
-        </div>
-
-        <div class="subtle-text" style="margin-top:10px;">
-          Recovery: ${recovery} / 100 · ${recoveryLabel}
-        </div>
-
-        <div class="subtle-text">
-          ${statusLabel} · ${insightLabel}
         </div>
       </section>
     `;
   } else {
-    todayHtml = `
-      <section class="card today-card">
-        <div class="card-header">
-          <h2>${isViewingToday ? "Today" : "Selected Day"}</h2>
+    dailyHtml = `
+      <section class="daily-card empty">
+        <div class="daily-card-top">
+          <span class="day-label">${getDayLabel()}</span>
           <span class="status-pill missing">Missing</span>
         </div>
-
-        ${isViewingToday ? "" : `<p class="warning-text">Viewing historical day: ${currentDate}</p>`}
-
-        <p class="empty-state">No entry for this day yet.</p>
+        <div class="hero-result">
+          <div>
+            <span class="hero-value">--</span>
+            <span class="hero-unit">kcal</span>
+          </div>
+          <div>
+            <span class="hero-value secondary">--</span>
+            <span class="hero-unit">g protein</span>
+          </div>
+        </div>
+        <p class="empty-state">Settle this day by entering calories and protein below.</p>
       </section>
     `;
   }
@@ -280,103 +398,76 @@ function renderSummary(summary) {
     <section class="card week-card">
       <div class="card-header">
         <h2>This Week</h2>
+        <span class="status-pill logged">${summary.count || 0} days</span>
       </div>
-
-      <div class="metric-grid">
+      <div class="week-snapshot">
         <div class="metric">
           <span class="metric-label">Avg kcal</span>
-          <span class="metric-value">${summary.averageCalories}</span>
+          <span class="metric-value">${summary.averageCalories || 0}</span>
         </div>
-
+        <div class="metric">
+          <span class="metric-label">Avg protein</span>
+          <span class="metric-value">${summary.averageProtein || 0}g</span>
+        </div>
         <div class="metric">
           <span class="metric-label">Fat loss</span>
-          <span class="metric-value">${summary.fatLossKg.toFixed(2)} kg</span>
+          <span class="metric-value">${Number(summary.fatLossKg || 0).toFixed(2)} kg</span>
         </div>
       </div>
-
-      <p class="subtle-text">Weekly pattern: ${summary.consistency || "—"}</p>
+      ${renderTrendBars(summary.entries || [])}
+      <p class="subtle-text" style="margin-top:10px;">Weekly pattern: ${consistency}</p>
     </section>
   `;
 
-  el.innerHTML = `
-    ${todayHtml}
-    ${weekHtml}
-  `;
+  dailyEl.innerHTML = dailyHtml;
+  weeklyEl.innerHTML = weekHtml;
 }
 
-/* -----------------------------
-   LOAD DATA
------------------------------ */
+async function loadWeekSummary(successMessage) {
+  updateDietDayDisplay();
+  setStatus("Loading...");
 
-async function loadWeekSummary() {
-  const res = await fetch(`${API_BASE}/api/summary?today=${currentDate}&tdee=${TDEE}`);
-  const data = await res.json();
+  try {
+    const data = await fetchJson(`${API_BASE}/api/summary?today=${encodeURIComponent(currentDate)}&tdee=${encodeURIComponent(TDEE)}`);
 
-  todayLogged = !!data.summary.todayLogged;
-  todayEntry = data.summary.todayEntry;
+    todayLogged = Boolean(data.summary.todayLogged);
+    todayEntry = data.summary.todayEntry;
 
-  updateQuickEntryButton();
-  renderSummary(data.summary);
+    updateEntryForm();
+    renderSummary(data.summary);
+    setStatus(successMessage || "");
+  } catch (error) {
+    setStatus("Could not load summary");
+    document.getElementById("daily-result").innerHTML = `
+      <section class="daily-card empty">
+        <h2>Unable to load data</h2>
+        <p class="empty-state">${error.message || "Please try again later."}</p>
+      </section>
+    `;
+    document.getElementById("weekly-summary").innerHTML = "";
+  }
 }
 
-/* -----------------------------
-   AUTO SUBMIT SETUP
------------------------------ */
-function setupAutoSubmit() {
-  const cal = document.getElementById("calories");
-  const pro = document.getElementById("protein");
+function handleFormSubmit(event) {
+  event.preventDefault();
 
-  if (!cal || !pro) return;
-
-  // avoid duplicate listeners
-  if (cal.dataset.autoBound) return;
-  cal.dataset.autoBound = "1";
-
-  cal.addEventListener("input", () => {
-    if (cal.value.length >= 4) {
-      pro.focus();
-    }
-  });
-
-  pro.addEventListener("input", () => {
-    if (pro.value.length >= 3) {
-      const c = Number(cal.value);
-      const p = Number(pro.value);
-
-      if (!isNaN(c) && !isNaN(p)) {
-        saveEntry(c, p);
-      }
-    }
-  });
+  try {
+    const { calories, protein } = getFormValues();
+    saveEntry(calories, protein);
+  } catch (error) {
+    setStatus(error.message);
+  }
 }
 
-/* -----------------------------
-   INIT
------------------------------ */
+function initApp() {
+  document.getElementById("today-form")?.addEventListener("submit", handleFormSubmit);
+  document.getElementById("diet-day")?.addEventListener("click", editDietDay);
+  document.getElementById("prevDayBtn")?.addEventListener("click", () => shiftDietDay(-1));
+  document.getElementById("nextDayBtn")?.addEventListener("click", () => shiftDietDay(1));
+  document.getElementById("deleteBtn")?.addEventListener("click", deleteEntry);
 
-document.getElementById("diet-day")?.addEventListener("click", editDietDay);
-document.getElementById("prevDayBtn")?.addEventListener("click", () => shiftDietDay(-1));
-document.getElementById("nextDayBtn")?.addEventListener("click", () => shiftDietDay(1));
-
-document.getElementById("quickEntryBtn")?.addEventListener("click", openQuickEntry);
-
-function openQuickEntry() {
-  const cal = document.getElementById("calories");
-  const pro = document.getElementById("protein");
-
-  if (!cal || !pro) return;
-
-  // reset inputs for fast entry
-  cal.value = "";
-  pro.value = "";
-
-  // ensure auto-submit is active
-  setupAutoSubmit();
-
-  // immediately focus calories input (UX: instant entry mode)
-  cal.focus();
-  cal.select();
+  updateDietDayDisplay();
+  loadWeekSummary();
 }
 
-/* boot */
-loadWeekSummary();
+document.addEventListener("DOMContentLoaded", initApp);

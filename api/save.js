@@ -80,6 +80,20 @@ function buildProperties(date, calories, protein, tdee) {
   };
 }
 
+function isValidDateString(value) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
+
+function toValidNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
 async function updateEntry(pageId, properties) {
   const response = await notionFetch(
     `/pages/${pageId}`,
@@ -143,11 +157,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { date, calories, protein, tdee } = req.body;
+    const { date } = req.body;
+    const calories = toValidNumber(req.body.calories);
+    const protein = toValidNumber(req.body.protein);
+    const tdee = toValidNumber(req.body.tdee) || 2705;
 
-    if (!date || !calories || !protein) {
+    if (!isValidDateString(date) || calories === null || protein === null) {
       return res.status(400).json({
-        error: "Missing date, calories, or protein"
+        error: "Invalid date, calories, or protein"
       });
     }
 
