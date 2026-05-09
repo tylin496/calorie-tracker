@@ -208,35 +208,40 @@ function setDietDay(nextDate) {
 }
 
 function openDietDayPicker() {
-  let datePicker = document.getElementById("dietDayPicker");
-
-  if (!datePicker) {
-    document.body.insertAdjacentHTML(
-      "beforeend",
-      `<input id="dietDayPicker" type="date" class="hidden-date-picker" />`
-    );
-
-    datePicker = document.getElementById("dietDayPicker");
-
-    datePicker.addEventListener("change", () => {
-      if (datePicker.value) {
-        setDietDay(datePicker.value);
-      }
-    });
-  }
-
-  datePicker.value = currentDate;
-
-  if (typeof datePicker.showPicker === "function") {
-    datePicker.showPicker();
-  } else {
-    datePicker.click();
-    datePicker.focus();
-  }
+  editDietDay();
 }
 
 function editDietDay() {
-  openDietDayPicker();
+  const choice = window.prompt(
+    "Enter date (YYYY-MM-DD) or type: today / yesterday / tomorrow",
+    currentDate
+  );
+
+  if (!choice) return;
+
+  const lower = choice.toLowerCase();
+
+  if (lower === "today") {
+    resetDietDay();
+    return;
+  }
+
+  if (lower === "yesterday") {
+    shiftDietDay(-1);
+    return;
+  }
+
+  if (lower === "tomorrow") {
+    shiftDietDay(1);
+    return;
+  }
+
+  if (!isValidDateString(choice)) {
+    alert("Invalid date format");
+    return;
+  }
+
+  setDietDay(choice);
 }
 
 function updateTodayInputs(entry) {
@@ -325,9 +330,8 @@ function renderSummary(summary) {
     ? "Moderate"
     : "Volatile";
   const FAT_TARGET_KG = 0.5;
-  const fatProgress = Math.min(
-    Math.round((Math.abs(summary.fatLossKg) / FAT_TARGET_KG) * 100),
-    100
+  const fatProgress = Math.round(
+    (Math.abs(summary.fatLossKg) / FAT_TARGET_KG) * 100
   );
   const fatProgressLabel = "Weekly target";
   const weekRange = formatShortDateRange(summary.weekStart, summary.weekEnd);
@@ -417,7 +421,7 @@ function renderSummary(summary) {
         <span>${Math.abs(summary.fatLossKg).toFixed(2)} / ${FAT_TARGET_KG.toFixed(2)} kg · ${fatProgress}%</span>
       </div>
       <div class="progress-track">
-        <div class="progress-fill ${summary.fatLossKg >= 0 ? "deficit-fill" : "surplus-fill"}" style="width: ${fatProgress}%"></div>
+        <div class="progress-fill ${fatProgress <= 100 ? "deficit-fill" : "surplus-fill"}" style="width: ${fatProgress}%"></div>
       </div>
 
       <div class="metric-grid">
