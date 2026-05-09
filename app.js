@@ -524,7 +524,7 @@ function handleProteinInput(event) {
   const protein = event.currentTarget;
   const digits = protein.value.replace(/\D/g, "");
 
-  if (digits.length < 3 || !autoSubmitArmed || todayEntry || !isQuickEntryOpen() || currentDate !== getDietDate()) return;
+  if (digits.length < 3 || !autoSubmitArmed || todayEntry || currentDate !== getDietDate()) return;
 
   autoSubmitArmed = false;
   setStatus("Auto submitting...");
