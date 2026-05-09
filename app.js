@@ -394,7 +394,7 @@ function renderSummary(summary) {
 
   const todayHtml = todayEntry
     ? `
-      <section class="card today-card">
+      <section class="card today-card logged">
         <div class="card-header">
           <h2>${isViewingToday ? "Today" : "Selected Day"}</h2>
           <div class="pill-row">
@@ -549,6 +549,13 @@ async function saveEntry(calories, protein) {
     setStatus(result.mode === "updated" ? "Updated today's entry." : "Saved to Notion.");
     todayLogged = true;
     updateQuickEntryButton();
+    const todayCard = document.querySelector(".today-card");
+    if (todayCard) {
+      todayCard.classList.add("logged");
+      setTimeout(() => {
+        todayCard.classList.remove("logged");
+      }, 600);
+    }
 
     showToast(
       `Saved • ${formatSignedKcal(deficit)}`
