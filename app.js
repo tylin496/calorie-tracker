@@ -227,76 +227,34 @@ function openDietDayPicker() {
 }
 
 function editDietDay() {
-  let menu = document.getElementById("dietDayMenu");
+  const input = document.createElement("input");
+  input.type = "date";
+  input.max = getTodayDate();
+  input.value = currentDate;
 
-  if (!menu) {
-    document.body.insertAdjacentHTML(
-      "beforeend",
-      `
-      <div id="dietDayMenu" class="dropdown-menu" style="
-        position: fixed;
-        top: 60px;
-        right: 16px;
-        background: var(--surface, #222);
-        border: 1px solid var(--border, #333);
-        border-radius: 12px;
-        padding: 8px;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        z-index: 9999;
-      ">
-        <button data-action="today">Today</button>
-        <button data-action="yesterday">Yesterday</button>
-        <button data-action="tomorrow">Tomorrow</button>
-        <button data-action="custom">Pick Date</button>
-      </div>
-      `
-    );
+  input.style.position = "fixed";
+  input.style.opacity = "0";
+  input.style.pointerEvents = "none";
 
-    menu = document.getElementById("dietDayMenu");
+  document.body.appendChild(input);
 
-    menu.addEventListener("click", (e) => {
-      const action = e.target?.dataset?.action;
-      if (!action) return;
+  input.addEventListener("change", () => {
+    const value = input.value;
 
-      if (action === "today") {
-        resetDietDay();
+    if (value && isValidDateString(value)) {
+      if (isFutureDate(value)) {
+        alert("Cannot select future date");
+        document.body.removeChild(input);
+        return;
       }
 
-      if (action === "yesterday") {
-        shiftDietDay(-1);
-      }
+      setDietDay(value);
+    }
 
-      if (action === "tomorrow") {
-        shiftDietDay(1);
-      }
+    document.body.removeChild(input);
+  });
 
-      if (action === "custom") {
-        const input = window.prompt("Enter date (YYYY-MM-DD)", currentDate);
-        if (input && isValidDateString(input)) {
-          if (isFutureDate(input)) {
-            alert("Cannot select future date");
-            return;
-          }
-
-          setDietDay(input);
-        }
-      }
-
-      menu.remove();
-    });
-
-    // click outside to close
-    document.addEventListener("click", function closeMenu(ev) {
-      if (!menu.contains(ev.target) && ev.target.id !== "diet-day") {
-        menu.remove();
-        document.removeEventListener("click", closeMenu);
-      }
-    });
-  } else {
-    menu.remove();
-  }
+  input.click();
 }
 
 function updateTodayInputs(entry) {
