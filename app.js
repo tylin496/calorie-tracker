@@ -1,7 +1,8 @@
-let TDEE = Number(localStorage.getItem("tdee")) || 2705;
+let TDEE = Number(localStorage.getItem("tdee")) || null;
 const API_BASE = "https://calorie-tracker-omega-ten.vercel.app";
 let todayLogged = false;
 let todayEntry = null;
+let currentDate = getDietDate();
 
 function getDietDate() {
   const now = new Date();
@@ -11,6 +12,10 @@ function getDietDate() {
   }
 
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
+function isValidDateString(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
 function setStatus(message) {
@@ -27,6 +32,36 @@ function updateTDEEDisplay() {
   if (tdeeElement) {
     tdeeElement.textContent = `TDEE: ${TDEE} kcal (tap to edit)`;
   }
+}
+
+function updateDietDayDisplay() {
+  const dietDayElement = document.getElementById("diet-day");
+
+  if (dietDayElement) {
+    dietDayElement.textContent = `Diet Day: ${currentDate} (tap to change)`;
+  }
+}
+
+function editDietDay() {
+  const nextDate = window.prompt("Set Diet Day (YYYY-MM-DD)", currentDate);
+
+  if (nextDate === null) {
+    return;
+  }
+
+  if (!isValidDateString(nextDate)) {
+    alert("Use format: YYYY-MM-DD");
+    return;
+  }
+
+  currentDate = nextDate;
+  todayLogged = false;
+  todayEntry = null;
+
+  updateDietDayDisplay();
+  document.getElementById("calories").value = "";
+  document.getElementById("protein").value = "";
+  loadWeekSummary(false);
 }
 
 function updateTodayInputs(entry) {
@@ -121,13 +156,25 @@ async function loadWeekSummary(shouldPromptIfMissing = false) {
   setStatus("Loading weekly summary...");
 
   try {
-    const response = await fetch(`${API_BASE}/api/summary?today=${today}&tdee=${TDEE}`);
+    const response = await fetch(`${API_BASE}/api/summary?today=${currentDate}&tdee=${TDEE}`);
     const result = await response.json();
 
     if (!response.ok) {
       console.error(result);
       setStatus(`Summary failed: ${result.error || response.status}`);
       return;
+    }
+    const latestEntry = result.summary.entries?.at(-1) || null;
+
+    if (!TDEE && latestEntry?.tdee) {
+      TDEE = latestEntry.tdee;
+      localStorage.setItem("tdee", TDEE);
+      updateTDEEDisplay();
+    }
+
+    if (!TDEE) {
+      TDEE = 2705;
+      updateTDEEDisplay();
     }
     todayLogged = Boolean(result.summary.todayLogged);
     todayEntry = result.summary.todayEntry || null;
@@ -154,7 +201,7 @@ async function saveEntry(calories, protein) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        date: today,
+        date: currentDate,
         calories,
         protein,
         tdee: TDEE
@@ -197,7 +244,7 @@ function openQuickEntry() {
       : "";
 
   const entry = window.prompt(
-    `${today} (Calories,Protein)`,
+    `${currentDate} (Calories,Protein)`,
     defaultValue
   );
 
@@ -227,16 +274,19 @@ function openQuickEntry() {
   saveEntry(calories, protein);
 }
 
-const today = getDietDate();
-
 document.body.insertAdjacentHTML(
   "afterbegin",
-  `<p>Diet Day: ${today}</p><p id="tdee-display"></p><p id="status">App loaded. Ready.</p><button id="quickEntryBtn">Quick Entry / Edit Today</button>`
+  `<p id="diet-day"></p><p id="tdee-display"></p><p id="status">App loaded. Ready.</p><button id="quickEntryBtn">Quick Entry / Edit Day</button>`
 );
 
-updateTDEEDisplay();
+updateDietDayDisplay();
+
+if (TDEE) {
+  updateTDEEDisplay();
+}
 
 document.getElementById("tdee-display")?.addEventListener("click", editTDEE);
+document.getElementById("diet-day")?.addEventListener("click", editDietDay);
 document.getElementById("quickEntryBtn")?.addEventListener("click", openQuickEntry);
 
 const saveButton = document.getElementById("saveBtn");
