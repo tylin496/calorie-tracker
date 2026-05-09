@@ -7,6 +7,7 @@ let todayEntry = null;
 let currentDate = getDietDate();
 let toastTimer = null;
 let autoSubmitArmed = true;
+let didAutoOpenQuickEntry = false;
 
 function getDietDate() {
   const now = new Date();
@@ -137,15 +138,6 @@ function closeQuickEntry() {
   if (form) form.classList.remove("quick-entry");
   document.body.classList.remove("quick-entry-open");
   if (backdrop) backdrop.hidden = true;
-}
-
-function handleDietDayClick() {
-  if (currentDate === getDietDate() && !todayEntry) {
-    openQuickEntry();
-    return;
-  }
-
-  editDietDay();
 }
 
 function editDietDay() {
@@ -486,6 +478,11 @@ async function loadWeekSummary(successMessage) {
     updateEntryForm();
     renderSummary(data.summary);
     setStatus(successMessage || "");
+
+    if (!didAutoOpenQuickEntry && currentDate === getDietDate() && !todayEntry) {
+      didAutoOpenQuickEntry = true;
+      openQuickEntry();
+    }
   } catch (error) {
     setStatus("Could not load summary");
     document.getElementById("daily-result").innerHTML = `
@@ -536,7 +533,7 @@ function handleProteinInput(event) {
 
 function initApp() {
   document.getElementById("today-form")?.addEventListener("submit", handleFormSubmit);
-  document.getElementById("diet-day")?.addEventListener("click", handleDietDayClick);
+  document.getElementById("diet-day")?.addEventListener("click", editDietDay);
   document.getElementById("prevDayBtn")?.addEventListener("click", () => shiftDietDay(-1));
   document.getElementById("nextDayBtn")?.addEventListener("click", () => shiftDietDay(1));
   document.getElementById("deleteBtn")?.addEventListener("click", deleteEntry);
