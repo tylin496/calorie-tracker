@@ -151,7 +151,7 @@ function updateTDEEDisplay() {
   const tdeeElement = document.getElementById("tdee-display");
 
   if (tdeeElement) {
-    tdeeElement.textContent = `TDEE: ${TDEE} kcal (tap to edit)`;
+    tdeeElement.textContent = `TDEE ${TDEE}`;
   }
 }
 
@@ -324,7 +324,7 @@ function renderSummary(summary) {
     Math.round((Math.abs(summary.fatLossKg) / FAT_TARGET_KG) * 100),
     100
   );
-  const fatProgressLabel = summary.fatLossKg >= 0 ? "Fat loss progress" : "Surplus progress";
+  const fatProgressLabel = "Weekly target";
   const weekRange = formatShortDateRange(summary.weekStart, summary.weekEnd);
   // const isViewingToday = currentDate === getDietDate();
   const loggedStatus = todayEntry ? "Logged" : "Missing";
@@ -384,10 +384,6 @@ function renderSummary(summary) {
             <span class="metric-label">${todayStatus}</span>
             <span class="metric-value">${formatSignedKcal(todayDeficit)}</span>
           </div>
-          <div class="metric">
-            <span class="metric-label">Fat</span>
-            <span class="metric-value">${(todayDeficit / 7700).toFixed(2)}kg</span>
-          </div>
         </div>
       </section>
     `
@@ -439,7 +435,7 @@ function renderSummary(summary) {
       </div>
 
       <div class="daily-list">
-        <h3>Logged Days</h3>
+        <h3>Week Log</h3>
         ${dailyRows || `<p class="empty-state">No logged days yet.</p>`}
       </div>
     </section>
@@ -520,7 +516,7 @@ async function saveEntry(calories, protein) {
     updateQuickEntryButton();
 
     showToast(
-      `${result.mode === "updated" ? "Updated" : "Saved"} ${currentDate} • ${formatSignedKcal(deficit)} • ${fatLoss.toFixed(2)}kg`
+      `Saved • ${formatSignedKcal(deficit)}`
     );
 
     await loadWeekSummary(false);
