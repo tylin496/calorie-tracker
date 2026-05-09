@@ -15,7 +15,21 @@ function getDietDate() {
 }
 
 function isValidDateString(value) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false;
+  }
+
+  const [year, month, day] = value
+    .split("-")
+    .map((part) => Number(part));
+
+  const date = new Date(`${value}T12:00:00`);
+
+  return (
+    date.getFullYear() === year &&
+    date.getMonth() + 1 === month &&
+    date.getDate() === day
+  );
 }
 
 function setStatus(message) {
@@ -129,7 +143,6 @@ function renderSummary(summary) {
       <h2>Today</h2>
       <p>Calories: ${todayEntry.calories} kcal</p>
       <p>Protein: ${todayEntry.protein} g</p>
-      <p>TDEE: ${todayEntry.tdee || TDEE} kcal</p>
       <p>${todayStatus}: ${todayDeficit} kcal</p>
       <p>Estimated fat loss: ${(todayDeficit / 7700).toFixed(2)} kg</p>
     `
@@ -274,10 +287,19 @@ function openQuickEntry() {
   saveEntry(calories, protein);
 }
 
-document.body.insertAdjacentHTML(
-  "afterbegin",
-  `<p id="diet-day"></p><p id="tdee-display"></p><p id="status">App loaded. Ready.</p><button id="quickEntryBtn">Quick Entry / Edit Day</button>`
-);
+const appTitle = document.querySelector("h1");
+
+if (appTitle) {
+  appTitle.insertAdjacentHTML(
+    "beforebegin",
+    `<p id="diet-day"></p><p id="tdee-display"></p><p id="status">App loaded. Ready.</p><button id="quickEntryBtn">Quick Entry / Edit Day</button><button id="refreshSummaryBtn">Refresh Summary</button>`
+  );
+} else {
+  document.body.insertAdjacentHTML(
+    "afterbegin",
+    `<p id="diet-day"></p><p id="tdee-display"></p><p id="status">App loaded. Ready.</p><button id="quickEntryBtn">Quick Entry / Edit Day</button><button id="refreshSummaryBtn">Refresh Summary</button>`
+  );
+}
 
 updateDietDayDisplay();
 
@@ -288,6 +310,9 @@ if (TDEE) {
 document.getElementById("tdee-display")?.addEventListener("click", editTDEE);
 document.getElementById("diet-day")?.addEventListener("click", editDietDay);
 document.getElementById("quickEntryBtn")?.addEventListener("click", openQuickEntry);
+document.getElementById("refreshSummaryBtn")?.addEventListener("click", () => {
+  loadWeekSummary(false);
+});
 
 const saveButton = document.getElementById("saveBtn");
 
