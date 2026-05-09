@@ -34,7 +34,6 @@ if (!saveButton) {
 }
 
 saveButton.addEventListener("click", async () => {
-  alert("Save button clicked");
   setStatus("Saving...");
 
   const calories = Number(
