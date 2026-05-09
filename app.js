@@ -361,14 +361,21 @@ document.getElementById("nextDayBtn")?.addEventListener("click", () => shiftDiet
 document.getElementById("quickEntryBtn")?.addEventListener("click", openQuickEntry);
 
 function openQuickEntry() {
-  const c = document.getElementById("calories").value;
-  const p = document.getElementById("protein").value;
+  const cal = document.getElementById("calories");
+  const pro = document.getElementById("protein");
 
-  if (!c || !p) return alert("Fill both");
+  if (!cal || !pro) return;
 
+  // reset inputs for fast entry
+  cal.value = "";
+  pro.value = "";
+
+  // ensure auto-submit is active
   setupAutoSubmit();
 
-  saveEntry(Number(c), Number(p));
+  // immediately focus calories input (UX: instant entry mode)
+  cal.focus();
+  cal.select();
 }
 
 /* boot */
