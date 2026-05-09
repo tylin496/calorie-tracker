@@ -32,6 +32,33 @@ function isValidDateString(value) {
   );
 }
 
+function parseQuickEntry(value) {
+  const cleanedValue = value.trim();
+
+  if (cleanedValue.includes(",")) {
+    const [calories, protein] = cleanedValue
+      .split(",")
+      .map((part) => Number(part.trim()));
+
+    return {
+      calories,
+      protein
+    };
+  }
+
+  if (/^\d{7}$/.test(cleanedValue)) {
+    return {
+      calories: Number(cleanedValue.slice(0, 4)),
+      protein: Number(cleanedValue.slice(4))
+    };
+  }
+
+  return {
+    calories: 0,
+    protein: 0
+  };
+}
+
 function formatShortDateRange(start, end) {
   const startDate = new Date(`${start}T12:00:00`);
   const endDate = new Date(`${end}T12:00:00`);
@@ -50,6 +77,33 @@ function formatSignedKcal(value) {
 
 function getDeficitLabel(value) {
   return value >= 0 ? "Deficit" : "Surplus";
+}
+
+function getWeekdayLabel(dateString) {
+  return new Date(`${dateString}T12:00:00`).toLocaleDateString("en-US", {
+    weekday: "short"
+  });
+}
+
+function showToast(message) {
+  let toast = document.getElementById("toast");
+
+  if (!toast) {
+    document.body.insertAdjacentHTML(
+      "beforeend",
+      `<div id="toast" class="toast" hidden></div>`
+    );
+
+    toast = document.getElementById("toast");
+  }
+
+  toast.textContent = message;
+  toast.hidden = false;
+
+  window.clearTimeout(showToast.timeoutId);
+  showToast.timeoutId = window.setTimeout(() => {
+    toast.hidden = true;
+  }, 2200);
 }
 
 function setStatus(message) {
@@ -76,19 +130,11 @@ function updateDietDayDisplay() {
   }
 }
 
-function editDietDay() {
-  const nextDate = window.prompt("Set Diet Day (YYYY-MM-DD)", currentDate);
+function shiftDietDay(days) {
+  const date = new Date(`${currentDate}T12:00:00`);
+  date.setDate(date.getDate() + days);
 
-  if (nextDate === null) {
-    return;
-  }
-
-  if (!isValidDateString(nextDate)) {
-    alert("Use format: YYYY-MM-DD");
-    return;
-  }
-
-  currentDate = nextDate;
+  currentDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
   todayLogged = false;
   todayEntry = null;
 
@@ -96,6 +142,21 @@ function editDietDay() {
   document.getElementById("calories").value = "";
   document.getElementById("protein").value = "";
   loadWeekSummary(false);
+}
+
+function resetDietDay() {
+  currentDate = getDietDate();
+  todayLogged = false;
+  todayEntry = null;
+
+  updateDietDayDisplay();
+  document.getElementById("calories").value = "";
+  document.getElementById("protein").value = "";
+  loadWeekSummary(false);
+}
+
+function editDietDay() {
+  resetDietDay();
 }
 
 function updateTodayInputs(entry) {
@@ -166,16 +227,32 @@ function renderSummary(summary) {
   const todayStatus = getDeficitLabel(todayDeficit);
   const compliance = Math.round((summary.count / 7) * 100);
   const weekRange = formatShortDateRange(summary.weekStart, summary.weekEnd);
+  const isViewingToday = currentDate === getDietDate();
+  const loggedStatus = todayEntry ? "Logged" : "Missing";
+  const dailyRows = summary.entries
+    .map((entry) => `
+      <div class="daily-row">
+        <span>${getWeekdayLabel(entry.date)}</span>
+        <span>${entry.calories} kcal</span>
+        <span>${entry.protein}g</span>
+      </div>
+    `)
+    .join("");
 
   const todayHtml = todayEntry
     ? `
       <section class="card today-card">
         <div class="card-header">
-          <h2>Today</h2>
-          <span class="status-pill ${todayDeficit >= 0 ? "deficit" : "surplus"}">
-            ${todayStatus}
-          </span>
+          <h2>${isViewingToday ? "Today" : "Selected Day"}</h2>
+          <div class="pill-row">
+            <span class="status-pill logged">${loggedStatus}</span>
+            <span class="status-pill ${todayDeficit >= 0 ? "deficit" : "surplus"}">
+              ${todayStatus}
+            </span>
+          </div>
         </div>
+
+        ${isViewingToday ? "" : `<p class="warning-text">Viewing historical day: ${currentDate}</p>`}
 
         <div class="metric-grid">
           <div class="metric">
@@ -200,8 +277,10 @@ function renderSummary(summary) {
     : `
       <section class="card today-card">
         <div class="card-header">
-          <h2>Today</h2>
+          <h2>${isViewingToday ? "Today" : "Selected Day"}</h2>
+          <span class="status-pill missing">Missing</span>
         </div>
+        ${isViewingToday ? "" : `<p class="warning-text">Viewing historical day: ${currentDate}</p>`}
         <p class="empty-state">No entry for this day yet.</p>
       </section>
     `;
@@ -240,6 +319,11 @@ function renderSummary(summary) {
           <span class="metric-label">Fat</span>
           <span class="metric-value">${summary.fatLossKg.toFixed(2)}kg</span>
         </div>
+      </div>
+
+      <div class="daily-list">
+        <h3>Logged Days</h3>
+        ${dailyRows || `<p class="empty-state">No logged days yet.</p>`}
       </div>
     </section>
   `;
@@ -315,8 +399,8 @@ async function saveEntry(calories, protein) {
 
     setStatus(result.mode === "updated" ? "Updated today's entry." : "Saved to Notion.");
 
-    alert(
-      `${result.mode === "updated" ? "Updated" : "Saved"}\nDeficit: ${deficit}\nFat: ${fatLoss.toFixed(2)}kg`
+    showToast(
+      `${result.mode === "updated" ? "Updated" : "Saved"} ${currentDate} • ${formatSignedKcal(deficit)} • ${fatLoss.toFixed(2)}kg`
     );
 
     await loadWeekSummary(false);
@@ -330,16 +414,15 @@ async function saveEntry(calories, protein) {
 function openQuickEntry() {
   const modal = document.getElementById("quickEntryModal");
   const modalDate = document.getElementById("modal-date");
-  const modalCalories = document.getElementById("modal-calories");
-  const modalProtein = document.getElementById("modal-protein");
+  const modalEntry = document.getElementById("modal-entry");
   const caloriesInput = document.getElementById("calories");
   const proteinInput = document.getElementById("protein");
 
-  if (!modal || !modalDate || !modalCalories || !modalProtein) {
+  if (!modal || !modalDate || !modalEntry) {
     const fallback = window.prompt(
-      `${currentDate} (Calories,Protein)`,
+      `${currentDate} (CCCCPPP, e.g. 2200180)`,
       caloriesInput?.value && proteinInput?.value
-        ? `${caloriesInput.value},${proteinInput.value}`
+        ? `${caloriesInput.value}${proteinInput.value}`
         : ""
     );
 
@@ -347,12 +430,10 @@ function openQuickEntry() {
       return;
     }
 
-    const [calories, protein] = fallback
-      .split(",")
-      .map((value) => Number(value.trim()));
+    const { calories, protein } = parseQuickEntry(fallback);
 
     if (!calories || !protein) {
-      alert("Use format: calories,protein (e.g. 2200,180)");
+      alert("Use format: CCCCPPP, e.g. 2200180");
       return;
     }
 
@@ -361,10 +442,11 @@ function openQuickEntry() {
   }
 
   modalDate.textContent = currentDate;
-  modalCalories.value = caloriesInput?.value || "";
-  modalProtein.value = proteinInput?.value || "";
+  modalEntry.value = caloriesInput?.value && proteinInput?.value
+    ? `${caloriesInput.value}${proteinInput.value}`
+    : "";
   modal.hidden = false;
-  modalCalories.focus();
+  modalEntry.focus();
 }
 
 function closeQuickEntry() {
@@ -376,17 +458,15 @@ function closeQuickEntry() {
 }
 
 function submitQuickEntry() {
-  const modalCalories = document.getElementById("modal-calories");
-  const modalProtein = document.getElementById("modal-protein");
+  const modalEntry = document.getElementById("modal-entry");
   const caloriesInput = document.getElementById("calories");
   const proteinInput = document.getElementById("protein");
 
-  const calories = Number(modalCalories?.value);
-  const protein = Number(modalProtein?.value);
+  const { calories, protein } = parseQuickEntry(modalEntry?.value || "");
 
   if (!calories || !protein) {
-    alert("Please enter calories and protein.");
-    modalCalories?.focus();
+    alert("Use format: CCCCPPP, e.g. 2200180");
+    modalEntry?.focus();
     return;
   }
 
@@ -407,12 +487,12 @@ const appTitle = document.querySelector("h1");
 if (appTitle) {
   appTitle.insertAdjacentHTML(
     "beforebegin",
-    `<div class="top-controls"><button id="diet-day" class="chip"></button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log / Edit Day</button><button id="refreshSummaryBtn" class="secondary-action">↻</button></div>`
+    `<div class="top-controls"><button id="prevDayBtn" class="chip">‹</button><button id="diet-day" class="chip"></button><button id="nextDayBtn" class="chip">›</button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log / Edit Entry</button><button id="refreshSummaryBtn" class="secondary-action">↻</button></div>`
   );
 } else {
   document.body.insertAdjacentHTML(
     "afterbegin",
-    `<div class="top-controls"><button id="diet-day" class="chip"></button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log / Edit Day</button><button id="refreshSummaryBtn" class="secondary-action">↻</button></div>`
+    `<div class="top-controls"><button id="prevDayBtn" class="chip">‹</button><button id="diet-day" class="chip"></button><button id="nextDayBtn" class="chip">›</button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log / Edit Entry</button><button id="refreshSummaryBtn" class="secondary-action">↻</button></div>`
   );
 }
 
@@ -421,14 +501,14 @@ document.body.insertAdjacentHTML(
   `
     <div id="quickEntryModal" class="modal-backdrop" hidden>
       <div class="modal-card">
-        <h2>Log Day</h2>
+        <h2>Log Entry</h2>
         <p id="modal-date" class="subtle-text"></p>
-        <input id="modal-calories" type="number" inputmode="numeric" placeholder="Calories" />
-        <input id="modal-protein" type="number" inputmode="numeric" placeholder="Protein" />
+        <input id="modal-entry" type="number" inputmode="numeric" placeholder="CCCCPPP, e.g. 2200180" />
         <button id="modalSaveBtn" class="primary-action">Save</button>
         <button id="modalCancelBtn" class="secondary-action">Cancel</button>
       </div>
     </div>
+    <div id="toast" class="toast" hidden></div>
   `
 );
 
@@ -440,6 +520,8 @@ if (TDEE) {
 
 document.getElementById("tdee-display")?.addEventListener("click", editTDEE);
 document.getElementById("diet-day")?.addEventListener("click", editDietDay);
+document.getElementById("prevDayBtn")?.addEventListener("click", () => shiftDietDay(-1));
+document.getElementById("nextDayBtn")?.addEventListener("click", () => shiftDietDay(1));
 document.getElementById("quickEntryBtn")?.addEventListener("click", openQuickEntry);
 document.getElementById("refreshSummaryBtn")?.addEventListener("click", () => {
   loadWeekSummary(false);
@@ -453,7 +535,7 @@ document.getElementById("quickEntryModal")?.addEventListener("click", (event) =>
   }
 });
 
-document.getElementById("modal-protein")?.addEventListener("keydown", (event) => {
+document.getElementById("modal-entry")?.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     submitQuickEntry();
   }
