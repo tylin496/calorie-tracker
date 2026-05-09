@@ -112,6 +112,9 @@ function shiftDietDay(days) {
 ----------------------------- */
 
 async function saveEntry(calories, protein) {
+  document.getElementById("calories")?.blur();
+  document.getElementById("protein")?.blur();
+
   setStatus("Saving...");
 
   const res = await fetch(`${API_BASE}/api/save`, {
@@ -317,6 +320,37 @@ async function loadWeekSummary() {
 }
 
 /* -----------------------------
+   AUTO SUBMIT SETUP
+----------------------------- */
+function setupAutoSubmit() {
+  const cal = document.getElementById("calories");
+  const pro = document.getElementById("protein");
+
+  if (!cal || !pro) return;
+
+  // avoid duplicate listeners
+  if (cal.dataset.autoBound) return;
+  cal.dataset.autoBound = "1";
+
+  cal.addEventListener("input", () => {
+    if (cal.value.length >= 4) {
+      pro.focus();
+    }
+  });
+
+  pro.addEventListener("input", () => {
+    if (pro.value.length >= 3) {
+      const c = Number(cal.value);
+      const p = Number(pro.value);
+
+      if (!isNaN(c) && !isNaN(p)) {
+        saveEntry(c, p);
+      }
+    }
+  });
+}
+
+/* -----------------------------
    INIT
 ----------------------------- */
 
@@ -331,6 +365,8 @@ function openQuickEntry() {
   const p = document.getElementById("protein").value;
 
   if (!c || !p) return alert("Fill both");
+
+  setupAutoSubmit();
 
   saveEntry(Number(c), Number(p));
 }
