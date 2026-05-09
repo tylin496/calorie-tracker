@@ -1,4 +1,4 @@
-
+  <script src="app.js?v=20260510-0236"></script>
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "https://thom436.github.io");
