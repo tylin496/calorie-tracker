@@ -1,18 +1,26 @@
 :root {
   color-scheme: light;
-  --bg: #f6f5f2;
-  --surface: #ffffff;
-  --surface-muted: #f0f4f3;
-  --text: #1d2321;
-  --muted: #64706b;
-  --border: #dce3df;
-  --accent: #0f766e;
-  --accent-dark: #115e59;
+  --bg: #f4f6f5;
+  --surface: #fffefa;
+  --surface-muted: #eef2f0;
+  --surface-strong: #1d2321;
+  --text: #1c201f;
+  --muted: #68716d;
+  --border: #d8dfdb;
+  --border-strong: #c5cfca;
+  --accent: #0e7c72;
+  --accent-dark: #0a5f58;
+  --accent-soft: #dff3ed;
+  --berry: #7a4e67;
+  --berry-soft: #f1e8ee;
+  --warm: #ba6b47;
+  --warm-soft: #f6ebe5;
   --danger: #b42318;
   --warning: #9a5b13;
-  --success-bg: #e7f6ef;
-  --danger-bg: #fee4e2;
-  --shadow: 0 14px 35px rgba(29, 35, 33, 0.08);
+  --success-bg: #e6f5ee;
+  --danger-bg: #fae6e4;
+  --shadow: 0 14px 34px rgba(28, 32, 31, 0.08), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  --shadow-strong: 0 28px 80px rgba(28, 32, 31, 0.18);
 }
 
 * {
@@ -22,7 +30,9 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--bg);
+  background:
+    linear-gradient(180deg, #fbfbf8 0, var(--bg) 280px),
+    var(--bg);
   color: var(--text);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1.5;
@@ -42,6 +52,7 @@ button {
   border-radius: 8px;
   cursor: pointer;
   font-weight: 700;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 button:disabled {
@@ -52,7 +63,7 @@ button:disabled {
 .app-shell {
   width: min(760px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 28px 0 48px;
+  padding: 30px 0 52px;
 }
 
 .app-header {
@@ -66,7 +77,9 @@ button:disabled {
 h1 {
   margin: 0;
   font-size: clamp(28px, 6vw, 42px);
+  font-weight: 900;
   line-height: 1.05;
+  letter-spacing: 0;
 }
 
 .subtle-text {
@@ -78,8 +91,13 @@ h1 {
 .date-controls {
   display: grid;
   grid-template-columns: 44px minmax(150px, 1fr) 44px;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 6px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 254, 250, 0.74);
+  padding: 5px;
+  box-shadow: 0 8px 22px rgba(28, 32, 31, 0.05);
 }
 
 .icon-btn,
@@ -93,13 +111,23 @@ h1 {
 .icon-btn,
 .date-btn,
 .secondary-btn {
-  background: var(--surface);
+  background: transparent;
   color: var(--text);
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
+}
+
+.icon-btn:hover,
+.date-btn:hover,
+.secondary-btn:hover {
+  background: var(--surface);
+  border-color: var(--border);
 }
 
 .date-btn {
   padding: 0 14px;
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: 0 6px 16px rgba(28, 32, 31, 0.05);
 }
 
 .settlement-form {
@@ -117,8 +145,8 @@ h1 {
   position: fixed;
   inset: 0;
   z-index: 10;
-  background: rgba(29, 35, 33, 0.38);
-  backdrop-filter: blur(3px);
+  background: rgba(28, 32, 31, 0.44);
+  backdrop-filter: blur(7px);
 }
 
 .settlement-form.quick-entry {
@@ -133,8 +161,8 @@ h1 {
   grid-template-columns: 1fr;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--bg);
-  box-shadow: 0 24px 80px rgba(29, 35, 33, 0.26);
+  background: #f7f8f6;
+  box-shadow: var(--shadow-strong);
   padding: 12px;
   margin: 0;
 }
@@ -175,9 +203,16 @@ h1 {
   min-height: 122px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--surface);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 254, 250, 0.96)),
+    var(--surface);
   padding: 14px;
   box-shadow: var(--shadow);
+}
+
+.input-card:focus-within {
+  border-color: rgba(14, 124, 114, 0.48);
+  box-shadow: 0 18px 40px rgba(14, 124, 114, 0.12), 0 0 0 3px rgba(14, 124, 114, 0.1);
 }
 
 .input-label {
@@ -211,16 +246,21 @@ input {
   letter-spacing: 0;
 }
 
+input::placeholder {
+  color: #a5aea9;
+}
+
 input:focus,
 button:focus-visible {
-  outline: 3px solid rgba(15, 118, 110, 0.2);
+  outline: 3px solid rgba(14, 124, 114, 0.18);
   outline-offset: 2px;
 }
 
 .primary-btn {
-  background: var(--accent);
+  background: linear-gradient(180deg, #118b80, var(--accent-dark));
   color: #ffffff;
   padding: 0 18px;
+  box-shadow: 0 16px 32px rgba(14, 124, 114, 0.22);
 }
 
 .commit-btn {
@@ -230,13 +270,15 @@ button:focus-visible {
 }
 
 .primary-btn:hover {
-  background: var(--accent-dark);
+  box-shadow: 0 18px 38px rgba(14, 124, 114, 0.28);
+  transform: translateY(-1px);
 }
 
 .danger-btn {
-  background: var(--danger-bg);
+  background: var(--warm-soft);
   color: var(--danger);
   padding: 0 14px;
+  border: 1px solid #edcfc5;
 }
 
 .form-actions {
@@ -265,21 +307,39 @@ button:focus-visible {
 .daily-card {
   border-radius: 8px;
   border: 1px solid var(--border);
-  background: var(--surface);
+  background:
+    linear-gradient(135deg, rgba(223, 243, 237, 0.82) 0, rgba(255, 254, 250, 0.96) 42%, rgba(241, 232, 238, 0.58) 100%),
+    var(--surface);
   box-shadow: var(--shadow);
-  padding: 18px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.daily-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--berry), var(--warm));
+}
+
+.daily-card > * {
+  position: relative;
 }
 
 .daily-card.deficit {
-  border-color: rgba(15, 118, 110, 0.35);
+  border-color: rgba(14, 124, 114, 0.34);
 }
 
 .daily-card.surplus {
-  border-color: rgba(180, 35, 24, 0.35);
+  border-color: rgba(186, 107, 71, 0.42);
 }
 
 .daily-card.empty {
-  background: var(--surface);
+  background:
+    linear-gradient(135deg, rgba(238, 242, 240, 0.72), rgba(255, 254, 250, 0.96)),
+    var(--surface);
 }
 
 .daily-card-top {
@@ -310,6 +370,7 @@ button:focus-visible {
   font-size: clamp(44px, 11vw, 72px);
   font-weight: 900;
   line-height: 0.95;
+  font-variant-numeric: tabular-nums;
 }
 
 .hero-value.secondary {
@@ -328,7 +389,7 @@ button:focus-visible {
 .settlement-lines {
   display: grid;
   gap: 8px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(28, 32, 31, 0.1);
   padding-top: 14px;
 }
 
@@ -374,18 +435,21 @@ button:focus-visible {
   font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
+  border: 1px solid transparent;
 }
 
 .status-pill.logged,
 .status-pill.deficit {
   background: var(--success-bg);
   color: var(--accent-dark);
+  border-color: #c5e8dc;
 }
 
 .status-pill.surplus,
 .status-pill.missing {
-  background: var(--danger-bg);
-  color: var(--danger);
+  background: var(--berry-soft);
+  color: var(--berry);
+  border-color: #e6d2de;
 }
 
 .metric-grid,
@@ -398,7 +462,10 @@ button:focus-visible {
 .metric {
   min-height: 84px;
   border-radius: 8px;
-  background: var(--surface-muted);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(238, 242, 240, 0.92)),
+    var(--surface-muted);
+  border: 1px solid rgba(216, 223, 219, 0.72);
   padding: 12px;
 }
 
@@ -446,11 +513,12 @@ button:focus-visible {
   max-width: 34px;
   min-height: 18px;
   border-radius: 8px 8px 3px 3px;
-  background: #aab8b2;
+  background: #b7c1bc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36);
 }
 
 .trend-day.selected .trend-bar {
-  background: var(--accent);
+  background: linear-gradient(180deg, #15998d, var(--accent-dark));
 }
 
 .trend-day span {
@@ -477,7 +545,7 @@ button:focus-visible {
   z-index: 5;
   max-width: calc(100vw - 36px);
   border-radius: 8px;
-  background: #1d2321;
+  background: var(--surface-strong);
   color: #ffffff;
   padding: 10px 14px;
   box-shadow: var(--shadow);
@@ -492,9 +560,24 @@ button:focus-visible {
 }
 
 @media (max-width: 620px) {
+  .app-shell {
+    width: min(100% - 20px, 760px);
+    padding-top: 18px;
+  }
+
   .app-header,
   .form-actions {
     display: block;
+  }
+
+  h1 {
+    font-size: 32px;
+  }
+
+  .daily-card,
+  .card,
+  .input-card {
+    padding: 16px;
   }
 
   .settlement-form,
@@ -506,6 +589,7 @@ button:focus-visible {
 
   .settlement-form.quick-entry {
     width: calc(100% - 20px);
+    padding: 10px;
   }
 
   .primary-btn,
