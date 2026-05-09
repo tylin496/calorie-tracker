@@ -262,6 +262,18 @@ button {
   letter-spacing: -0.03em;
 }
 
+.metric-value[data-state="stable"] {
+  color: var(--positive);
+}
+
+.metric-value[data-state="moderate"] {
+  color: #d6a85c;
+}
+
+.metric-value[data-state="volatile"] {
+  color: var(--negative);
+}
+
 .subtle-text,
 .empty-state {
   color: var(--muted);
@@ -275,6 +287,10 @@ button {
   color: var(--muted);
   font-size: 13px;
   font-weight: 650;
+}
+
+.progress-row span:last-child {
+  font-weight: 800;
 }
 
 .progress-track {
@@ -297,6 +313,20 @@ button {
 
 .progress-fill.surplus-fill {
   background: var(--negative);
+}
+
+.progress-fill.overflow-fill {
+  background: linear-gradient(90deg, var(--positive), #7CFFB2);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--positive) 60%, transparent);
+  position: relative;
+}
+
+.progress-fill.overflow-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+  animation: shimmer 1.2s infinite;
 }
 
 .daily-list {
@@ -336,7 +366,7 @@ button {
 
 .daily-row.missing-day {
   color: var(--muted);
-  opacity: 0.65;
+  opacity: 0.45;
 }
 
 .daily-row.missing-day span:nth-child(2),
@@ -466,4 +496,9 @@ button {
   .metric-value {
     font-size: 18px;
   }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }

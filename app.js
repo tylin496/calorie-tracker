@@ -319,6 +319,11 @@ function renderSummary(summary) {
         )
       )
     : 0;
+  const stabilityLabel = calorieDeviation <= 100
+    ? "Stable"
+    : calorieDeviation <= 200
+    ? "Moderate"
+    : "Volatile";
   const FAT_TARGET_KG = 0.5;
   const fatProgress = Math.min(
     Math.round((Math.abs(summary.fatLossKg) / FAT_TARGET_KG) * 100),
@@ -422,7 +427,7 @@ function renderSummary(summary) {
         </div>
         <div class="metric">
           <span class="metric-label">Consistency</span>
-          <span class="metric-value">±${calorieDeviation}</span>
+          <span class="metric-value">${stabilityLabel}</span>
         </div>
         <div class="metric">
           <span class="metric-label">Avg deficit/day</span>
