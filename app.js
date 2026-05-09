@@ -596,6 +596,46 @@ async function saveEntry(calories, protein) {
   }
 }
 
+async function deleteEntry() {
+  const confirmed = window.confirm(`Delete entry for ${currentDate}?`);
+  if (!confirmed) return;
+
+  setStatus("Deleting...");
+
+  try {
+    const response = await fetch(`${API_BASE}/api/delete`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        date: currentDate
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      setStatus(`Delete failed: ${result.error || response.status}`);
+      alert("Delete failed");
+      return;
+    }
+
+    todayLogged = false;
+    todayEntry = null;
+
+    document.getElementById("calories").value = "";
+    document.getElementById("protein").value = "";
+
+    setStatus("Deleted");
+
+    await loadWeekSummary(false);
+  } catch (e) {
+    console.error(e);
+    setStatus("Network error");
+  }
+}
+
 function openQuickEntry() {
   const modal = document.getElementById("quickEntryModal");
   const modalDate = document.getElementById("modal-date");
