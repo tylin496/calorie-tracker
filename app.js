@@ -60,13 +60,13 @@ function showToast(message) {
 }
 
 function updateDietDayDisplay() {
-  const btn = document.getElementById("diet-day");
+  const input = document.getElementById("diet-day");
   const nextBtn = document.getElementById("nextDayBtn");
 
-  if (btn) {
-    const label = currentDate === getDietDate() ? "Today" : currentDate;
-    btn.textContent = label;
-    btn.setAttribute("aria-label", `Selected day ${currentDate}`);
+  if (input) {
+    input.value = currentDate;
+    input.max = getTodayDate();
+    input.setAttribute("aria-label", `Selected day ${currentDate}`);
   }
 
   if (nextBtn) {
@@ -140,38 +140,16 @@ function closeQuickEntry() {
   if (backdrop) backdrop.hidden = true;
 }
 
-function editDietDay() {
-  const input = document.createElement("input");
-  input.type = "date";
-  input.max = getTodayDate();
-  input.value = currentDate;
-  input.style.position = "fixed";
-  input.style.opacity = "0";
+function handleDietDayChange(event) {
+  const value = event.currentTarget.value;
 
-  document.body.appendChild(input);
+  if (isValidDateString(value) && !isFutureDate(value)) {
+    setDietDay(value);
+    return;
+  }
 
-  const removeInput = () => {
-    if (input.parentNode) input.parentNode.removeChild(input);
-  };
-
-  input.addEventListener("change", () => {
-    const value = input.value;
-
-    if (isValidDateString(value) && !isFutureDate(value)) {
-      setDietDay(value);
-    } else {
-      alert("Invalid or future date not allowed");
-    }
-
-    removeInput();
-  });
-
-  input.addEventListener("blur", () => {
-    setTimeout(removeInput, 100);
-  });
-
-  input.showPicker?.();
-  input.click();
+  alert("Invalid or future date not allowed");
+  updateDietDayDisplay();
 }
 
 function setDietDay(date) {
@@ -533,7 +511,7 @@ function handleProteinInput(event) {
 
 function initApp() {
   document.getElementById("today-form")?.addEventListener("submit", handleFormSubmit);
-  document.getElementById("diet-day")?.addEventListener("click", editDietDay);
+  document.getElementById("diet-day")?.addEventListener("change", handleDietDayChange);
   document.getElementById("prevDayBtn")?.addEventListener("click", () => shiftDietDay(-1));
   document.getElementById("nextDayBtn")?.addEventListener("click", () => shiftDietDay(1));
   document.getElementById("deleteBtn")?.addEventListener("click", deleteEntry);

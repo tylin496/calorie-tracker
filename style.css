@@ -162,6 +162,17 @@ h1 {
   background: var(--surface-solid);
   border-color: var(--border);
   box-shadow: 0 7px 18px rgba(0, 0, 0, 0.06);
+  color: var(--text);
+  text-align: center;
+}
+
+input.date-btn {
+  width: 100%;
+  min-width: 0;
+  border-radius: 8px;
+  font-weight: 800;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .settlement-form {
@@ -268,7 +279,7 @@ h1 {
   min-height: 132px;
 }
 
-input {
+.input-card input {
   grid-column: 1 / -1;
   width: 100%;
   min-height: 58px;
@@ -282,13 +293,18 @@ input {
   letter-spacing: 0;
 }
 
-input::placeholder {
+.input-card input::placeholder {
   color: #a5aea9;
   color: color-mix(in srgb, var(--muted) 70%, transparent);
 }
 
-input:focus,
+.input-card input:focus,
 button:focus-visible {
+  outline: 3px solid rgba(0, 122, 255, 0.18);
+  outline-offset: 2px;
+}
+
+input.date-btn:focus-visible {
   outline: 3px solid rgba(0, 122, 255, 0.18);
   outline-offset: 2px;
 }
