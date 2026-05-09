@@ -86,6 +86,8 @@ function renderSummary(summary) {
 
   const todayEntry = summary.todayEntry;
   const todayDeficit = todayEntry ? (todayEntry.tdee || TDEE) - todayEntry.calories : 0;
+  const todayStatus = todayDeficit >= 0 ? "DEFICIT" : "SURPLUS";
+  const compliance = Math.round((summary.count / 7) * 100);
 
   const todayHtml = todayEntry
     ? `
@@ -93,7 +95,7 @@ function renderSummary(summary) {
       <p>Calories: ${todayEntry.calories} kcal</p>
       <p>Protein: ${todayEntry.protein} g</p>
       <p>TDEE: ${todayEntry.tdee || TDEE} kcal</p>
-      <p>Deficit: ${todayDeficit} kcal</p>
+      <p>${todayStatus}: ${todayDeficit} kcal</p>
       <p>Estimated fat loss: ${(todayDeficit / 7700).toFixed(2)} kg</p>
     `
     : `
@@ -106,7 +108,8 @@ function renderSummary(summary) {
 
     <h2>This Week</h2>
     <p>${summary.weekStart} to ${summary.weekEnd}</p>
-    <p>Days logged: ${summary.count}</p>
+    <p>Days logged: ${summary.count} / 7</p>
+    <p>Compliance: ${compliance}%</p>
     <p>Average calories: ${summary.averageCalories} kcal</p>
     <p>Average protein: ${summary.averageProtein} g</p>
     <p>Weekly deficit: ${summary.totalDeficit} kcal</p>
@@ -137,7 +140,7 @@ async function loadWeekSummary(shouldPromptIfMissing = false) {
     }
   } catch (error) {
     console.error(error);
-    setStatus(`Summary network error: ${error.message}`);
+    setStatus("Unable to load summary. Tap Quick Entry.");
   }
 }
 
@@ -188,38 +191,40 @@ function openQuickEntry() {
   const caloriesInput = document.getElementById("calories");
   const proteinInput = document.getElementById("protein");
 
-  const calories = window.prompt(`Calories for ${today}?`, caloriesInput?.value || "");
+  const defaultValue =
+    caloriesInput?.value && proteinInput?.value
+      ? `${caloriesInput.value},${proteinInput.value}`
+      : "";
 
-  if (calories === null) {
+  const entry = window.prompt(
+    `${today} (Calories,Protein)`,
+    defaultValue
+  );
+
+  if (entry === null) {
     caloriesInput?.focus();
     return;
   }
 
-  const protein = window.prompt(`Protein for ${today}?`, proteinInput?.value || "");
+  const [calories, protein] = entry
+    .split(",")
+    .map((value) => Number(value.trim()));
 
-  if (protein === null) {
-    proteinInput?.focus();
-    return;
-  }
-
-  const caloriesNumber = Number(calories);
-  const proteinNumber = Number(protein);
-
-  if (!caloriesNumber || !proteinNumber) {
-    alert("Please enter calories and protein.");
+  if (!calories || !protein) {
+    alert("Use format: calories,protein (e.g. 2200,180)");
     caloriesInput?.focus();
     return;
   }
 
   if (caloriesInput) {
-    caloriesInput.value = caloriesNumber;
+    caloriesInput.value = calories;
   }
 
   if (proteinInput) {
-    proteinInput.value = proteinNumber;
+    proteinInput.value = protein;
   }
 
-  saveEntry(caloriesNumber, proteinNumber);
+  saveEntry(calories, protein);
 }
 
 const today = getDietDate();
