@@ -28,6 +28,10 @@ body {
   line-height: 1.5;
 }
 
+body.quick-entry-open {
+  overflow: hidden;
+}
+
 button,
 input {
   font: inherit;
@@ -105,6 +109,64 @@ h1 {
   margin: 14px 0 10px;
 }
 
+.quick-entry-header {
+  display: none;
+}
+
+.quick-entry-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: rgba(29, 35, 33, 0.38);
+  backdrop-filter: blur(3px);
+}
+
+.settlement-form.quick-entry {
+  position: fixed;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 11;
+  width: min(520px, calc(100% - 24px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  transform: translateX(-50%);
+  grid-template-columns: 1fr;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  box-shadow: 0 24px 80px rgba(29, 35, 33, 0.26);
+  padding: 12px;
+  margin: 0;
+}
+
+.settlement-form.quick-entry .quick-entry-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.quick-entry-header strong,
+.quick-entry-header span {
+  display: block;
+}
+
+.quick-entry-header strong {
+  font-size: 16px;
+}
+
+.quick-entry-header span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.quick-entry-header .icon-btn {
+  width: 40px;
+  min-height: 40px;
+  font-size: 24px;
+  line-height: 1;
+}
+
 .input-card {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -129,6 +191,10 @@ h1 {
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
+}
+
+.settlement-form.quick-entry .input-card {
+  min-height: 132px;
 }
 
 input {
@@ -436,6 +502,10 @@ button:focus-visible {
   .week-snapshot,
   .hero-result {
     grid-template-columns: 1fr;
+  }
+
+  .settlement-form.quick-entry {
+    width: calc(100% - 20px);
   }
 
   .primary-btn,

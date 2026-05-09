@@ -6,6 +6,7 @@ let todayLogged = false;
 let todayEntry = null;
 let currentDate = getDietDate();
 let toastTimer = null;
+let autoSubmitArmed = true;
 
 function getDietDate() {
   const now = new Date();
@@ -97,6 +98,54 @@ function setLoading(isLoading) {
 
   if (saveBtn) saveBtn.disabled = isLoading;
   if (deleteBtn) deleteBtn.disabled = isLoading;
+}
+
+function isQuickEntryOpen() {
+  return document.getElementById("today-form")?.classList.contains("quick-entry") || false;
+}
+
+function openQuickEntry() {
+  const form = document.getElementById("today-form");
+  const backdrop = document.getElementById("quickEntryBackdrop");
+  const calories = document.getElementById("calories");
+  const protein = document.getElementById("protein");
+
+  if (!form || !calories || !protein) return;
+
+  form.classList.add("quick-entry");
+  document.body.classList.add("quick-entry-open");
+  if (backdrop) backdrop.hidden = false;
+
+  if (!todayEntry) {
+    calories.value = "";
+    protein.value = "";
+  }
+
+  autoSubmitArmed = true;
+  setStatus("Enter calories");
+
+  setTimeout(() => {
+    calories.focus();
+    calories.select();
+  }, 80);
+}
+
+function closeQuickEntry() {
+  const form = document.getElementById("today-form");
+  const backdrop = document.getElementById("quickEntryBackdrop");
+
+  if (form) form.classList.remove("quick-entry");
+  document.body.classList.remove("quick-entry-open");
+  if (backdrop) backdrop.hidden = true;
+}
+
+function handleDietDayClick() {
+  if (currentDate === getDietDate() && !todayEntry) {
+    openQuickEntry();
+    return;
+  }
+
+  editDietDay();
 }
 
 function editDietDay() {
@@ -206,6 +255,7 @@ async function saveEntry(calories, protein) {
     todayLogged = true;
     setStatus(`Saved · ${TDEE - calories} kcal`);
     showToast(`Saved · ${TDEE - calories} kcal`);
+    closeQuickEntry();
     await loadWeekSummary("Entry saved");
   } catch (error) {
     setStatus("Save failed");
@@ -459,12 +509,41 @@ function handleFormSubmit(event) {
   }
 }
 
+function handleCaloriesInput(event) {
+  const calories = event.currentTarget;
+  const protein = document.getElementById("protein");
+  const digits = calories.value.replace(/\D/g, "");
+
+  if (digits.length >= 4 && protein && document.activeElement === calories) {
+    protein.focus();
+    protein.select();
+    setStatus("Enter protein");
+  }
+
+  autoSubmitArmed = true;
+}
+
+function handleProteinInput(event) {
+  const protein = event.currentTarget;
+  const digits = protein.value.replace(/\D/g, "");
+
+  if (digits.length < 3 || !autoSubmitArmed || todayEntry || !isQuickEntryOpen() || currentDate !== getDietDate()) return;
+
+  autoSubmitArmed = false;
+  setStatus("Auto submitting...");
+  document.getElementById("today-form")?.requestSubmit();
+}
+
 function initApp() {
   document.getElementById("today-form")?.addEventListener("submit", handleFormSubmit);
-  document.getElementById("diet-day")?.addEventListener("click", editDietDay);
+  document.getElementById("diet-day")?.addEventListener("click", handleDietDayClick);
   document.getElementById("prevDayBtn")?.addEventListener("click", () => shiftDietDay(-1));
   document.getElementById("nextDayBtn")?.addEventListener("click", () => shiftDietDay(1));
   document.getElementById("deleteBtn")?.addEventListener("click", deleteEntry);
+  document.getElementById("closeQuickEntryBtn")?.addEventListener("click", closeQuickEntry);
+  document.getElementById("quickEntryBackdrop")?.addEventListener("click", closeQuickEntry);
+  document.getElementById("calories")?.addEventListener("input", handleCaloriesInput);
+  document.getElementById("protein")?.addEventListener("input", handleProteinInput);
 
   updateDietDayDisplay();
   loadWeekSummary();
