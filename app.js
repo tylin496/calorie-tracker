@@ -85,6 +85,26 @@ function getWeekdayLabel(dateString) {
   });
 }
 
+function formatMonthDay(dateString) {
+  const date = new Date(`${dateString}T12:00:00`);
+  return `${date.getMonth() + 1}/${date.getDate()}`;
+}
+
+function getDietDayLabel() {
+  const isViewingToday = currentDate === getDietDate();
+  return `${isViewingToday ? "Today" : "Viewing"} · ${formatMonthDay(currentDate)}`;
+}
+
+function updateQuickEntryButton() {
+  const quickEntryButton = document.getElementById("quickEntryBtn");
+
+  if (!quickEntryButton) {
+    return;
+  }
+
+  quickEntryButton.textContent = todayLogged ? "Edit Entry" : "+ Log Entry";
+}
+
 function showToast(message) {
   let toast = document.getElementById("toast");
 
@@ -126,7 +146,7 @@ function updateDietDayDisplay() {
   const dietDayElement = document.getElementById("diet-day");
 
   if (dietDayElement) {
-    dietDayElement.textContent = `Diet Day: ${currentDate} (tap to change)`;
+    dietDayElement.textContent = getDietDayLabel();
   }
 }
 
@@ -137,6 +157,7 @@ function shiftDietDay(days) {
   currentDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
   todayLogged = false;
   todayEntry = null;
+  updateQuickEntryButton();
 
   updateDietDayDisplay();
   document.getElementById("calories").value = "";
@@ -148,6 +169,7 @@ function resetDietDay() {
   currentDate = getDietDate();
   todayLogged = false;
   todayEntry = null;
+  updateQuickEntryButton();
 
   updateDietDayDisplay();
   document.getElementById("calories").value = "";
@@ -203,12 +225,15 @@ function renderSummary(summary) {
     return;
   }
 
+  const isViewingToday = currentDate === getDietDate();
+
   if (!summary || summary.count === 0) {
     summaryElement.innerHTML = `
       <section class="card today-card">
         <div class="card-header">
-          <h2>Today</h2>
+          <h2>${isViewingToday ? "Today" : "Selected Day"}</h2>
         </div>
+        ${isViewingToday ? "" : `<p class="warning-text">Viewing historical day: ${currentDate}</p>`}
         <p class="empty-state">No entry for this day yet.</p>
       </section>
 
@@ -230,12 +255,12 @@ function renderSummary(summary) {
   const fatProgress = Math.min(Math.round(Math.abs(summary.fatLossKg) * 100), 100);
   const fatProgressLabel = summary.fatLossKg >= 0 ? "Fat loss progress" : "Surplus progress";
   const weekRange = formatShortDateRange(summary.weekStart, summary.weekEnd);
-  const isViewingToday = currentDate === getDietDate();
+  // const isViewingToday = currentDate === getDietDate();
   const loggedStatus = todayEntry ? "Logged" : "Missing";
   const dailyRows = summary.entries
     .map((entry) => `
       <div class="daily-row">
-        <span>${getWeekdayLabel(entry.date)}</span>
+        <span>${getWeekdayLabel(entry.date)} ${formatMonthDay(entry.date)}</span>
         <span>${entry.calories} kcal</span>
         <span>${entry.protein}g</span>
       </div>
@@ -365,6 +390,7 @@ async function loadWeekSummary(shouldPromptIfMissing = false) {
       updateTDEEDisplay();
     }
     todayLogged = Boolean(result.summary.todayLogged);
+    updateQuickEntryButton();
     todayEntry = result.summary.todayEntry || null;
     updateTodayInputs(todayEntry);
     renderSummary(result.summary);
@@ -409,6 +435,8 @@ async function saveEntry(calories, protein) {
     const fatLoss = deficit / 7700;
 
     setStatus(result.mode === "updated" ? "Updated today's entry." : "Saved to Notion.");
+    todayLogged = true;
+    updateQuickEntryButton();
 
     showToast(
       `${result.mode === "updated" ? "Updated" : "Saved"} ${currentDate} • ${formatSignedKcal(deficit)} • ${fatLoss.toFixed(2)}kg`
@@ -498,12 +526,12 @@ const appTitle = document.querySelector("h1");
 if (appTitle) {
   appTitle.insertAdjacentHTML(
     "beforebegin",
-    `<div class="top-controls"><button id="prevDayBtn" class="chip">‹</button><button id="diet-day" class="chip"></button><button id="nextDayBtn" class="chip">›</button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log / Edit Entry</button><button id="refreshSummaryBtn" class="secondary-action">↻</button></div>`
+    `<div class="top-controls"><button id="prevDayBtn" class="chip">‹</button><button id="diet-day" class="chip"></button><button id="nextDayBtn" class="chip">›</button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log Entry</button><button id="refreshSummaryBtn" class="secondary-action">↻</button></div>`
   );
 } else {
   document.body.insertAdjacentHTML(
     "afterbegin",
-    `<div class="top-controls"><button id="prevDayBtn" class="chip">‹</button><button id="diet-day" class="chip"></button><button id="nextDayBtn" class="chip">›</button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log / Edit Entry</button><button id="refreshSummaryBtn" class="secondary-action">↻</button></div>`
+    `<div class="top-controls"><button id="prevDayBtn" class="chip">‹</button><button id="diet-day" class="chip"></button><button id="nextDayBtn" class="chip">›</button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log Entry</button><button id="refreshSummaryBtn" class="secondary-action">↻</button></div>`
   );
 }
 
@@ -515,6 +543,7 @@ document.body.insertAdjacentHTML(
         <h2>Log Entry</h2>
         <p id="modal-date" class="subtle-text"></p>
         <p class="entry-hint">Example: 2200180 = 2200 kcal / 180g protein</p>
+        <p class="entry-hint">Use ‹ / › to change the day.</p>
         <input id="modal-entry" type="number" inputmode="numeric" pattern="[0-9]*" maxlength="7" placeholder="2200180" />
         <button id="modalSaveBtn" class="primary-action">Save</button>
         <button id="modalCancelBtn" class="secondary-action">Cancel</button>
