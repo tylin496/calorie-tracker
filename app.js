@@ -704,7 +704,7 @@ document.body.insertAdjacentHTML(
       <div class="modal-card">
         <h2>Log Entry</h2>
         <p id="modal-date" class="subtle-text"></p>
-        <p class="entry-hint">Example: 2200180 = 2200 kcal / 180g protein</p>
+        <p class="entry-hint">Example: 1900180 = 1900 kcal / 180g protein</p>
         <p class="entry-hint">Use ‹ / › or tap the date to change the day.</p>
         <input id="modal-entry" type="number" inputmode="numeric" pattern="[0-9]*" maxlength="7" placeholder="2200180" />
         <button id="modalSaveBtn" class="primary-action">Save</button>
