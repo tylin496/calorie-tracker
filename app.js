@@ -471,7 +471,6 @@ async function loadWeekSummary(shouldPromptIfMissing = false) {
     todayEntry = result.summary.todayEntry || null;
     updateTodayInputs(todayEntry);
     renderSummary(result.summary);
-    setStatus("Ready.");
 
     if (shouldPromptIfMissing && !todayLogged) {
       openQuickEntry();
