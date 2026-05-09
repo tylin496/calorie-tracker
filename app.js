@@ -1,4 +1,4 @@
-const TDEE = 2705;
+let TDEE = Number(localStorage.getItem("tdee")) || 2705;
 const API_BASE = "https://calorie-tracker-omega-ten.vercel.app";
 
 function getDietDate() {
@@ -19,36 +19,84 @@ function setStatus(message) {
   }
 }
 
-const today = getDietDate();
+function updateTDEEDisplay() {
+  const tdeeElement = document.getElementById("tdee-display");
 
-document.body.insertAdjacentHTML(
-  "afterbegin",
-  `<p>Diet Day: ${today}</p><p id="status">App loaded. Ready.</p>`
-);
-
-const saveButton = document.getElementById("saveBtn");
-
-if (!saveButton) {
-  alert("Error: saveBtn not found");
-  throw new Error("saveBtn not found");
+  if (tdeeElement) {
+    tdeeElement.textContent = `TDEE: ${TDEE} kcal (tap to edit)`;
+  }
 }
 
-saveButton.addEventListener("click", async () => {
-  setStatus("Saving...");
+function editTDEE() {
+  const nextValue = window.prompt("Set your TDEE", TDEE);
 
-  const calories = Number(
-    document.getElementById("calories").value
-  );
-
-  const protein = Number(
-    document.getElementById("protein").value
-  );
-
-  if (!calories || !protein) {
-    setStatus("Please enter calories and protein.");
-    alert("Please enter calories and protein.");
+  if (nextValue === null) {
     return;
   }
+
+  const parsedValue = Number(nextValue);
+
+  if (!parsedValue) {
+    alert("Invalid TDEE");
+    return;
+  }
+
+  TDEE = parsedValue;
+  localStorage.setItem("tdee", TDEE);
+  localStorage.setItem("tdee_default", "2705");
+  updateTDEEDisplay();
+  loadWeekSummary();
+}
+
+function renderSummary(summary) {
+  const summaryElement = document.getElementById("weekly-summary");
+
+  if (!summaryElement) {
+    return;
+  }
+
+  if (!summary || summary.count === 0) {
+    summaryElement.innerHTML = `
+      <h2>This Week</h2>
+      <p>No entries yet.</p>
+    `;
+    return;
+  }
+
+  summaryElement.innerHTML = `
+    <h2>This Week</h2>
+    <p>${summary.weekStart} to ${summary.weekEnd}</p>
+    <p>Days logged: ${summary.count}</p>
+    <p>Average calories: ${summary.averageCalories} kcal</p>
+    <p>Average protein: ${summary.averageProtein} g</p>
+    <p>Weekly deficit: ${summary.totalDeficit} kcal</p>
+    <p>Estimated fat loss: ${summary.fatLossKg.toFixed(2)} kg</p>
+  `;
+}
+
+async function loadWeekSummary() {
+  setStatus("Loading weekly summary...");
+
+  try {
+    const response = await fetch(`${API_BASE}/api/save?today=${today}`);
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error(result);
+      setStatus(`Summary failed: ${result.error || response.status}`);
+      return;
+    }
+
+    renderSummary(result.summary);
+    setStatus("Ready.");
+  } catch (error) {
+    console.error(error);
+    setStatus(`Summary network error: ${error.message}`);
+  }
+}
+
+async function saveEntry(calories, protein) {
+  setStatus("Saving...");
 
   try {
     const response = await fetch(`${API_BASE}/api/save`, {
@@ -75,14 +123,90 @@ saveButton.addEventListener("click", async () => {
     const deficit = TDEE - calories;
     const fatLoss = deficit / 7700;
 
-    setStatus("Saved to Notion.");
+    renderSummary(result.summary);
+    setStatus(result.mode === "updated" ? "Updated today's entry." : "Saved to Notion.");
 
     alert(
-      `Saved to Notion\nDeficit: ${deficit}\nFat: ${fatLoss.toFixed(2)}kg`
+      `${result.mode === "updated" ? "Updated" : "Saved"}\nDeficit: ${deficit}\nFat: ${fatLoss.toFixed(2)}kg`
     );
   } catch (error) {
     console.error(error);
     setStatus(`Network error: ${error.message}`);
     alert(`Network error: ${error.message}`);
   }
+}
+
+function openQuickEntry() {
+  const caloriesInput = document.getElementById("calories");
+  const proteinInput = document.getElementById("protein");
+
+  const calories = window.prompt(`Calories for ${today}?`, caloriesInput?.value || "");
+
+  if (calories === null) {
+    caloriesInput?.focus();
+    return;
+  }
+
+  const protein = window.prompt(`Protein for ${today}?`, proteinInput?.value || "");
+
+  if (protein === null) {
+    proteinInput?.focus();
+    return;
+  }
+
+  const caloriesNumber = Number(calories);
+  const proteinNumber = Number(protein);
+
+  if (!caloriesNumber || !proteinNumber) {
+    alert("Please enter calories and protein.");
+    caloriesInput?.focus();
+    return;
+  }
+
+  if (caloriesInput) {
+    caloriesInput.value = caloriesNumber;
+  }
+
+  if (proteinInput) {
+    proteinInput.value = proteinNumber;
+  }
+
+  saveEntry(caloriesNumber, proteinNumber);
+}
+
+const today = getDietDate();
+
+document.body.insertAdjacentHTML(
+  "afterbegin",
+  `<p>Diet Day: ${today}</p><p id="tdee-display"></p><p id="status">App loaded. Ready.</p>`
+);
+
+updateTDEEDisplay();
+
+document.getElementById("tdee-display")?.addEventListener("click", editTDEE);
+
+const saveButton = document.getElementById("saveBtn");
+
+if (!saveButton) {
+  alert("Error: saveBtn not found");
+  throw new Error("saveBtn not found");
+}
+
+saveButton.addEventListener("click", async () => {
+  const calories = Number(document.getElementById("calories").value);
+  const protein = Number(document.getElementById("protein").value);
+
+  if (!calories || !protein) {
+    setStatus("Please enter calories and protein.");
+    alert("Please enter calories and protein.");
+    return;
+  }
+
+  await saveEntry(calories, protein);
 });
+
+loadWeekSummary();
+
+setTimeout(() => {
+  openQuickEntry();
+}, 500);
