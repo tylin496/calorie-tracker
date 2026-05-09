@@ -32,6 +32,26 @@ function isValidDateString(value) {
   );
 }
 
+function formatShortDateRange(start, end) {
+  const startDate = new Date(`${start}T12:00:00`);
+  const endDate = new Date(`${end}T12:00:00`);
+
+  const month = startDate.toLocaleString("en-US", {
+    month: "short"
+  });
+
+  return `${month} ${startDate.getDate()}–${endDate.getDate()}`;
+}
+
+function formatSignedKcal(value) {
+  const sign = value >= 0 ? "-" : "+";
+  return `${sign}${Math.abs(value)} kcal`;
+}
+
+function getDeficitLabel(value) {
+  return value >= 0 ? "Deficit" : "Surplus";
+}
+
 function setStatus(message) {
   const status = document.getElementById("status");
 
@@ -124,44 +144,104 @@ function renderSummary(summary) {
 
   if (!summary || summary.count === 0) {
     summaryElement.innerHTML = `
-      <h2>Today</h2>
-      <p>No entry for today yet.</p>
+      <section class="card today-card">
+        <div class="card-header">
+          <h2>Today</h2>
+        </div>
+        <p class="empty-state">No entry for this day yet.</p>
+      </section>
 
-      <h2>This Week</h2>
-      <p>No entries yet.</p>
+      <section class="card week-card">
+        <div class="card-header">
+          <h2>This Week</h2>
+        </div>
+        <p class="empty-state">No entries yet.</p>
+      </section>
     `;
     return;
   }
 
   const todayEntry = summary.todayEntry;
   const todayDeficit = todayEntry ? (todayEntry.tdee || TDEE) - todayEntry.calories : 0;
-  const todayStatus = todayDeficit >= 0 ? "DEFICIT" : "SURPLUS";
+  const todayStatus = getDeficitLabel(todayDeficit);
   const compliance = Math.round((summary.count / 7) * 100);
+  const weekRange = formatShortDateRange(summary.weekStart, summary.weekEnd);
 
   const todayHtml = todayEntry
     ? `
-      <h2>Today</h2>
-      <p>Calories: ${todayEntry.calories} kcal</p>
-      <p>Protein: ${todayEntry.protein} g</p>
-      <p>${todayStatus}: ${todayDeficit} kcal</p>
-      <p>Estimated fat loss: ${(todayDeficit / 7700).toFixed(2)} kg</p>
+      <section class="card today-card">
+        <div class="card-header">
+          <h2>Today</h2>
+          <span class="status-pill ${todayDeficit >= 0 ? "deficit" : "surplus"}">
+            ${todayStatus}
+          </span>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric">
+            <span class="metric-label">Calories</span>
+            <span class="metric-value">${todayEntry.calories}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Protein</span>
+            <span class="metric-value">${todayEntry.protein}g</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">${todayStatus}</span>
+            <span class="metric-value">${formatSignedKcal(todayDeficit)}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Fat</span>
+            <span class="metric-value">${(todayDeficit / 7700).toFixed(2)}kg</span>
+          </div>
+        </div>
+      </section>
     `
     : `
-      <h2>Today</h2>
-      <p>No entry for today yet.</p>
+      <section class="card today-card">
+        <div class="card-header">
+          <h2>Today</h2>
+        </div>
+        <p class="empty-state">No entry for this day yet.</p>
+      </section>
     `;
 
   summaryElement.innerHTML = `
     ${todayHtml}
 
-    <h2>This Week</h2>
-    <p>${summary.weekStart} to ${summary.weekEnd}</p>
-    <p>Days logged: ${summary.count} / 7</p>
-    <p>Compliance: ${compliance}%</p>
-    <p>Average calories: ${summary.averageCalories} kcal</p>
-    <p>Average protein: ${summary.averageProtein} g</p>
-    <p>Weekly deficit: ${summary.totalDeficit} kcal</p>
-    <p>Estimated fat loss: ${summary.fatLossKg.toFixed(2)} kg</p>
+    <section class="card week-card">
+      <div class="card-header">
+        <h2>This Week</h2>
+        <span class="subtle-text">${weekRange}</span>
+      </div>
+
+      <div class="progress-row">
+        <span>${summary.count} / 7 days</span>
+        <span>${compliance}%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width: ${Math.min(compliance, 100)}%"></div>
+      </div>
+
+      <div class="metric-grid">
+        <div class="metric">
+          <span class="metric-label">Avg kcal</span>
+          <span class="metric-value">${summary.averageCalories}</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Avg protein</span>
+          <span class="metric-value">${summary.averageProtein}g</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Weekly deficit</span>
+          <span class="metric-value">${formatSignedKcal(summary.totalDeficit)}</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Fat</span>
+          <span class="metric-value">${summary.fatLossKg.toFixed(2)}kg</span>
+        </div>
+      </div>
+    </section>
   `;
 }
 
@@ -248,31 +328,65 @@ async function saveEntry(calories, protein) {
 }
 
 function openQuickEntry() {
+  const modal = document.getElementById("quickEntryModal");
+  const modalDate = document.getElementById("modal-date");
+  const modalCalories = document.getElementById("modal-calories");
+  const modalProtein = document.getElementById("modal-protein");
   const caloriesInput = document.getElementById("calories");
   const proteinInput = document.getElementById("protein");
 
-  const defaultValue =
-    caloriesInput?.value && proteinInput?.value
-      ? `${caloriesInput.value},${proteinInput.value}`
-      : "";
+  if (!modal || !modalDate || !modalCalories || !modalProtein) {
+    const fallback = window.prompt(
+      `${currentDate} (Calories,Protein)`,
+      caloriesInput?.value && proteinInput?.value
+        ? `${caloriesInput.value},${proteinInput.value}`
+        : ""
+    );
 
-  const entry = window.prompt(
-    `${currentDate} (Calories,Protein)`,
-    defaultValue
-  );
+    if (fallback === null) {
+      return;
+    }
 
-  if (entry === null) {
-    caloriesInput?.focus();
+    const [calories, protein] = fallback
+      .split(",")
+      .map((value) => Number(value.trim()));
+
+    if (!calories || !protein) {
+      alert("Use format: calories,protein (e.g. 2200,180)");
+      return;
+    }
+
+    saveEntry(calories, protein);
     return;
   }
 
-  const [calories, protein] = entry
-    .split(",")
-    .map((value) => Number(value.trim()));
+  modalDate.textContent = currentDate;
+  modalCalories.value = caloriesInput?.value || "";
+  modalProtein.value = proteinInput?.value || "";
+  modal.hidden = false;
+  modalCalories.focus();
+}
+
+function closeQuickEntry() {
+  const modal = document.getElementById("quickEntryModal");
+
+  if (modal) {
+    modal.hidden = true;
+  }
+}
+
+function submitQuickEntry() {
+  const modalCalories = document.getElementById("modal-calories");
+  const modalProtein = document.getElementById("modal-protein");
+  const caloriesInput = document.getElementById("calories");
+  const proteinInput = document.getElementById("protein");
+
+  const calories = Number(modalCalories?.value);
+  const protein = Number(modalProtein?.value);
 
   if (!calories || !protein) {
-    alert("Use format: calories,protein (e.g. 2200,180)");
-    caloriesInput?.focus();
+    alert("Please enter calories and protein.");
+    modalCalories?.focus();
     return;
   }
 
@@ -284,6 +398,7 @@ function openQuickEntry() {
     proteinInput.value = protein;
   }
 
+  closeQuickEntry();
   saveEntry(calories, protein);
 }
 
@@ -292,14 +407,30 @@ const appTitle = document.querySelector("h1");
 if (appTitle) {
   appTitle.insertAdjacentHTML(
     "beforebegin",
-    `<p id="diet-day"></p><p id="tdee-display"></p><p id="status">App loaded. Ready.</p><button id="quickEntryBtn">Quick Entry / Edit Day</button><button id="refreshSummaryBtn">Refresh Summary</button>`
+    `<div class="top-controls"><button id="diet-day" class="chip"></button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log / Edit Day</button><button id="refreshSummaryBtn" class="secondary-action">↻</button></div>`
   );
 } else {
   document.body.insertAdjacentHTML(
     "afterbegin",
-    `<p id="diet-day"></p><p id="tdee-display"></p><p id="status">App loaded. Ready.</p><button id="quickEntryBtn">Quick Entry / Edit Day</button><button id="refreshSummaryBtn">Refresh Summary</button>`
+    `<div class="top-controls"><button id="diet-day" class="chip"></button><button id="tdee-display" class="chip"></button></div><p id="status">App loaded. Ready.</p><div class="action-row"><button id="quickEntryBtn" class="primary-action">+ Log / Edit Day</button><button id="refreshSummaryBtn" class="secondary-action">↻</button></div>`
   );
 }
+
+document.body.insertAdjacentHTML(
+  "beforeend",
+  `
+    <div id="quickEntryModal" class="modal-backdrop" hidden>
+      <div class="modal-card">
+        <h2>Log Day</h2>
+        <p id="modal-date" class="subtle-text"></p>
+        <input id="modal-calories" type="number" inputmode="numeric" placeholder="Calories" />
+        <input id="modal-protein" type="number" inputmode="numeric" placeholder="Protein" />
+        <button id="modalSaveBtn" class="primary-action">Save</button>
+        <button id="modalCancelBtn" class="secondary-action">Cancel</button>
+      </div>
+    </div>
+  `
+);
 
 updateDietDayDisplay();
 
@@ -312,6 +443,20 @@ document.getElementById("diet-day")?.addEventListener("click", editDietDay);
 document.getElementById("quickEntryBtn")?.addEventListener("click", openQuickEntry);
 document.getElementById("refreshSummaryBtn")?.addEventListener("click", () => {
   loadWeekSummary(false);
+});
+
+document.getElementById("modalSaveBtn")?.addEventListener("click", submitQuickEntry);
+document.getElementById("modalCancelBtn")?.addEventListener("click", closeQuickEntry);
+document.getElementById("quickEntryModal")?.addEventListener("click", (event) => {
+  if (event.target.id === "quickEntryModal") {
+    closeQuickEntry();
+  }
+});
+
+document.getElementById("modal-protein")?.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    submitQuickEntry();
+  }
 });
 
 const saveButton = document.getElementById("saveBtn");
