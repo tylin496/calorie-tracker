@@ -112,9 +112,16 @@ function getDatesBetween(start, end) {
   return dates;
 }
 
+
 function getDietDayLabel() {
   const isViewingToday = currentDate === getDietDate();
   return `${isViewingToday ? "Today" : "Viewing"} · ${formatMonthDay(currentDate)}`;
+}
+
+// Daily state helper for lifecycle model
+function getDayState() {
+  if (todayLogged) return "logged";
+  return "draft";
 }
 
 function updateQuickEntryButton() {
@@ -124,7 +131,7 @@ function updateQuickEntryButton() {
     return;
   }
 
-  quickEntryButton.textContent = todayLogged ? "Edit Entry" : "+ Log Entry";
+  quickEntryButton.textContent = todayLogged ? "Edit Entry" : "Commit Entry";
 }
 
 function showToast(message) {
@@ -254,6 +261,7 @@ function editDietDay() {
     document.body.removeChild(input);
   });
 
+  input.showPicker?.();
   input.click();
 }
 
@@ -355,7 +363,7 @@ function renderSummary(summary) {
   const fatProgressLabel = "Weekly target";
   const weekRange = formatShortDateRange(summary.weekStart, summary.weekEnd);
   // const isViewingToday = currentDate === getDietDate();
-  const loggedStatus = todayEntry ? "Logged" : "Missing";
+  const loggedStatus = todayEntry ? "Logged" : "Draft";
   const entriesByDate = new Map(
     summary.entries.map((entry) => [entry.date, entry])
   );
