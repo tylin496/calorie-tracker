@@ -135,7 +135,7 @@ async function saveEntry(calories, protein) {
 
   todayLogged = true;
 
-  setStatus("Daily completed ✓");
+  setStatus(`Daily completed ✓ · ${TDEE - calories} kcal`);
 
   const card = document.querySelector(".today-card");
   if (card) {
@@ -185,6 +185,13 @@ function renderSummary(summary) {
 
   if (today) {
     const todayDeficit = TDEE - today.calories;
+    const statusLabel = todayDeficit >= 0 ? "On track" : "Off track";
+    const insightLabel =
+      todayDeficit >= 0
+        ? "Good control today"
+        : "Over target today";
+
+    const todayDeficit = TDEE - today.calories;
     const todayStatus = todayDeficit >= 0 ? "deficit" : "surplus";
     const loggedStatus = "Logged";
 
@@ -218,6 +225,9 @@ function renderSummary(summary) {
             <span class="metric-label">Deficit</span>
             <span class="metric-value">${todayDeficit >= 0 ? "-" : "+"}${Math.abs(todayDeficit)} kcal</span>
           </div>
+        </div>
+        <div class="subtle-text" style="margin-top:10px;">
+          ${statusLabel} · ${insightLabel}
         </div>
       </section>
     `;
@@ -254,7 +264,7 @@ function renderSummary(summary) {
         </div>
       </div>
 
-      <p class="subtle-text">Consistency: ${summary.consistency || "—"}</p>
+      <p class="subtle-text">Weekly pattern: ${summary.consistency || "—"}</p>
     </section>
   `;
 
