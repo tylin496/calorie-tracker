@@ -553,6 +553,9 @@ function submitQuickEntry() {
 }
 
 const appTitle = document.querySelector("h1");
+if (appTitle && document.body.firstElementChild !== appTitle) {
+  document.body.prepend(appTitle);
+}
 
 if (appTitle) {
   appTitle.insertAdjacentHTML(
