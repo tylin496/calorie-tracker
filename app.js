@@ -1,6 +1,7 @@
 let TDEE = Number(localStorage.getItem("tdee")) || 2705;
 const API_BASE = "https://calorie-tracker-omega-ten.vercel.app";
 let todayLogged = false;
+let todayEntry = null;
 
 function getDietDate() {
   const now = new Date();
@@ -25,6 +26,23 @@ function updateTDEEDisplay() {
 
   if (tdeeElement) {
     tdeeElement.textContent = `TDEE: ${TDEE} kcal (tap to edit)`;
+  }
+}
+
+function updateTodayInputs(entry) {
+  const caloriesInput = document.getElementById("calories");
+  const proteinInput = document.getElementById("protein");
+
+  if (!entry) {
+    return;
+  }
+
+  if (caloriesInput && entry.calories) {
+    caloriesInput.value = entry.calories;
+  }
+
+  if (proteinInput && entry.protein) {
+    proteinInput.value = entry.protein;
   }
 }
 
@@ -57,13 +75,35 @@ function renderSummary(summary) {
 
   if (!summary || summary.count === 0) {
     summaryElement.innerHTML = `
+      <h2>Today</h2>
+      <p>No entry for today yet.</p>
+
       <h2>This Week</h2>
       <p>No entries yet.</p>
     `;
     return;
   }
 
+  const todayEntry = summary.todayEntry;
+  const todayDeficit = todayEntry ? (todayEntry.tdee || TDEE) - todayEntry.calories : 0;
+
+  const todayHtml = todayEntry
+    ? `
+      <h2>Today</h2>
+      <p>Calories: ${todayEntry.calories} kcal</p>
+      <p>Protein: ${todayEntry.protein} g</p>
+      <p>TDEE: ${todayEntry.tdee || TDEE} kcal</p>
+      <p>Deficit: ${todayDeficit} kcal</p>
+      <p>Estimated fat loss: ${(todayDeficit / 7700).toFixed(2)} kg</p>
+    `
+    : `
+      <h2>Today</h2>
+      <p>No entry for today yet.</p>
+    `;
+
   summaryElement.innerHTML = `
+    ${todayHtml}
+
     <h2>This Week</h2>
     <p>${summary.weekStart} to ${summary.weekEnd}</p>
     <p>Days logged: ${summary.count}</p>
@@ -86,8 +126,9 @@ async function loadWeekSummary(shouldPromptIfMissing = false) {
       setStatus(`Summary failed: ${result.error || response.status}`);
       return;
     }
-
     todayLogged = Boolean(result.summary.todayLogged);
+    todayEntry = result.summary.todayEntry || null;
+    updateTodayInputs(todayEntry);
     renderSummary(result.summary);
     setStatus("Ready.");
 
@@ -185,12 +226,13 @@ const today = getDietDate();
 
 document.body.insertAdjacentHTML(
   "afterbegin",
-  `<p>Diet Day: ${today}</p><p id="tdee-display"></p><p id="status">App loaded. Ready.</p>`
+  `<p>Diet Day: ${today}</p><p id="tdee-display"></p><p id="status">App loaded. Ready.</p><button id="quickEntryBtn">Quick Entry / Edit Today</button>`
 );
 
 updateTDEEDisplay();
 
 document.getElementById("tdee-display")?.addEventListener("click", editTDEE);
+document.getElementById("quickEntryBtn")?.addEventListener("click", openQuickEntry);
 
 const saveButton = document.getElementById("saveBtn");
 
