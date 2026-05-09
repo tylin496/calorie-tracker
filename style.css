@@ -497,3 +497,19 @@ button {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }
+
+/* Consistency state backgrounds for week card */
+.week-card.consistency-stable {
+  background: #ecfdf5;
+  border-left: 5px solid var(--positive);
+}
+
+.week-card.consistency-moderate {
+  background: #fffbeb;
+  border-left: 5px solid #d6a85c;
+}
+
+.week-card.consistency-volatile {
+  background: #fef2f2;
+  border-left: 5px solid var(--negative);
+}
