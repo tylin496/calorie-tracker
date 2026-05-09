@@ -7,3 +7,30 @@
   box-shadow: 0 0 10px color-mix(in srgb, var(--positive) 60%, transparent);
   position: relative;
 }
+
+/* Daily completion animation */
+@keyframes dayCompletePop {
+  0% {
+    transform: scale(0.98);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.01);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Apply when a day is marked as logged */
+.week-card.logged,
+.card.logged {
+  animation: dayCompletePop 0.45s ease-out;
+}
+
+/* Optional subtle glow for completed state */
+.week-card.logged {
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.25),
+              0 10px 30px rgba(34, 197, 94, 0.08);
+}
