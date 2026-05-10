@@ -375,7 +375,7 @@ function renderCalendar() {
         data-date="${dateString}"
         ${isFuture ? "disabled" : ""}
       >
-        ${isToday ? `Today · ${date.getDate()}` : date.getDate()}
+        ${date.getDate()}
       </button>
     `);
   }
