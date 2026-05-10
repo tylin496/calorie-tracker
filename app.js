@@ -555,11 +555,13 @@ function renderTrendBars(entries) {
           const isSelected = dateString === currentDate;
           const isFuture = isFutureDate(dateString);
           const day = date.toLocaleDateString("en-US", { weekday: "short" });
+          const dayOfMonth = date.getDate();
 
           return `
             <div class="trend-day ${isSelected ? "selected" : ""} ${isMissing ? "missing" : ""} ${isFuture ? "future" : ""}">
               <div class="trend-bar" style="height:${height}px" title="${dateString}: ${entry ? `${formatInt(entry.calories)} kcal` : "No data"}"></div>
-              <span>${day}</span>
+              <span class="trend-weekday">${day}</span>
+              <span class="trend-date">${dayOfMonth}</span>
             </div>
           `;
         })

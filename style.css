@@ -927,7 +927,8 @@ button:focus-visible {
   box-shadow: none;
 }
 
-.trend-day.selected.missing span {
+.trend-day.selected.missing .trend-weekday,
+.trend-day.selected.missing .trend-date {
   color: var(--muted);
 }
 
@@ -935,10 +936,19 @@ button:focus-visible {
   opacity: 0.36;
 }
 
-.trend-day span {
+.trend-weekday {
   color: var(--muted);
   font-size: 11px;
   font-weight: 800;
+  line-height: 1;
+}
+
+.trend-date {
+  margin-top: -2px;
+  color: color-mix(in srgb, var(--muted) 68%, transparent);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .empty-state,
