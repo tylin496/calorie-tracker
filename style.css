@@ -915,12 +915,21 @@ input[type="number"] {
 
 .daily-metric {
   min-width: 0;
+  display: grid;
+  justify-items: start;
+  align-content: start;
   border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
   border-radius: 8px;
   background: color-mix(in srgb, var(--surface-muted) 74%, transparent);
   padding: 12px;
   text-align: left;
   transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.daily-metric > * {
+  width: 100%;
+  justify-self: start;
+  text-align: left;
 }
 
 .daily-metric:hover {
@@ -946,12 +955,14 @@ input[type="number"] {
 
 .daily-metric strong {
   display: block;
+  width: 100%;
   margin-top: 8px;
   font-size: clamp(28px, 7vw, 38px);
   line-height: 1;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   letter-spacing: -0.035em;
+  text-align: left;
 }
 
 .daily-metric > span:last-child {

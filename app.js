@@ -484,18 +484,23 @@ function handleCalendarDayClick(event) {
 }
 
 function setDietDay(date) {
+  if (!isValidDateString(date) || isFutureDate(date)) return;
+  if (date === currentDate) return;
+
   currentDate = date;
   todayLogged = false;
   todayEntry = null;
 
-updateDietDayDisplay();
-updateTargetForm();
+  updateDietDayDisplay();
+  updateTargetForm();
+  hideEntryFormWhileLoading();
 
-document.querySelectorAll('[data-unit="protein"]').forEach((el) => {
-  el.textContent = "g";
-});
+  document.querySelectorAll('[data-unit="protein"]').forEach((el) => {
+    el.textContent = "g";
+  });
 
-renderInitialLoadingState();
+  renderInitialLoadingState();
+  loadWeekSummary();
 }
 
 function shiftDietDay(days) {
@@ -905,14 +910,6 @@ function renderSummary(summary) {
     const calorieIntakeTarget = Math.max(0, entryTdee - DEFICIT_TARGET);
     const deficitOverTarget = Math.max(roundInt(calorieResult.deficit - DEFICIT_TARGET), 0);
     const proteinOverTarget = Math.max(roundInt(roundedProtein - PROTEIN_TARGET), 0);
-    const deficitSummary = calorieResult.isSurplus
-      ? `<span class="metric-note negative">${formatInt(calorieResult.surplus)} kcal surplus</span>`
-      : deficitOverTarget > 0
-        ? `<span class="metric-note reward">+${formatInt(deficitOverTarget)} over goal</span>`
-        : `<span class="metric-note">Goal ${formatInt(DEFICIT_TARGET)} kcal</span>`;
-    const proteinSummary = proteinOverTarget > 0
-      ? `<span class="metric-note reward">+${formatInt(proteinOverTarget)} over goal</span>`
-      : `<span class="metric-note">Target ${formatInt(PROTEIN_TARGET)} g</span>`;
     const proteinMetricTone = proteinOverTarget > 0 ? "rewarded" : proteinResult.celebrated ? "on-track" : "";
     const deficitMetricTone = calorieResult.isSurplus ? "caution" : deficitOverTarget > 0 ? "rewarded" : calorieResult.celebrated ? "on-track" : "";
     // Responsive metric texts
