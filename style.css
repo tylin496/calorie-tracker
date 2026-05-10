@@ -1008,8 +1008,22 @@ input[type="number"] {
   margin-top: 18px;
 }
 
-.trend-summary span {
+.trend-status {
   color: var(--muted);
+  font-weight: 800;
+}
+
+.trend-status.stable {
+  color: var(--accent);
+}
+
+.trend-status.moderate,
+.trend-status.building {
+  color: color-mix(in srgb, var(--warning) 82%, var(--text));
+}
+
+.trend-status.variable {
+  color: var(--danger);
 }
 
 .settlement-line.celebrated strong,

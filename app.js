@@ -222,18 +222,6 @@ function updateEntryForm() {
 
     if (editToggle) {
       editToggle.hidden = !shouldCollapsePastEntry;
-      editToggle.onclick = () => {
-        const currentForm = document.getElementById("today-form");
-        const currentFormBody = currentForm?.querySelector(".input-grid");
-        const currentFormActions = currentForm?.querySelector(".form-actions");
-        const isExpanded = editToggle.getAttribute("aria-expanded") === "true";
-        const nextExpanded = !isExpanded;
-
-        editToggle.setAttribute("aria-expanded", String(nextExpanded));
-        editToggle.textContent = nextExpanded ? "Hide Entry Form" : "Edit Entry";
-        if (currentFormBody) currentFormBody.hidden = !nextExpanded;
-        if (currentFormActions) currentFormActions.hidden = !nextExpanded;
-      };
 
       if (!shouldCollapsePastEntry) {
         editToggle.setAttribute("aria-expanded", "false");
@@ -253,6 +241,22 @@ function updateEntryForm() {
       if (formActions) formActions.hidden = false;
     }
   }
+}
+
+function handleEntryEditToggleClick(event) {
+  const editToggle = event.target.closest("#entryEditToggle");
+  if (!editToggle) return;
+
+  const form = document.getElementById("today-form");
+  const formBody = form?.querySelector(".input-grid");
+  const formActions = form?.querySelector(".form-actions");
+  const isExpanded = editToggle.getAttribute("aria-expanded") === "true";
+  const nextExpanded = !isExpanded;
+
+  editToggle.setAttribute("aria-expanded", String(nextExpanded));
+  editToggle.textContent = nextExpanded ? "Hide Entry Form" : "Edit Entry";
+  if (formBody) formBody.hidden = !nextExpanded;
+  if (formActions) formActions.hidden = !nextExpanded;
 }
 
 function setLoading(isLoading) {
@@ -724,6 +728,7 @@ function renderSummary(summary) {
 
   const today = summary.todayEntry;
   const consistency = summary.consistency || getConsistency(summary.entries || []);
+  const consistencyTone = consistency.toLowerCase();
   let dailyHtml = "";
 
   if (today) {
@@ -839,7 +844,7 @@ function renderSummary(summary) {
         </div>
       </div>
       ${renderTrendBars(summary.entries || [])}
-      <p class="subtle-text trend-summary"><strong>Weekly Trend</strong> <span>${consistency}</span></p>
+      <p class="subtle-text trend-summary"><strong>Weekly Trend</strong> <span class="trend-status ${consistencyTone}">${consistency}</span></p>
     </section>
   `;
 
@@ -1030,6 +1035,7 @@ function initApp() {
   document.getElementById("quickEntryBackdrop")?.addEventListener("click", closeQuickEntry);
   document.getElementById("calories")?.addEventListener("input", handleCaloriesInput);
   document.getElementById("protein")?.addEventListener("input", handleProteinInput);
+  document.addEventListener("click", handleEntryEditToggleClick);
   document.addEventListener("keydown", handleGlobalKeydown);
 
   updateDietDayDisplay();
