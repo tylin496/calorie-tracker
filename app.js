@@ -204,10 +204,10 @@ function updateEntryForm() {
     }
   }
   if (form) {
-    const shouldCollapsePastEntry = Boolean(todayEntry) && !isViewingToday && !isQuickEntryOpen();
+    const shouldCollapseLoggedEntry = Boolean(todayEntry) && !isQuickEntryOpen();
     let editToggle = document.getElementById("entryEditToggle");
 
-    if (shouldCollapsePastEntry && !editToggle) {
+    if (shouldCollapseLoggedEntry && !editToggle) {
       editToggle = document.createElement("button");
       editToggle.id = "entryEditToggle";
       editToggle.type = "button";
@@ -218,15 +218,15 @@ function updateEntryForm() {
     }
 
     if (editToggle) {
-      editToggle.hidden = !shouldCollapsePastEntry;
+      editToggle.hidden = !shouldCollapseLoggedEntry;
 
-      if (!shouldCollapsePastEntry) {
+      if (!shouldCollapseLoggedEntry) {
         editToggle.setAttribute("aria-expanded", "false");
         editToggle.textContent = "Edit Entry";
       }
     }
 
-    if (shouldCollapsePastEntry) {
+    if (shouldCollapseLoggedEntry) {
       const isExpanded = editToggle?.getAttribute("aria-expanded") === "true";
       if (editToggle) editToggle.textContent = isExpanded ? "Hide Entry Form" : "Edit Entry";
       setEntryFormVisible(isExpanded);
@@ -275,7 +275,7 @@ function toggleEntryEditForm(editToggle) {
   if (form) {
     setEntryFormVisible(nextExpanded);
     if (nextExpanded) {
-      form.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      form.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
     }
   }
 }
@@ -330,7 +330,7 @@ function openQuickEntry() {
 function closeQuickEntry() {
   const form = document.getElementById("today-form");
 
-  if (form && todayEntry && currentDate !== getDietDate()) {
+  if (form && todayEntry) {
     const editToggle = document.getElementById("entryEditToggle");
 
     if (editToggle) {
