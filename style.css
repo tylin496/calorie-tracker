@@ -1036,6 +1036,11 @@ input[type="number"] {
   font-variant-numeric: tabular-nums;
 }
 
+.settlement-line.surplus .settlement-line-top span {
+  color: var(--danger-deep);
+  -webkit-text-fill-color: var(--danger-deep);
+}
+
 .settlement-line small {
   min-height: 16px;
   font-size: 12px;

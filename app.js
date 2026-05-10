@@ -926,7 +926,7 @@ function renderSummary(summary) {
           ? (isCompactLayout ? `+${formatInt(deficitOverTarget)} over` : `+${formatInt(deficitOverTarget)} over goal`)
           : deficitAlmostThere
             ? "Almost there!"
-            : (isCompactLayout ? `Goal ${formatInt(DEFICIT_TARGET)}` : `Goal ${formatInt(DEFICIT_TARGET)} kcal`);
+            : (isCompactLayout ? `Target ${formatInt(DEFICIT_TARGET)}` : `Target ${formatInt(DEFICIT_TARGET)} kcal`);
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone}">
@@ -998,7 +998,7 @@ function renderSummary(summary) {
           <div class="daily-metric">
             <span class="metric-label">Deficit</span>
             <strong>--</strong>
-            <span>${isCompactLayout ? `Goal ${formatInt(DEFICIT_TARGET)}` : `Goal ${formatInt(DEFICIT_TARGET)} kcal`}</span>
+            <span>${isCompactLayout ? `Target ${formatInt(DEFICIT_TARGET)}` : `Target ${formatInt(DEFICIT_TARGET)} kcal`}</span>
           </div>
         </div>
         <p class="empty-state">Add calories and protein when ready.</p>
