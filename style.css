@@ -986,7 +986,7 @@ input[type="number"] {
 .daily-card-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
   margin-bottom: 14px;
 }
@@ -1228,8 +1228,17 @@ input[type="number"] {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 14px;
+}
+
+.card-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
 }
 
 .card h2 {
@@ -1237,6 +1246,7 @@ input[type="number"] {
   align-items: baseline;
   gap: 8px;
   flex-wrap: wrap;
+  min-width: 0;
   margin: 0;
   font-size: 18px;
 }
@@ -1258,6 +1268,17 @@ input[type="number"] {
   text-transform: uppercase;
   white-space: nowrap;
   border: 1px solid transparent;
+}
+
+.card-actions .status-pill {
+  margin-left: 0;
+}
+
+.copy-summary-btn {
+  min-height: 30px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .status-pill.logged,

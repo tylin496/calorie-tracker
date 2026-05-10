@@ -23,6 +23,7 @@ let celebrationTimer = null;
 let calendarVisibleMonth = null;
 let calendarHistoryMonths = CALENDAR_INITIAL_HISTORY_MONTHS;
 let calendarIsExtending = false;
+let latestWeekSummary = null;
 
 function getDietDate() {
   return formatDate(new Date());
@@ -806,7 +807,6 @@ function renderInitialLoadingState() {
     daily.innerHTML = `
       <section class="daily-card loading-card">
         <div class="daily-card-top">
-          <span class="day-label">Today</span>
           <span class="status-pill logged">Loading</span>
         </div>
         <div class="loading-state">
@@ -818,11 +818,18 @@ function renderInitialLoadingState() {
   }
 
   if (weekly) {
+    const weekStart = formatDate(getWeekStart(currentDate));
+    const weekEnd = new Date(`${weekStart}T12:00:00`);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    const weekRangeText = formatDateRange(weekStart, formatDate(weekEnd));
+
     weekly.innerHTML = `
       <section class="card week-card loading-card">
         <div class="card-header">
-          <h2>This Week</h2>
-          <span class="status-pill logged">Loading</span>
+          <h2>This Week${weekRangeText ? ` <span>${weekRangeText}</span>` : ""}</h2>
+          <div class="card-actions">
+            <span class="status-pill logged">Loading</span>
+          </div>
         </div>
         <div class="loading-state">
           <span class="loading-spinner" aria-hidden="true"></span>
@@ -896,6 +903,35 @@ function getDisplayDateLabel(dateString, options = {}) {
   return `${weekday}, ${shortDate}`;
 }
 
+function formatDateRange(startDateString, endDateString) {
+  if (!startDateString || !endDateString) return "";
+
+  const start = new Date(`${startDateString}T12:00:00`);
+  const end = new Date(`${endDateString}T12:00:00`);
+  const sameYear = start.getFullYear() === end.getFullYear();
+  const sameMonth = sameYear && start.getMonth() === end.getMonth();
+
+  if (sameMonth) {
+    return `${start.toLocaleDateString("en-US", { month: "short" })} ${start.getDate()}-${end.getDate()}, ${end.getFullYear()}`;
+  }
+
+  const startOptions = sameYear
+    ? { month: "short", day: "numeric" }
+    : { month: "short", day: "numeric", year: "numeric" };
+  const endOptions = { month: "short", day: "numeric", year: "numeric" };
+
+  return `${start.toLocaleDateString("en-US", startOptions)}-${end.toLocaleDateString("en-US", endOptions)}`;
+}
+
+function formatPlainDateLabel(dateString) {
+  const date = new Date(`${dateString}T12:00:00`);
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric"
+  });
+}
+
 function roundInt(value) {
   const number = Number(value);
   return Number.isFinite(number) ? Math.round(number) : 0;
@@ -942,6 +978,62 @@ function getProteinResult(protein) {
     progress: getProgressPercent(roundedProtein, PROTEIN_TARGET),
     celebrated: gap <= (PROTEIN_TARGET * 0.1)
   };
+}
+
+function buildWeeklyPlainTextSummary(summary) {
+  const entries = summary.entries || [];
+  const range = formatDateRange(summary.weekStart, summary.weekEnd);
+  const lines = [
+    `This Week${range ? ` (${range})` : ""}`,
+    `Logged days: ${summary.count || 0}/7`,
+    `Avg calories: ${formatInt(summary.averageCalories || 0)} kcal`,
+    `Avg protein: ${formatInt(summary.averageProtein || 0)}g`,
+    `Total deficit: ${formatInt(summary.totalDeficit || 0)} kcal`,
+    `Estimated fat loss: ${formatInt(Number(summary.fatLossKg || 0) * 1000)}g`,
+    `Consistency: ${summary.consistency || getConsistency(entries)}`,
+    "",
+    "Daily entries:"
+  ];
+
+  if (!entries.length) {
+    lines.push("No entries logged.");
+    return lines.join("\n");
+  }
+
+  entries.forEach((entry) => {
+    const deficit = roundInt((entry.tdee || TDEE) - entry.calories);
+    const deficitText = deficit < 0
+      ? `+${formatInt(Math.abs(deficit))} kcal surplus`
+      : `${formatInt(deficit)} kcal deficit`;
+
+    lines.push(
+      `${formatPlainDateLabel(entry.date)}: ${formatInt(entry.calories)} kcal, ${formatInt(entry.protein)}g protein, ${deficitText}`
+    );
+  });
+
+  return lines.join("\n");
+}
+
+async function copyTextToClipboard(text) {
+  if (navigator.clipboard?.writeText && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.top = "-9999px";
+  document.body.appendChild(textarea);
+  textarea.select();
+
+  try {
+    const copied = document.execCommand("copy");
+    if (!copied) throw new Error("Copy command failed");
+  } finally {
+    textarea.remove();
+  }
 }
 
 function renderTrendBars(entries) {
@@ -1010,6 +1102,21 @@ function handleTrendDayClick(event) {
   setDietDay(date);
 }
 
+async function handleCopyWeeklySummaryClick(event) {
+  const button = event.target.closest("[data-copy-week-summary]");
+  if (!button || !latestWeekSummary) return;
+
+  try {
+    button.disabled = true;
+    await copyTextToClipboard(buildWeeklyPlainTextSummary(latestWeekSummary));
+    showToast("Weekly summary copied");
+  } catch (error) {
+    showToast("Copy failed");
+  } finally {
+    button.disabled = false;
+  }
+}
+
 function handleDailyMetricClick(event) {
   const metric = event.target.closest("[data-edit-field]");
   if (!metric) return;
@@ -1033,6 +1140,8 @@ function renderSummary(summary) {
   const isCompactLayout = window.matchMedia?.("(max-width: 620px)")?.matches;
   const loggedDays = summary.count || 0;
   const weeklyPillText = loggedDays >= 7 ? "Full week" : `${loggedDays} days`;
+  const weekRangeText = formatDateRange(summary.weekStart, summary.weekEnd);
+  latestWeekSummary = summary;
   let dailyHtml = "";
 
   if (today) {
@@ -1074,7 +1183,6 @@ function renderSummary(summary) {
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone} ${doubleHit ? "double-hit" : ""}">
         <div class="daily-card-top">
-          <span class="day-label">${getDayLabel()}</span>
           <span class="status-pill ${doubleHit ? "double-hit" : "logged"}">${statusPillText}</span>
         </div>
 
@@ -1128,7 +1236,6 @@ function renderSummary(summary) {
     dailyHtml = `
       <section class="daily-card empty">
         <div class="daily-card-top">
-          <span class="day-label">${getDayLabel()}</span>
           <span class="status-pill missing">No Entry</span>
         </div>
         <div class="daily-metrics">
@@ -1156,8 +1263,11 @@ function renderSummary(summary) {
   const weekHtml = `
     <section class="card week-card">
       <div class="card-header">
-        <h2>This Week</h2>
-        <span class="status-pill logged">${weeklyPillText}</span>
+        <h2>This Week${weekRangeText ? ` <span>${weekRangeText}</span>` : ""}</h2>
+        <div class="card-actions">
+          <span class="status-pill logged">${weeklyPillText}</span>
+          <button class="secondary-btn copy-summary-btn" type="button" data-copy-week-summary>Copy</button>
+        </div>
       </div>
       <div class="week-snapshot">
         <div class="metric">
@@ -1366,6 +1476,7 @@ function initApp() {
   document.getElementById("prevDayBtn")?.addEventListener("click", () => shiftDietDay(-1));
   document.getElementById("nextDayBtn")?.addEventListener("click", () => shiftDietDay(1));
   document.getElementById("weekly-summary")?.addEventListener("click", handleTrendDayClick);
+  document.getElementById("weekly-summary")?.addEventListener("click", handleCopyWeeklySummaryClick);
   document.getElementById("daily-result")?.addEventListener("click", handleDailyMetricClick);
   document.getElementById("deleteBtn")?.addEventListener("click", deleteEntry);
   document.getElementById("deleteConfirmBackdrop")?.addEventListener("click", closeDeleteConfirm);
