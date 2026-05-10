@@ -603,7 +603,7 @@ function getCalorieResult(calories, tdee = TDEE) {
   const deficit = Math.max(rawDelta, 0);
   const surplus = Math.max(-rawDelta, 0);
   const gap = roundInt(DEFICIT_TARGET - deficit);
-  const exceeded = !isSurplus && deficit >= DEFICIT_TARGET;
+  const exceeded = !isSurplus && deficit >= Math.max(DEFICIT_TARGET - 100, 0);
 
   return {
     deficit,
@@ -628,7 +628,7 @@ function getProteinResult(protein) {
     status: "Protein",
     gap,
     progress: getProgressPercent(roundedProtein, PROTEIN_TARGET),
-    celebrated: roundedProtein >= 170,
+    celebrated: gap <= 20,
     detail: `${formatInt(roundedProtein)}g logged`
   };
 }
