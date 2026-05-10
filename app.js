@@ -416,8 +416,8 @@ function openCalendar() {
   // modal-in CSS transform skewing getBoundingClientRect values)
   const grid = document.getElementById("calendarGrid");
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    const todayButton = grid?.querySelector(".calendar-day.today");
-    const selectedButton = grid?.querySelector(".calendar-day.selected");
+    const todayButton = grid?.querySelector(`.calendar-month[data-month="${dietTodayString.slice(0, 7)}"] .calendar-day.today`);
+    const selectedButton = grid?.querySelector(`.calendar-month[data-month="${currentDate.slice(0, 7)}"] .calendar-day.selected`);
     const scrollTarget = todayButton || selectedButton;
 
     scrollCalendarToSelectedDate(grid, scrollTarget);
@@ -434,7 +434,7 @@ function scrollCalendarToSelectedDate(grid, scrollTarget) {
   const gridRect = grid.getBoundingClientRect();
   const targetRect = scrollTarget.getBoundingClientRect();
   const targetTop = targetRect.top - gridRect.top + grid.scrollTop;
-  const preferredOffset = Math.min(Math.max(gridRect.height * 0.34, 112), 152);
+  const preferredOffset = Math.min(Math.max(gridRect.height * 0.22, 76), 112);
 
   grid.scrollTop = Math.max(0, targetTop - preferredOffset);
 }
@@ -493,7 +493,7 @@ function renderCalendar() {
 
 function renderCalendarMonths(grid, dietToday, dietTodayString) {
   grid.innerHTML = getCalendarMonths(dietToday, currentDate, calendarHistoryMonths)
-    .map((month) => renderCalendarMonth(month, dietToday, dietTodayString))
+    .map((month) => renderCalendarMonth(month, dietToday, dietTodayString, month.getFullYear() === dietToday.getFullYear() && month.getMonth() === dietToday.getMonth()))
     .join("");
 }
 
@@ -566,7 +566,7 @@ function getCalendarMonths(endDate, selectedDateString, historyMonths = CALENDAR
   return months;
 }
 
-function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
+function renderCalendarMonth(monthDate, dietToday, dietTodayString, showTrailingNextMonth = false) {
   const monthTitle = monthDate.toLocaleDateString("en-US", {
     month: "long",
     year: "numeric"
@@ -575,7 +575,7 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
   const firstDayOffset = (monthDate.getDay() + 6) % 7;
   const currentMonth = monthDate.getMonth();
   const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
-  const trailingDayCount = Math.max(14 - ((firstDayOffset + lastDay.getDate()) % 7 || 7), 0);
+  const trailingDayCount = showTrailingNextMonth ? Math.max(14 - ((firstDayOffset + lastDay.getDate()) % 7 || 7), 0) : 0;
   const dayCount = lastDay.getDate() + trailingDayCount;
   const cells = Array.from({ length: firstDayOffset }, () => `
     <span class="calendar-day calendar-day-placeholder" aria-hidden="true"></span>
@@ -587,8 +587,8 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
 
     const dateString = formatDate(date);
     const isOutsideMonth = date.getMonth() !== currentMonth;
-    const isSelected = dateString === currentDate;
-    const isToday = dateString === dietTodayString;
+    const isSelected = !isOutsideMonth && dateString === currentDate;
+    const isToday = !isOutsideMonth && dateString === dietTodayString;
     const isFuture = date > dietToday;
 
     cells.push(`
@@ -596,7 +596,7 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
         class="calendar-day ${isSelected ? "selected" : ""} ${isToday ? "today" : ""} ${isOutsideMonth ? "outside-month" : ""}"
         type="button"
         data-date="${dateString}"
-        ${isFuture ? "disabled" : ""}
+        ${isFuture || isOutsideMonth ? "disabled" : ""}
       >
         ${date.getDate()}
       </button>
