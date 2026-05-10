@@ -782,11 +782,13 @@ function getCalorieResult(calories, tdee = TDEE) {
   const gap = roundInt(DEFICIT_TARGET - deficit);
   const deficitTolerance = DEFICIT_TARGET * 0.1;
   const exceeded = !isSurplus && deficit >= Math.max(DEFICIT_TARGET - deficitTolerance, 0);
+  const isPerfect = !isSurplus && deficit === roundInt(DEFICIT_TARGET);
 
   return {
     deficit,
     surplus,
     isSurplus,
+    isPerfect,
     gap: Math.max(gap, 0),
     progress: isSurplus ? 100 : exceeded ? 100 : getProgressPercent(deficit, DEFICIT_TARGET),
     celebrated: exceeded,
@@ -801,10 +803,12 @@ function getCalorieResult(calories, tdee = TDEE) {
 function getProteinResult(protein) {
   const roundedProtein = roundInt(protein);
   const gap = Math.max(roundInt(PROTEIN_TARGET - roundedProtein), 0);
+  const isPerfect = roundedProtein === roundInt(PROTEIN_TARGET);
 
   return {
     status: "Protein",
     gap,
+    isPerfect,
     progress: getProgressPercent(roundedProtein, PROTEIN_TARGET),
     celebrated: gap <= (PROTEIN_TARGET * 0.1),
     detail: `${formatInt(roundedProtein)}g logged`
@@ -910,23 +914,29 @@ function renderSummary(summary) {
     const deficitOverTarget = Math.max(roundInt(calorieResult.deficit - DEFICIT_TARGET), 0);
     const proteinOverTarget = Math.max(roundInt(roundedProtein - PROTEIN_TARGET), 0);
     const deficitAlmostThere = calorieResult.celebrated && !calorieResult.isSurplus && deficitOverTarget === 0;
+    const deficitPerfectText = isCompactLayout ? "Perfect!" : "Perfect hit!";
+    const proteinPerfectText = isCompactLayout ? "Perfect!" : "Perfect protein!";
     const proteinMetricTone = proteinOverTarget > 0 ? "rewarded" : proteinResult.celebrated ? "on-track" : "";
     const deficitMetricTone = calorieResult.isSurplus ? "caution" : deficitOverTarget > 0 ? "rewarded" : calorieResult.celebrated ? "on-track" : "";
     // Responsive metric texts
     const calorieMetricText = isCompactLayout ? `Target ${formatInt(calorieIntakeTarget)}` : `Target ${formatInt(calorieIntakeTarget)} kcal`;
     const proteinAlmostThere = proteinResult.celebrated && roundedProtein < PROTEIN_TARGET;
-    const proteinMetricText = proteinOverTarget > 0
-      ? (isCompactLayout ? `+${formatInt(proteinOverTarget)} over` : `+${formatInt(proteinOverTarget)} over goal`)
-      : proteinAlmostThere
-        ? "Almost there"
-        : (isCompactLayout ? `Target ${formatInt(PROTEIN_TARGET)}g` : `Target ${formatInt(PROTEIN_TARGET)} g`);
+    const proteinMetricText = proteinResult.isPerfect
+      ? proteinPerfectText
+      : proteinOverTarget > 0
+        ? (isCompactLayout ? `+${formatInt(proteinOverTarget)} over` : `+${formatInt(proteinOverTarget)} over goal`)
+        : proteinAlmostThere
+          ? "Almost there"
+          : (isCompactLayout ? `Target ${formatInt(PROTEIN_TARGET)}g` : `Target ${formatInt(PROTEIN_TARGET)} g`);
     const deficitMetricText = calorieResult.isSurplus
       ? (isCompactLayout ? `Surplus ${formatInt(calorieResult.surplus)}` : `Surplus ${formatInt(calorieResult.surplus)} kcal`)
-      : deficitOverTarget > 0
-        ? (isCompactLayout ? `+${formatInt(deficitOverTarget)} over` : `+${formatInt(deficitOverTarget)} over goal`)
-        : deficitAlmostThere
-          ? "Almost there"
-          : (isCompactLayout ? `Goal ${formatInt(DEFICIT_TARGET)}` : `Goal ${formatInt(DEFICIT_TARGET)} kcal`);
+      : calorieResult.isPerfect
+        ? deficitPerfectText
+        : deficitOverTarget > 0
+          ? (isCompactLayout ? `+${formatInt(deficitOverTarget)} over` : `+${formatInt(deficitOverTarget)} over goal`)
+          : deficitAlmostThere
+            ? "Almost there"
+            : (isCompactLayout ? `Goal ${formatInt(DEFICIT_TARGET)}` : `Goal ${formatInt(DEFICIT_TARGET)} kcal`);
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone}">
@@ -956,7 +966,7 @@ function renderSummary(summary) {
         <div class="settlement-lines">
           <div class="settlement-line ${calorieResult.isSurplus ? "surplus" : calorieResult.celebrated ? "celebrated" : "neutral"}">
             <div class="settlement-line-top">
-              <strong>${calorieResult.status}</strong>
+              <strong>${calorieResult.isPerfect ? "Perfect!" : calorieResult.status}</strong>
               <span>${calorieResult.isSurplus
                 ? `+${formatInt(calorieResult.surplus)} kcal`
                 : `${formatInt(calorieResult.deficit)} / ${formatInt(DEFICIT_TARGET)} kcal`}</span>
@@ -967,7 +977,7 @@ function renderSummary(summary) {
           </div>
           <div class="settlement-line ${proteinResult.celebrated ? "celebrated" : "neutral"}">
             <div class="settlement-line-top">
-              <strong>${proteinResult.status}</strong>
+              <strong>${proteinResult.isPerfect ? "Perfect!" : proteinResult.status}</strong>
               <span>${formatInt(roundedProtein)} / ${formatInt(PROTEIN_TARGET)}g</span>
             </div>
             <div class="settlement-track" aria-hidden="true">
