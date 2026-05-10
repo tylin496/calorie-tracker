@@ -614,31 +614,58 @@ button:focus-visible {
   backdrop-filter: blur(22px);
 }
 
-.daily-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 3px;
-  background: var(--accent);
-}
-
 .daily-card > * {
   position: relative;
 }
 
 .daily-card.deficit {
-  border-color: rgba(0, 122, 255, 0.28);
+  border-color: var(--border);
 }
 
 .daily-card.surplus {
-  border-color: color-mix(in srgb, var(--danger) 36%, transparent);
+  border-color: var(--border);
 }
 
 .daily-card.empty {
+  border-color: color-mix(in srgb, var(--danger) 72%, transparent);
   background: var(--surface);
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--surface-muted) 76%, transparent), var(--surface)),
     var(--surface);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--danger) 48%, transparent),
+    0 18px 48px color-mix(in srgb, var(--danger) 18%, transparent);
+}
+
+.daily-card.empty::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 8px;
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    transparent 34%,
+    color-mix(in srgb, var(--danger) 0%, transparent) 42%,
+    color-mix(in srgb, var(--danger) 62%, transparent) 50%,
+    color-mix(in srgb, var(--danger) 0%, transparent) 58%,
+    transparent 66%,
+    transparent 100%
+  );
+  pointer-events: none;
+  transform: translateX(-100%);
+  animation: missing-sweep 1.9s ease-in-out infinite;
+}
+
+@keyframes missing-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  55%,
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .daily-card-top {
