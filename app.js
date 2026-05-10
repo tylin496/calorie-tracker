@@ -528,11 +528,13 @@ function getProgressPercent(value, target) {
 function getCalorieResult(calories, tdee = TDEE) {
   const deficit = roundInt(tdee - calories);
   const gap = roundInt(DEFICIT_TARGET - deficit);
+  const exceeded = deficit >= DEFICIT_TARGET;
 
   return {
     deficit,
     gap: Math.max(gap, 0),
-    progress: getProgressPercent(deficit, DEFICIT_TARGET),
+    progress: exceeded ? 100 : getProgressPercent(deficit, DEFICIT_TARGET),
+    celebrated: exceeded,
     tone: "logged",
     status: "Deficit",
     detail: `${formatInt(deficit)} kcal deficit`
@@ -659,7 +661,7 @@ function renderSummary(summary) {
         </div>
 
         <div class="settlement-lines">
-          <div class="settlement-line neutral">
+          <div class="settlement-line ${calorieResult.celebrated ? "celebrated" : "neutral"}">
             <div class="settlement-line-top">
               <strong>${calorieResult.status}</strong>
               <span>${formatInt(calorieResult.deficit)} / ${formatInt(DEFICIT_TARGET)} kcal</span>

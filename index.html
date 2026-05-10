@@ -75,14 +75,18 @@
 
       <label class="input-card" for="calories">
         <span class="input-label">Calories</span>
-        <span class="input-unit">kcal</span>
-        <input id="calories" type="number" inputmode="numeric" min="0" step="1" placeholder="2430" required />
+        <div class="input-value-row">
+          <input id="calories" type="number" inputmode="numeric" min="0" step="1" placeholder="2430" required />
+          <span class="input-unit">kcal</span>
+        </div>
       </label>
 
       <label class="input-card" for="protein">
         <span class="input-label">Protein</span>
-        <span class="input-unit">grams</span>
-        <input id="protein" type="number" inputmode="numeric" min="0" step="1" placeholder="168" required />
+        <div class="input-value-row">
+          <input id="protein" type="number" inputmode="numeric" min="0" step="1" placeholder="168" required />
+          <span class="input-unit">grams</span>
+        </div>
       </label>
 
       <button id="saveBtn" class="primary-btn commit-btn" type="submit">Commit Today</button>

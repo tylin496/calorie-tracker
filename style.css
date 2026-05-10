@@ -423,11 +423,9 @@ h1 {
 
 .input-card {
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr;
-  align-items: start;
-  gap: 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   min-height: 122px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -464,13 +462,20 @@ h1 {
   text-transform: uppercase;
 }
 
+.input-value-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 8px;
+}
+.input-value-row input {
+  width: 100%;
+}
 .input-unit {
-  position: absolute;
-  right: 14px;
-  bottom: 14px;
+  font-size: 24px;
+  font-weight: 800;
   color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
+  line-height: 1;
 }
 
 .settlement-form.quick-entry .input-card {
@@ -478,8 +483,6 @@ h1 {
 }
 
 .input-card input {
-  grid-column: 1 / -1;
-  grid-row: 2;
   width: 100%;
   min-height: 58px;
   border: 0;
@@ -971,6 +974,17 @@ button:focus-visible {
 
 .settlement-line.neutral .settlement-track span {
   background: var(--accent);
+}
+
+.settlement-line.celebrated strong,
+.settlement-line.celebrated span {
+  color: var(--accent);
+}
+
+.settlement-line.celebrated .settlement-track span {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent),
+    0 0 12px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 .empty-state {
