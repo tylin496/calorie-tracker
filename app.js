@@ -191,6 +191,10 @@ function updateEntryForm() {
   if (proteinCard) {
     proteinCard.dataset.target = `Target ${formatInt(PROTEIN_TARGET)}g`;
   }
+  const proteinUnit = document.querySelector('[data-unit="protein"]');
+  if (proteinUnit) {
+    proteinUnit.textContent = "g";
+  }
 
   if (deleteBtn) {
     deleteBtn.hidden = !todayEntry;
