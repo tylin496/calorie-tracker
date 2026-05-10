@@ -830,7 +830,7 @@ function renderSummary(summary) {
   const today = summary.todayEntry;
   const rawConsistency = summary.consistency || getConsistency(summary.entries || []);
   const consistency = rawConsistency === "Stable" ? "Consistent" : rawConsistency;
-  const consistencyTone = consistency.toLowerCase();
+  const consistencyTone = rawConsistency.toLowerCase();
   const isCompactLayout = window.matchMedia?.("(max-width: 620px)")?.matches;
   let dailyHtml = "";
 
