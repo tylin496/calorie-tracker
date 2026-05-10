@@ -172,6 +172,8 @@ function updateEntryForm() {
   const proteinCard = protein?.closest(".input-card");
   const isViewingToday = currentDate === getDietDate();
   const form = document.getElementById("today-form");
+  const formBody = form?.querySelector(".input-grid");
+  const formActions = form?.querySelector(".form-actions");
 
   if (calories) {
     calories.value = todayEntry ? roundInt(todayEntry.calories) : "";
@@ -221,7 +223,8 @@ function updateEntryForm() {
         const isExpanded = editToggle.getAttribute("aria-expanded") === "true";
         editToggle.setAttribute("aria-expanded", String(!isExpanded));
         editToggle.textContent = isExpanded ? "Edit Entry" : "Hide Entry Form";
-        form.hidden = isExpanded;
+        if (formBody) formBody.hidden = isExpanded;
+        if (formActions) formActions.hidden = isExpanded;
       });
     }
 
@@ -234,10 +237,15 @@ function updateEntryForm() {
       }
     }
 
+    form.hidden = false;
+
     if (shouldCollapsePastEntry) {
-      form.hidden = editToggle?.getAttribute("aria-expanded") !== "true";
+      const shouldHideEditor = editToggle?.getAttribute("aria-expanded") !== "true";
+      if (formBody) formBody.hidden = shouldHideEditor;
+      if (formActions) formActions.hidden = shouldHideEditor;
     } else {
-      form.hidden = false;
+      if (formBody) formBody.hidden = false;
+      if (formActions) formActions.hidden = false;
     }
   }
 }
@@ -292,7 +300,10 @@ function openQuickEntryOptimistically() {
 function closeQuickEntry() {
   const form = document.getElementById("today-form");
   if (form && todayEntry && currentDate !== getDietDate()) {
-    form.hidden = true;
+    const formBody = form.querySelector(".input-grid");
+    const formActions = form.querySelector(".form-actions");
+    if (formBody) formBody.hidden = true;
+    if (formActions) formActions.hidden = true;
   }
   const backdrop = document.getElementById("quickEntryBackdrop");
 
