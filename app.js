@@ -174,12 +174,12 @@ function updateEntryForm() {
 
   if (calories) {
     calories.value = todayEntry ? roundInt(todayEntry.calories) : "";
-    calories.placeholder = "Enter kcal";
+    calories.placeholder = "Enter";
   }
 
   if (protein) {
     protein.value = todayEntry ? roundInt(todayEntry.protein) : "";
-    protein.placeholder = "Enter grams";
+    protein.placeholder = "Enter";
   }
 
   if (caloriesCard) {
@@ -593,7 +593,6 @@ function renderTrendBars(entries) {
             >
               <div class="trend-bar" style="height:${height}px" title="${dateString}: ${entry ? `${formatInt(entry.calories)} kcal` : "No data"}"></div>
               <span class="trend-weekday">${weekday}</span>
-              <span class="trend-date">${dayOfMonth}</span>
             </button>
           `;
         })
@@ -670,7 +669,7 @@ function renderSummary(summary) {
           <div class="settlement-line ${calorieResult.celebrated ? "celebrated" : "neutral"}">
             <div class="settlement-line-top">
               <strong>${calorieResult.status}</strong>
-              <span>${formatInt(calorieResult.deficit)} / ${formatInt(DEFICIT_TARGET)} kcal${calorieResult.celebrated ? " ✓" : ""}</span>
+              <span>${formatInt(calorieResult.deficit)} / ${formatInt(DEFICIT_TARGET)} kcal</span>
             </div>
             <div class="settlement-track" aria-hidden="true">
               <span style="width:${calorieResult.progress}%"></span>
