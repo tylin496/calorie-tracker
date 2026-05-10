@@ -414,6 +414,24 @@ function shiftDietDay(days) {
   setDietDay(formatDate(d));
 }
 
+function handleGlobalKeydown(event) {
+  const activeElement = document.activeElement;
+  const isTyping = activeElement?.matches?.("input, textarea, select, button") || activeElement?.isContentEditable;
+  const isOverlayOpen = document.body.classList.contains("calendar-open") || document.body.classList.contains("quick-entry-open") || document.body.classList.contains("auth-locked");
+
+  if (isTyping || isOverlayOpen || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+
+  if (event.key === "ArrowLeft") {
+    event.preventDefault();
+    shiftDietDay(-1);
+  }
+
+  if (event.key === "ArrowRight") {
+    event.preventDefault();
+    shiftDietDay(1);
+  }
+}
+
 function getFormValues() {
   const calories = Number(document.getElementById("calories")?.value);
   const protein = Number(document.getElementById("protein")?.value);
@@ -991,6 +1009,7 @@ function initApp() {
   document.getElementById("quickEntryBackdrop")?.addEventListener("click", closeQuickEntry);
   document.getElementById("calories")?.addEventListener("input", handleCaloriesInput);
   document.getElementById("protein")?.addEventListener("input", handleProteinInput);
+  document.addEventListener("keydown", handleGlobalKeydown);
 
   updateDietDayDisplay();
   updateTargetForm();
