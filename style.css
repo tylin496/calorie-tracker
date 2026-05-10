@@ -1142,14 +1142,11 @@ input[type="number"] {
 
 .settlement-line {
   display: grid;
-  gap: 7px;
+  gap: 6px;
 }
 
 .settlement-line-top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+  display: block;
 }
 
 .settlement-line strong {
@@ -1157,28 +1154,34 @@ input[type="number"] {
   text-align: left;
 }
 
-.settlement-line-top span,
-.settlement-line small {
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.settlement-line-top span {
-  text-align: right;
-  font-weight: 750;
-  font-variant-numeric: tabular-nums;
-}
-
-.settlement-line.surplus .settlement-line-top span {
-  color: var(--danger-deep);
-  -webkit-text-fill-color: var(--danger-deep);
-}
-
 .settlement-line small {
   min-height: 16px;
+  color: var(--muted);
   font-size: 12px;
   font-weight: 800;
   text-align: left;
+}
+
+.settlement-track-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.settlement-progress-value {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.settlement-line.surplus .settlement-progress-value {
+  color: var(--danger-deep);
+  -webkit-text-fill-color: var(--danger-deep);
 }
 
 .settlement-track {
@@ -1523,7 +1526,7 @@ input[type="number"] {
   color: var(--text);
 }
 
-.settlement-line.celebrated .settlement-line-top span {
+.settlement-line.celebrated .settlement-progress-value {
   color: color-mix(in srgb, var(--accent) 74%, var(--text));
 }
 
@@ -1531,7 +1534,7 @@ input[type="number"] {
   color: var(--accent);
 }
 
-.daily-card.double-hit .settlement-line.celebrated .settlement-line-top span,
+.daily-card.double-hit .settlement-line.celebrated .settlement-progress-value,
 .daily-card.double-hit .settlement-line.celebrated small {
   color: var(--gold);
   -webkit-text-fill-color: var(--gold);
@@ -1952,13 +1955,8 @@ input[type="number"] {
     margin-top: -4px;
   }
 
-  .settlement-line-top {
-    display: grid;
-    gap: 2px;
-  }
-
-  .settlement-line-top span {
-    text-align: left;
+  .settlement-track-row {
+    gap: 8px;
   }
 
   .celebration-card {
