@@ -6,6 +6,7 @@ A small calorie and protein tracker backed by a Notion database through Vercel A
 
 - `NOTION_TOKEN`
 - `NOTION_DATABASE_ID`
+- `APP_ACCESS_KEY` - private key required by the frontend for all API requests
 
 ## Notion Database Fields
 

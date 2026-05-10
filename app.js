@@ -2,6 +2,7 @@ let TDEE = Number(localStorage.getItem("tdee")) || 2705;
 let PROTEIN_TARGET = Number(localStorage.getItem("proteinTarget")) || 180;
 let DEFICIT_TARGET = Number(localStorage.getItem("deficitTarget")) || 500;
 const API_BASE = "https://calorie-tracker-omega-ten.vercel.app";
+const ACCESS_KEY_STORAGE_KEY = "calorieTrackerAccessKey";
 
 let todayLogged = false;
 let todayEntry = null;
@@ -64,6 +65,24 @@ function showToast(message) {
   toastTimer = setTimeout(() => {
     toast.classList.remove("visible");
   }, 2200);
+}
+
+function getAccessKey() {
+  let accessKey = localStorage.getItem(ACCESS_KEY_STORAGE_KEY);
+
+  if (!accessKey) {
+    accessKey = prompt("Access key");
+
+    if (accessKey) {
+      localStorage.setItem(ACCESS_KEY_STORAGE_KEY, accessKey);
+    }
+  }
+
+  return accessKey;
+}
+
+function clearAccessKey() {
+  localStorage.removeItem(ACCESS_KEY_STORAGE_KEY);
 }
 
 function updateDietDayDisplay() {
@@ -281,8 +300,20 @@ function getFormValues() {
   };
 }
 
-async function fetchJson(url, options) {
-  const res = await fetch(url, options);
+async function fetchJson(url, options = {}, didRetry = false) {
+  const accessKey = getAccessKey();
+
+  if (!accessKey) {
+    throw new Error("Access key required");
+  }
+
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      "X-App-Key": accessKey
+    }
+  });
   let data = null;
 
   try {
@@ -292,6 +323,11 @@ async function fetchJson(url, options) {
   }
 
   if (!res.ok) {
+    if (res.status === 401 && !didRetry) {
+      clearAccessKey();
+      return fetchJson(url, options, true);
+    }
+
     throw new Error(data.error || data.detail?.message || "Request failed");
   }
 
