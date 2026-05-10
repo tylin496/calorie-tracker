@@ -989,7 +989,7 @@ function renderSummary(summary) {
           <span class="metric-value">${formatInt(summary.averageProtein || 0)}g</span>
         </div>
         <div class="metric">
-          <span class="metric-label">Estimated Fat Loss</span>
+          <span class="metric-label">Fat Loss</span>
           <span class="metric-value">${formatInt(Number(summary.fatLossKg || 0) * 1000)}g</span>
         </div>
       </div>
