@@ -11,7 +11,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Calorie Tracker">
-  <link rel="stylesheet" href="style.css?v=20260510-0715">
+  <link rel="stylesheet" href="style.css?v=20260510-0725">
 </head>
 <body>
   <main class="app-shell">
@@ -24,16 +24,34 @@
 
     <nav class="date-controls" aria-label="Diet day controls">
       <button id="prevDayBtn" class="icon-btn" type="button" aria-label="Previous day">‹</button>
-      <label class="date-field" for="diet-day">
+      <button id="diet-day" class="date-field" type="button" aria-label="Selected day">
         <span id="diet-day-label">Today</span>
-        <input id="diet-day" type="date" aria-label="Selected day" />
-      </label>
+      </button>
       <button id="nextDayBtn" class="icon-btn" type="button" aria-label="Next day">›</button>
     </nav>
 
     <div id="daily-result"></div>
 
     <div id="quickEntryBackdrop" class="quick-entry-backdrop" hidden></div>
+    <div id="calendarBackdrop" class="calendar-backdrop" hidden></div>
+
+    <section id="calendarPanel" class="calendar-panel" aria-label="Date picker" hidden>
+      <div class="calendar-header">
+        <button id="prevMonthBtn" class="icon-btn" type="button" aria-label="Previous month">‹</button>
+        <strong id="calendarTitle"></strong>
+        <button id="nextMonthBtn" class="icon-btn" type="button" aria-label="Next month">›</button>
+      </div>
+      <div class="calendar-weekdays" aria-hidden="true">
+        <span>Mon</span>
+        <span>Tue</span>
+        <span>Wed</span>
+        <span>Thu</span>
+        <span>Fri</span>
+        <span>Sat</span>
+        <span>Sun</span>
+      </div>
+      <div id="calendarGrid" class="calendar-grid"></div>
+    </section>
 
     <form id="today-form" class="settlement-form">
       <div class="quick-entry-header">
@@ -86,6 +104,6 @@
     <div id="weekly-summary"></div>
   </main>
 
-  <script src="app.js?v=20260510-0715"></script>
+  <script src="app.js?v=20260510-0725"></script>
 </body>
 </html>

@@ -9,6 +9,7 @@ let currentDate = getDietDate();
 let toastTimer = null;
 let autoSubmitArmed = true;
 let didAutoOpenQuickEntry = false;
+let calendarMonth = getMonthStart(currentDate);
 
 function getDietDate() {
   const now = new Date();
@@ -22,6 +23,11 @@ function getTodayDate() {
 
 function formatDate(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function getMonthStart(dateString) {
+  const date = new Date(`${dateString}T12:00:00`);
+  return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
 function isValidDateString(value) {
@@ -61,15 +67,13 @@ function showToast(message) {
 }
 
 function updateDietDayDisplay() {
-  const input = document.getElementById("diet-day");
+  const btn = document.getElementById("diet-day");
   const label = document.getElementById("diet-day-label");
   const nextBtn = document.getElementById("nextDayBtn");
   const isAtToday = currentDate === getTodayDate();
 
-  if (input) {
-    input.value = currentDate;
-    input.max = getTodayDate();
-    input.setAttribute("aria-label", `Selected day ${currentDate}`);
+  if (btn) {
+    btn.setAttribute("aria-label", `Selected day ${currentDate}`);
   }
 
   if (label) {
@@ -157,16 +161,87 @@ function closeQuickEntry() {
   if (backdrop) backdrop.hidden = true;
 }
 
-function handleDietDayChange(event) {
-  const value = event.currentTarget.value;
+function openCalendar() {
+  const panel = document.getElementById("calendarPanel");
+  const backdrop = document.getElementById("calendarBackdrop");
 
-  if (isValidDateString(value) && !isFutureDate(value)) {
-    setDietDay(value);
-    return;
+  calendarMonth = getMonthStart(currentDate);
+  renderCalendar();
+
+  if (panel) panel.hidden = false;
+  if (backdrop) backdrop.hidden = false;
+  document.body.classList.add("calendar-open");
+}
+
+function closeCalendar() {
+  const panel = document.getElementById("calendarPanel");
+  const backdrop = document.getElementById("calendarBackdrop");
+
+  if (panel) panel.hidden = true;
+  if (backdrop) backdrop.hidden = true;
+  document.body.classList.remove("calendar-open");
+}
+
+function shiftCalendarMonth(months) {
+  calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + months, 1);
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const title = document.getElementById("calendarTitle");
+  const grid = document.getElementById("calendarGrid");
+  const nextMonthBtn = document.getElementById("nextMonthBtn");
+  const today = new Date(`${getTodayDate()}T12:00:00`);
+
+  if (!title || !grid) return;
+
+  title.textContent = calendarMonth.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric"
+  });
+
+  const firstDayOffset = (calendarMonth.getDay() + 6) % 7;
+  const firstCell = new Date(calendarMonth);
+  firstCell.setDate(calendarMonth.getDate() - firstDayOffset);
+
+  const currentMonth = calendarMonth.getMonth();
+  const cells = [];
+
+  for (let i = 0; i < 42; i += 1) {
+    const date = new Date(firstCell);
+    date.setDate(firstCell.getDate() + i);
+
+    const dateString = formatDate(date);
+    const isOutsideMonth = date.getMonth() !== currentMonth;
+    const isSelected = dateString === currentDate;
+    const isFuture = date > today;
+
+    cells.push(`
+      <button
+        class="calendar-day ${isOutsideMonth ? "outside" : ""} ${isSelected ? "selected" : ""}"
+        type="button"
+        data-date="${dateString}"
+        ${isFuture ? "disabled" : ""}
+      >
+        ${date.getDate()}
+      </button>
+    `);
   }
 
-  alert("Invalid or future date not allowed");
-  updateDietDayDisplay();
+  grid.innerHTML = cells.join("");
+
+  if (nextMonthBtn) {
+    const nextMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1);
+    nextMonthBtn.setAttribute("aria-disabled", String(nextMonth > today));
+  }
+}
+
+function handleCalendarDayClick(event) {
+  const btn = event.target.closest("[data-date]");
+  if (!btn || btn.disabled) return;
+
+  setDietDay(btn.dataset.date);
+  closeCalendar();
 }
 
 function setDietDay(date) {
@@ -593,7 +668,14 @@ function handleTargetsSubmit(event) {
 function initApp() {
   document.getElementById("today-form")?.addEventListener("submit", handleFormSubmit);
   document.getElementById("targets-form")?.addEventListener("submit", handleTargetsSubmit);
-  document.getElementById("diet-day")?.addEventListener("change", handleDietDayChange);
+  document.getElementById("diet-day")?.addEventListener("click", openCalendar);
+  document.getElementById("calendarBackdrop")?.addEventListener("click", closeCalendar);
+  document.getElementById("prevMonthBtn")?.addEventListener("click", () => shiftCalendarMonth(-1));
+  document.getElementById("nextMonthBtn")?.addEventListener("click", () => {
+    if (document.getElementById("nextMonthBtn")?.getAttribute("aria-disabled") === "true") return;
+    shiftCalendarMonth(1);
+  });
+  document.getElementById("calendarGrid")?.addEventListener("click", handleCalendarDayClick);
   document.getElementById("prevDayBtn")?.addEventListener("click", () => shiftDietDay(-1));
   document.getElementById("nextDayBtn")?.addEventListener("click", () => shiftDietDay(1));
   document.getElementById("deleteBtn")?.addEventListener("click", deleteEntry);
