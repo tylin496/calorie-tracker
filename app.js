@@ -397,6 +397,19 @@ function openCalendar() {
   if (backdrop) backdrop.hidden = false;
   document.body.classList.add("calendar-open");
   if (editToggle) editToggle.hidden = true;
+
+  // Scroll after panel is visible so getBoundingClientRect returns real values
+  const grid = document.getElementById("calendarGrid");
+  requestAnimationFrame(() => {
+    const monthSection = grid?.querySelector(`[data-month="${currentDate.slice(0, 7)}"]`);
+    if (monthSection) {
+      const offset = monthSection.getBoundingClientRect().top - grid.getBoundingClientRect().top;
+      grid.scrollTop += offset;
+    } else {
+      grid?.querySelector(".calendar-day.selected")?.scrollIntoView({ block: "center" });
+    }
+    updateCalendarMonthLabel(grid);
+  });
 }
 
 function closeCalendar() {
@@ -449,17 +462,6 @@ function renderCalendar() {
     extendCalendarIfNeeded(grid);
     updateCalendarMonthLabel(grid);
   };
-
-  requestAnimationFrame(() => {
-    const monthSection = grid.querySelector(`[data-month="${currentDate.slice(0, 7)}"]`);
-    if (monthSection) {
-      const offset = monthSection.getBoundingClientRect().top - grid.getBoundingClientRect().top;
-      grid.scrollTop += offset;
-    } else {
-      grid.querySelector(".calendar-day.selected")?.scrollIntoView({ block: "center" });
-    }
-    updateCalendarMonthLabel(grid);
-  });
 }
 
 function renderCalendarMonths(grid, dietToday, dietTodayString) {
