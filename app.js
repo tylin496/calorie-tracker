@@ -33,11 +33,6 @@ function getMonthStart(dateString) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
-function getWeekday(dateString) {
-  const date = new Date(`${dateString}T12:00:00`);
-  return date.toLocaleDateString("en-US", { weekday: "short" });
-}
-
 function isValidDateString(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
 
@@ -175,12 +170,10 @@ function updateEntryForm() {
 
   if (calories) {
     calories.value = todayEntry ? roundInt(todayEntry.calories) : "";
-    calories.placeholder = "";
   }
 
   if (protein) {
     protein.value = todayEntry ? roundInt(todayEntry.protein) : "";
-    protein.placeholder = "";
   }
 
   if (caloriesCard) {
@@ -779,7 +772,6 @@ function getCalorieResult(calories, tdee = TDEE) {
   const isSurplus = rawDelta < 0;
   const deficit = Math.max(rawDelta, 0);
   const surplus = Math.max(-rawDelta, 0);
-  const gap = roundInt(DEFICIT_TARGET - deficit);
   const deficitTolerance = DEFICIT_TARGET * 0.1;
   const exceeded = !isSurplus && deficit >= Math.max(DEFICIT_TARGET - deficitTolerance, 0);
   const isPerfect = !isSurplus && deficit === roundInt(DEFICIT_TARGET);
@@ -789,14 +781,10 @@ function getCalorieResult(calories, tdee = TDEE) {
     surplus,
     isSurplus,
     isPerfect,
-    gap: Math.max(gap, 0),
     progress: isSurplus ? 100 : exceeded ? 100 : getProgressPercent(deficit, DEFICIT_TARGET),
     celebrated: exceeded,
     tone: isSurplus ? "surplus" : "logged",
-    status: isSurplus ? "Surplus" : "Deficit",
-    detail: isSurplus
-      ? `${formatInt(surplus)} kcal surplus`
-      : `${formatInt(deficit)} kcal deficit`
+    status: isSurplus ? "Surplus" : "Deficit"
   };
 }
 
@@ -807,11 +795,9 @@ function getProteinResult(protein) {
 
   return {
     status: "Protein",
-    gap,
     isPerfect,
     progress: getProgressPercent(roundedProtein, PROTEIN_TARGET),
-    celebrated: gap <= (PROTEIN_TARGET * 0.1),
-    detail: `${formatInt(roundedProtein)}g logged`
+    celebrated: gap <= (PROTEIN_TARGET * 0.1)
   };
 }
 
@@ -902,6 +888,8 @@ function renderSummary(summary) {
   const consistency = rawConsistency === "Stable" ? "Consistent" : rawConsistency;
   const consistencyTone = rawConsistency.toLowerCase();
   const isCompactLayout = window.matchMedia?.("(max-width: 620px)")?.matches;
+  const loggedDays = summary.count || 0;
+  const weeklyPillText = loggedDays >= 7 ? "Full week" : `${loggedDays} days`;
   let dailyHtml = "";
 
   if (today) {
@@ -1020,7 +1008,7 @@ function renderSummary(summary) {
     <section class="card week-card">
       <div class="card-header">
         <h2>This Week</h2>
-        <span class="status-pill logged">${summary.count || 0} days</span>
+        <span class="status-pill logged">${weeklyPillText}</span>
       </div>
       <div class="week-snapshot">
         <div class="metric">

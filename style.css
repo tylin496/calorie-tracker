@@ -572,12 +572,6 @@ h1 {
   text-align: left;
 }
 
-.input-card input::placeholder {
-  color: color-mix(in srgb, var(--muted) 42%, transparent);
-  font-size: 24px;
-  font-weight: 700;
-}
-
 .input-card input:focus,
 button:focus-visible {
   outline: 3px solid rgba(0, 122, 255, 0.18);
@@ -1049,14 +1043,6 @@ input[type="number"] {
   text-align: left;
 }
 
-.settlement-line.complete small {
-  color: var(--success-text);
-}
-
-.settlement-line.short small {
-  color: var(--accent);
-}
-
 .settlement-track {
   width: 100%;
   height: 7px;
@@ -1080,14 +1066,6 @@ input[type="number"] {
   transition:
     width 180ms ease,
     background 180ms ease;
-}
-
-.settlement-line.complete .settlement-track span {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--success-text) 46%, var(--muted)), color-mix(in srgb, var(--accent) 58%, #5ac8fa));
-}
-
-.settlement-line.short .settlement-track span {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 42%, var(--muted)), color-mix(in srgb, var(--accent) 64%, #5ac8fa));
 }
 
 .settlement-line.surplus .settlement-track span {
