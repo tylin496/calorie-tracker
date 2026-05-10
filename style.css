@@ -947,20 +947,17 @@ button:focus-visible {
 }
 
 .trend-day.selected.missing .trend-bar {
+  background: transparent;
   border: 1.5px dashed color-mix(in srgb, var(--danger) 78%, var(--border));
-  background: transparent;
-  box-shadow: none;
-}
-
-.trend-day.selected.missing .trend-bar {
-  border: 1.5px dashed color-mix(in srgb, var(--muted) 58%, var(--border));
-  background: transparent;
-  box-shadow: none;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--danger) 10%, transparent),
+    0 0 8px color-mix(in srgb, var(--danger) 16%, transparent);
 }
 
 .trend-day.selected.missing span {
-  color: var(--text);
+  color: var(--danger);
 }
+
 
 .trend-day.future {
   opacity: 0.36;
