@@ -227,8 +227,6 @@ function updateEntryForm() {
       }
     }
 
-    form.hidden = false;
-
     if (shouldCollapsePastEntry) {
       const isExpanded = editToggle?.getAttribute("aria-expanded") === "true";
       if (editToggle) editToggle.textContent = isExpanded ? "Hide Entry Form" : "Edit Entry";
