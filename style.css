@@ -1052,7 +1052,7 @@ input[type="number"] {
     0 0 10px color-mix(in srgb, var(--danger) 16%, transparent);
 }
 
-.daily-card.surplus .daily-metric:nth-child(3) span:last-child {
+.daily-card.surplus .daily-metric:nth-child(3) > span {
   color: var(--danger);
 }
 
