@@ -3,6 +3,7 @@ let PROTEIN_TARGET = 180;
 let DEFICIT_TARGET = 500;
 const API_BASE = "https://calorie-tracker-omega-ten.vercel.app";
 const ACCESS_KEY_STORAGE_KEY = "calorieTrackerAccessKey";
+const LAST_LOGGED_DATE_STORAGE_KEY = "calorieTrackerLastLoggedDate";
 
 let todayLogged = false;
 let todayEntry = null;
@@ -10,6 +11,7 @@ let currentDate = getDietDate();
 let toastTimer = null;
 let autoSubmitArmed = true;
 let didAutoOpenQuickEntry = false;
+let didOptimisticQuickEntryOpen = false;
 let calendarMonth = getMonthStart(currentDate);
 
 function getDietDate() {
@@ -73,6 +75,20 @@ function getStoredAccessKey() {
 
 function clearAccessKey() {
   localStorage.removeItem(ACCESS_KEY_STORAGE_KEY);
+}
+
+function getLastLoggedDate() {
+  return localStorage.getItem(LAST_LOGGED_DATE_STORAGE_KEY);
+}
+
+function rememberLoggedDate(dateString) {
+  localStorage.setItem(LAST_LOGGED_DATE_STORAGE_KEY, dateString);
+}
+
+function forgetLoggedDate(dateString) {
+  if (getLastLoggedDate() === dateString) {
+    localStorage.removeItem(LAST_LOGGED_DATE_STORAGE_KEY);
+  }
 }
 
 function createAuthError(message) {
@@ -197,6 +213,14 @@ function openQuickEntry() {
     calories.focus();
     calories.select();
   }, 80);
+}
+
+function openQuickEntryOptimistically() {
+  if (currentDate !== getDietDate() || getLastLoggedDate() === currentDate) return;
+
+  didAutoOpenQuickEntry = true;
+  didOptimisticQuickEntryOpen = true;
+  openQuickEntry();
 }
 
 function closeQuickEntry() {
@@ -389,6 +413,7 @@ async function saveEntry(calories, protein) {
     });
 
     todayLogged = true;
+    rememberLoggedDate(currentDate);
     setStatus(`Saved · ${formatInt(savedDeficit)} kcal`);
     showToast(`Saved · ${formatInt(savedDeficit)} kcal`);
     closeQuickEntry();
@@ -416,6 +441,7 @@ async function deleteEntry() {
 
     todayLogged = false;
     todayEntry = null;
+    forgetLoggedDate(currentDate);
     updateEntryForm();
     setStatus("Deleted");
     showToast("Entry deleted");
@@ -665,9 +691,20 @@ async function loadWeekSummary(successMessage) {
     todayLogged = Boolean(data.summary.todayLogged);
     todayEntry = data.summary.todayEntry;
 
+    if (todayEntry) {
+      rememberLoggedDate(currentDate);
+    } else {
+      forgetLoggedDate(currentDate);
+    }
+
     updateEntryForm();
     renderSummary(data.summary);
     setStatus(successMessage || "");
+
+    if (todayEntry && didOptimisticQuickEntryOpen && isQuickEntryOpen()) {
+      closeQuickEntry();
+      didOptimisticQuickEntryOpen = false;
+    }
 
     if (!didAutoOpenQuickEntry && currentDate === getDietDate() && !todayEntry) {
       didAutoOpenQuickEntry = true;
@@ -793,6 +830,7 @@ function handleAccessSubmit(event) {
 
   localStorage.setItem(ACCESS_KEY_STORAGE_KEY, accessKey);
   hideAccessGate();
+  openQuickEntryOptimistically();
   setStatus("Unlocking...");
   loadConfig()
     .then(() => loadWeekSummary())
@@ -831,6 +869,7 @@ function initApp() {
 
   if (getStoredAccessKey()) {
     hideAccessGate();
+    openQuickEntryOptimistically();
     loadConfig()
       .then(() => loadWeekSummary())
       .catch((error) => {
