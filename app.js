@@ -239,6 +239,11 @@ function updateEntryForm() {
 function setEntryFormVisible(isVisible) {
   const form = document.getElementById("today-form");
   if (!form) return;
+  const isQuickEntryOverlayOpen = isQuickEntryOpen();
+
+  if (!isQuickEntryOverlayOpen) {
+    form.classList.remove("quick-entry");
+  }
 
   form.hidden = false;
   form.classList.toggle("entry-form-collapsed", !isVisible);
@@ -318,7 +323,7 @@ function setLoading(isLoading) {
 }
 
 function isQuickEntryOpen() {
-  return document.getElementById("today-form")?.classList.contains("quick-entry") || false;
+  return document.body.classList.contains("quick-entry-open");
 }
 
 function openQuickEntry() {
@@ -330,6 +335,9 @@ function openQuickEntry() {
 
   if (!form || !calories || !protein) return;
 
+  form.classList.remove("entry-form-collapsed");
+  form.setAttribute("aria-hidden", "false");
+  form.inert = false;
   form.classList.add("quick-entry");
   document.body.classList.add("quick-entry-open");
   if (backdrop) backdrop.hidden = false;
