@@ -451,10 +451,13 @@ function renderCalendar() {
   };
 
   requestAnimationFrame(() => {
-    const selected = grid.querySelector(".calendar-day.selected");
     const monthSection = grid.querySelector(`[data-month="${currentDate.slice(0, 7)}"]`);
-    if (selected) selected.scrollIntoView({ block: "center" });
-    else monthSection?.scrollIntoView({ block: "center" });
+    if (monthSection) {
+      const offset = monthSection.getBoundingClientRect().top - grid.getBoundingClientRect().top;
+      grid.scrollTop += offset;
+    } else {
+      grid.querySelector(".calendar-day.selected")?.scrollIntoView({ block: "center" });
+    }
     updateCalendarMonthLabel(grid);
   });
 }
