@@ -781,7 +781,7 @@ function getCalorieResult(calories, tdee = TDEE) {
   const deficit = Math.max(rawDelta, 0);
   const surplus = Math.max(-rawDelta, 0);
   const gap = roundInt(DEFICIT_TARGET - deficit);
-  const deficitTolerance = DEFICIT_TARGET * 0.05;
+  const deficitTolerance = DEFICIT_TARGET * 0.1;
   const exceeded = !isSurplus && deficit >= Math.max(DEFICIT_TARGET - deficitTolerance, 0);
 
   return {
@@ -910,6 +910,7 @@ function renderSummary(summary) {
     const calorieIntakeTarget = Math.max(0, entryTdee - DEFICIT_TARGET);
     const deficitOverTarget = Math.max(roundInt(calorieResult.deficit - DEFICIT_TARGET), 0);
     const proteinOverTarget = Math.max(roundInt(roundedProtein - PROTEIN_TARGET), 0);
+    const deficitAlmostThere = calorieResult.celebrated && !calorieResult.isSurplus && deficitOverTarget === 0;
     const proteinMetricTone = proteinOverTarget > 0 ? "rewarded" : proteinResult.celebrated ? "on-track" : "";
     const deficitMetricTone = calorieResult.isSurplus ? "caution" : deficitOverTarget > 0 ? "rewarded" : calorieResult.celebrated ? "on-track" : "";
     // Responsive metric texts
@@ -924,7 +925,9 @@ function renderSummary(summary) {
       ? (isCompactLayout ? `Surplus ${formatInt(calorieResult.surplus)}` : `Surplus ${formatInt(calorieResult.surplus)} kcal`)
       : deficitOverTarget > 0
         ? (isCompactLayout ? `+${formatInt(deficitOverTarget)} over` : `+${formatInt(deficitOverTarget)} over goal`)
-        : (isCompactLayout ? `Goal ${formatInt(DEFICIT_TARGET)}` : `Goal ${formatInt(DEFICIT_TARGET)} kcal`);
+        : deficitAlmostThere
+          ? "Almost there"
+          : (isCompactLayout ? `Goal ${formatInt(DEFICIT_TARGET)}` : `Goal ${formatInt(DEFICIT_TARGET)} kcal`);
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone}">
@@ -947,7 +950,7 @@ function renderSummary(summary) {
           <div class="daily-metric ${deficitMetricTone}" aria-label="Deficit is calculated from calories and TDEE">
             <span class="metric-label">Deficit</span>
             <strong>${calorieResult.isSurplus ? `+${formatInt(calorieResult.surplus)}` : formatInt(calorieResult.deficit)}</strong>
-            <span class="metric-note ${calorieResult.isSurplus ? "negative" : deficitOverTarget > 0 ? "reward" : ""}">${deficitMetricText}</span>
+            <span class="metric-note ${calorieResult.isSurplus ? "negative" : deficitOverTarget > 0 || deficitAlmostThere ? "reward" : ""}">${deficitMetricText}</span>
           </div>
         </div>
 
