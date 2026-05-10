@@ -332,7 +332,6 @@ function openQuickEntry(focusField = "calories") {
   }
 
   autoSubmitArmed = true;
-  setStatus("Enter calories");
 
   setTimeout(() => {
     const focusTarget = focusField === "protein" ? protein : calories;
@@ -1109,7 +1108,6 @@ function handleCaloriesInput(event) {
   if (digits.length >= 4 && protein && document.activeElement === calories) {
     protein.focus();
     protein.select();
-    setStatus("Enter protein");
   }
 
   autoSubmitArmed = true;
