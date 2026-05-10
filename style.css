@@ -391,7 +391,22 @@ h1 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin: 10px 0 6px;
+  max-height: 340px;
+  overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
+  transform-origin: top center;
+  transition: max-height 260ms ease, opacity 180ms ease, margin 220ms ease, transform 220ms ease;
   animation: rise-in 300ms ease both;
+}
+
+.settlement-form.entry-form-collapsed {
+  max-height: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
 }
 
 .quick-entry-header {
@@ -424,6 +439,13 @@ h1 {
   padding: 12px;
   margin: 0;
   animation: quick-entry-in 240ms ease both;
+}
+
+.settlement-form.quick-entry.entry-form-collapsed {
+  max-height: calc(100dvh - 32px);
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%);
 }
 
 .settlement-form.quick-entry .quick-entry-header {
@@ -553,11 +575,22 @@ button:focus-visible {
   grid-column: 1 / -1;
   min-height: 54px;
   font-size: 16px;
+  position: relative;
+  overflow: hidden;
 }
 
 .primary-btn:hover {
   box-shadow: 0 18px 38px rgba(0, 122, 255, 0.32);
   transform: translateY(-1px);
+}
+
+.primary-btn.is-loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: translateX(-120%);
+  animation: button-shine 900ms ease infinite;
 }
 
 .primary-btn:active,
@@ -683,6 +716,10 @@ input[type="number"] {
   font-weight: 600;
 }
 
+.settings-panel[open] .targets-form {
+  animation: settings-reveal 220ms ease both;
+}
+
 .targets-form {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -734,6 +771,18 @@ input[type="number"] {
 
 #status:empty {
   min-height: 0;
+}
+
+#daily-result,
+#weekly-summary {
+  transition: opacity 180ms ease, transform 220ms ease, filter 220ms ease;
+}
+
+#daily-result.content-refreshing,
+#weekly-summary.content-refreshing {
+  opacity: 0.58;
+  transform: translateY(6px);
+  filter: saturate(0.86);
 }
 
 .card {
@@ -910,9 +959,11 @@ input[type="number"] {
 
 .settlement-track span {
   display: block;
+  position: relative;
   height: 100%;
   min-width: 8px;
   border-radius: inherit;
+  overflow: hidden;
   background: var(--accent);
   transform-origin: left center;
   animation: progress-fill 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -934,6 +985,16 @@ input[type="number"] {
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent),
     0 0 10px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.daily-card.saved-pulse .settlement-line.celebrated .settlement-track span::after,
+.daily-card.saved-pulse .settlement-line.surplus .settlement-track span::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+  transform: translateX(-120%);
+  animation: track-shimmer 760ms ease;
 }
 
 .card-header {
@@ -1317,6 +1378,29 @@ input[type="number"] {
   }
   100% {
     box-shadow: var(--shadow);
+  }
+}
+
+@keyframes button-shine {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes track-shimmer {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes settings-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

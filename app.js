@@ -240,7 +240,10 @@ function setEntryFormVisible(isVisible) {
   const form = document.getElementById("today-form");
   if (!form) return;
 
-  form.hidden = !isVisible;
+  form.hidden = false;
+  form.classList.toggle("entry-form-collapsed", !isVisible);
+  form.setAttribute("aria-hidden", String(!isVisible));
+  form.inert = !isVisible;
 
   form.querySelectorAll(".input-card, #saveBtn").forEach((element) => {
     element.hidden = false;
@@ -256,7 +259,12 @@ function hideEntryFormWhileLoading() {
   const form = document.getElementById("today-form");
   const editToggle = document.getElementById("entryEditToggle");
 
-  if (form) form.hidden = true;
+  if (form) {
+    form.classList.remove("entry-form-collapsed");
+    form.removeAttribute("aria-hidden");
+    form.inert = false;
+    form.hidden = true;
+  }
 
   if (editToggle) {
     editToggle.hidden = true;
@@ -292,7 +300,20 @@ function setLoading(isLoading) {
   const saveBtn = document.getElementById("saveBtn");
   const deleteBtn = document.getElementById("deleteBtn");
 
-  if (saveBtn) saveBtn.disabled = isLoading;
+  if (saveBtn) {
+    if (isLoading) {
+      saveBtn.dataset.idleText = saveBtn.textContent;
+      saveBtn.textContent = "Saving...";
+    } else if (saveBtn.dataset.idleText && saveBtn.textContent === "Saving...") {
+      saveBtn.textContent = saveBtn.dataset.idleText;
+      delete saveBtn.dataset.idleText;
+    } else {
+      delete saveBtn.dataset.idleText;
+    }
+
+    saveBtn.disabled = isLoading;
+    saveBtn.classList.toggle("is-loading", isLoading);
+  }
   if (deleteBtn) deleteBtn.disabled = isLoading;
 }
 
@@ -568,6 +589,11 @@ function triggerSaveReward() {
   card.classList.remove("saved-pulse");
   void card.offsetWidth;
   card.classList.add("saved-pulse");
+}
+
+function setSummaryRefreshing(isRefreshing) {
+  document.getElementById("daily-result")?.classList.toggle("content-refreshing", isRefreshing);
+  document.getElementById("weekly-summary")?.classList.toggle("content-refreshing", isRefreshing);
 }
 
 async function deleteEntry() {
@@ -892,6 +918,7 @@ async function loadWeekSummary(successMessage) {
 
   updateDietDayDisplay();
   setStatus("Loading...");
+  setSummaryRefreshing(true);
 
   try {
     const data = await fetchJson(`${API_BASE}/api/summary?today=${encodeURIComponent(requestedDate)}&tdee=${encodeURIComponent(TDEE)}`);
@@ -909,6 +936,7 @@ async function loadWeekSummary(successMessage) {
 
     updateEntryForm();
     renderSummary(data.summary);
+    setSummaryRefreshing(false);
     setStatus(successMessage || "");
 
     if (!didAutoOpenQuickEntry && currentDate === getDietDate() && !todayEntry) {
@@ -917,11 +945,13 @@ async function loadWeekSummary(successMessage) {
     }
   } catch (error) {
     if (error.isAuthError) {
+      setSummaryRefreshing(false);
       setStatus("Locked");
       return;
     }
 
     setStatus("Could not load summary");
+    setSummaryRefreshing(false);
     document.getElementById("daily-result").innerHTML = `
       <section class="daily-card empty">
         <h2>Unable to load data</h2>
