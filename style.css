@@ -1013,10 +1013,7 @@ input[type="number"] {
 }
 
 .settlement-line.surplus .settlement-track span {
-  background: linear-gradient(180deg,
-    color-mix(in srgb, var(--danger) 46%, white),
-    color-mix(in srgb, var(--danger) 58%, var(--surface-solid))
-  );
+  background: color-mix(in srgb, var(--muted) 52%, var(--surface-muted));
   box-shadow: none;
 }
 

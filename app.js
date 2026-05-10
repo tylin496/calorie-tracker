@@ -732,7 +732,7 @@ function renderSummary(summary) {
           <div class="daily-metric">
             <span class="metric-label">Calories</span>
             <strong>${formatInt(roundedCalories)}</strong>
-            <span>${calorieResult.isSurplus ? deficitSummary : `Target ${formatInt(calorieIntakeTarget)} kcal`}</span>
+            <span>Target ${formatInt(calorieIntakeTarget)} kcal</span>
           </div>
           <div class="daily-metric">
             <span class="metric-label">Protein</span>
