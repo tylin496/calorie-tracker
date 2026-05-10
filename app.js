@@ -379,6 +379,7 @@ function closeQuickEntry() {
 function openCalendar() {
   const panel = document.getElementById("calendarPanel");
   const backdrop = document.getElementById("calendarBackdrop");
+  const editToggle = document.getElementById("entryEditToggle");
 
   calendarMonth = getMonthStart(currentDate);
   renderCalendar();
@@ -386,15 +387,20 @@ function openCalendar() {
   if (panel) panel.hidden = false;
   if (backdrop) backdrop.hidden = false;
   document.body.classList.add("calendar-open");
+  if (editToggle) editToggle.hidden = true;
 }
 
 function closeCalendar() {
   const panel = document.getElementById("calendarPanel");
   const backdrop = document.getElementById("calendarBackdrop");
+  const editToggle = document.getElementById("entryEditToggle");
 
   if (panel) panel.hidden = true;
   if (backdrop) backdrop.hidden = true;
   document.body.classList.remove("calendar-open");
+  if (editToggle) {
+    editToggle.hidden = !(todayEntry && !isQuickEntryOpen());
+  }
 }
 
 function shiftCalendarMonth(months) {
