@@ -1471,18 +1471,16 @@ function handleAccessSubmit(event) {
     return;
   }
 
+  clearAccessKey();
   localStorage.setItem(ACCESS_KEY_STORAGE_KEY, accessKey);
   hideAccessGate();
   setStatus("Unlocking...");
   loadConfig()
     .then(() => loadWeekSummary())
     .catch((error) => {
-      if (error.isAuthError) {
-        setStatus("Locked");
-        return;
-      }
-
-      setStatus("Could not load targets");
+      clearAccessKey();
+      setStatus("Locked");
+      showAccessGate(error.isAuthError ? "Access key incorrect" : "Could not unlock. Try again.");
     });
 }
 
@@ -1525,12 +1523,9 @@ function initApp() {
     loadConfig()
       .then(() => loadWeekSummary())
       .catch((error) => {
-        if (error.isAuthError) {
-          setStatus("Locked");
-          return;
-        }
-
-        setStatus("Could not load targets");
+        clearAccessKey();
+        setStatus("Locked");
+        showAccessGate(error.isAuthError ? "Access key incorrect" : "Could not unlock. Try again.");
       });
   } else {
     showAccessGate();
