@@ -163,10 +163,28 @@ function updateEntryForm() {
   const protein = document.getElementById("protein");
   const deleteBtn = document.getElementById("deleteBtn");
   const saveBtn = document.getElementById("saveBtn");
+  const caloriesCard = calories?.closest(".input-card");
+  const proteinCard = protein?.closest(".input-card");
   const isViewingToday = currentDate === getDietDate();
 
-  if (calories) calories.value = todayEntry ? roundInt(todayEntry.calories) : "";
-  if (protein) protein.value = todayEntry ? roundInt(todayEntry.protein) : "";
+  if (calories) {
+    calories.value = todayEntry ? roundInt(todayEntry.calories) : "";
+    calories.placeholder = "Enter kcal";
+  }
+
+  if (protein) {
+    protein.value = todayEntry ? roundInt(todayEntry.protein) : "";
+    protein.placeholder = "Enter grams";
+  }
+
+  if (caloriesCard) {
+    caloriesCard.dataset.target = `Target ${formatInt(TDEE)}`;
+  }
+
+  if (proteinCard) {
+    proteinCard.dataset.target = `Target ${formatInt(PROTEIN_TARGET)}g`;
+  }
+
   if (deleteBtn) deleteBtn.hidden = !todayEntry;
   if (saveBtn) {
     if (todayEntry) {

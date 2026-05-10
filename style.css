@@ -425,6 +425,7 @@ h1 {
 }
 
 .input-card {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: start;
@@ -438,6 +439,18 @@ h1 {
     var(--surface);
   padding: 14px;
   box-shadow: var(--shadow);
+}
+
+.input-card::after {
+  content: attr(data-target);
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  color: color-mix(in srgb, var(--muted) 78%, transparent);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+  pointer-events: none;
 }
 
 .input-card:focus-within {
@@ -477,8 +490,9 @@ h1 {
 }
 
 .input-card input::placeholder {
-  color: #a5aea9;
-  color: color-mix(in srgb, var(--muted) 70%, transparent);
+  color: color-mix(in srgb, var(--muted) 42%, transparent);
+  font-size: 24px;
+  font-weight: 700;
 }
 
 .input-card input:focus,
@@ -907,14 +921,12 @@ button:focus-visible {
 
 .trend-day.selected.missing .trend-bar {
   border: 1.5px dashed color-mix(in srgb, var(--danger) 78%, var(--border));
-  background: color-mix(in srgb, var(--danger) 5%, transparent);
-  box-shadow:
-    0 0 0 4px color-mix(in srgb, var(--danger) 8%, transparent),
-    inset 0 0 0 1px color-mix(in srgb, var(--danger) 10%, transparent);
+  background: transparent;
+  box-shadow: none;
 }
 
 .trend-day.selected.missing span {
-  color: var(--danger);
+  color: var(--muted);
 }
 
 .trend-day.future {
