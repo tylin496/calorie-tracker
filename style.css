@@ -1126,6 +1126,15 @@ input[type="number"] {
   border-color: color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
+.status-pill.double-hit {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 20%, transparent), color-mix(in srgb, var(--success-text) 18%, transparent)),
+    var(--accent-soft);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 42%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
 .status-pill.surplus {
   background: var(--danger-bg);
   color: var(--danger);

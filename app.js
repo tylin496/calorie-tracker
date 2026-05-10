@@ -901,6 +901,8 @@ function renderSummary(summary) {
     const calorieIntakeTarget = Math.max(0, entryTdee - DEFICIT_TARGET);
     const deficitOverTarget = Math.max(roundInt(calorieResult.deficit - DEFICIT_TARGET), 0);
     const proteinOverTarget = Math.max(roundInt(roundedProtein - PROTEIN_TARGET), 0);
+    const doubleHit = deficitOverTarget > 0 && proteinOverTarget > 0;
+    const statusPillText = doubleHit ? "Double hit" : "Logged";
     const deficitAlmostThere = calorieResult.celebrated && !calorieResult.isSurplus && deficitOverTarget === 0;
     const deficitPerfectText = isCompactLayout ? "Perfect!" : "Perfect hit!";
     const proteinPerfectText = isCompactLayout ? "Perfect!" : "Perfect protein!";
@@ -914,7 +916,7 @@ function renderSummary(summary) {
       : proteinOverTarget > 0
         ? (isCompactLayout ? `+${formatInt(proteinOverTarget)} over` : `+${formatInt(proteinOverTarget)} over goal`)
         : proteinAlmostThere
-          ? "Almost there"
+          ? "Almost there!"
           : (isCompactLayout ? `Target ${formatInt(PROTEIN_TARGET)}g` : `Target ${formatInt(PROTEIN_TARGET)} g`);
     const deficitMetricText = calorieResult.isSurplus
       ? (isCompactLayout ? `Surplus ${formatInt(calorieResult.surplus)}` : `Surplus ${formatInt(calorieResult.surplus)} kcal`)
@@ -923,14 +925,14 @@ function renderSummary(summary) {
         : deficitOverTarget > 0
           ? (isCompactLayout ? `+${formatInt(deficitOverTarget)} over` : `+${formatInt(deficitOverTarget)} over goal`)
           : deficitAlmostThere
-            ? "Almost there"
+            ? "Almost there!"
             : (isCompactLayout ? `Goal ${formatInt(DEFICIT_TARGET)}` : `Goal ${formatInt(DEFICIT_TARGET)} kcal`);
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone}">
         <div class="daily-card-top">
           <span class="day-label">${getDayLabel()}</span>
-          <span class="status-pill logged">Logged</span>
+          <span class="status-pill ${doubleHit ? "double-hit" : "logged"}">${statusPillText}</span>
         </div>
 
         <div class="daily-metrics">
