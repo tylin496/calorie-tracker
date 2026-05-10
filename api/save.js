@@ -179,7 +179,12 @@ export default async function handler(req, res) {
       });
     }
 
-    const properties = buildProperties(date, calories, protein, tdee);
+    const properties = buildProperties(
+      date,
+      Math.round(calories),
+      Math.round(protein),
+      Math.round(tdee)
+    );
     const existingEntry = await findEntryByDate(date);
 
     if (existingEntry) {

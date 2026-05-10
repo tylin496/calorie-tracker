@@ -129,16 +129,16 @@ function updateTargetForm() {
   const deficitInput = document.getElementById("deficitTargetInput");
   const summary = document.getElementById("targetSummary");
 
-  if (tdeeInput) tdeeInput.value = TDEE;
-  if (proteinInput) proteinInput.value = PROTEIN_TARGET;
-  if (deficitInput) deficitInput.value = DEFICIT_TARGET;
-  if (summary) summary.textContent = `${TDEE} kcal · ${PROTEIN_TARGET}g protein · ${DEFICIT_TARGET} kcal deficit`;
+  if (tdeeInput) tdeeInput.value = roundInt(TDEE);
+  if (proteinInput) proteinInput.value = roundInt(PROTEIN_TARGET);
+  if (deficitInput) deficitInput.value = roundInt(DEFICIT_TARGET);
+  if (summary) summary.textContent = `${formatInt(TDEE)} kcal · ${formatInt(PROTEIN_TARGET)}g protein · ${formatInt(DEFICIT_TARGET)} kcal deficit`;
 }
 
 function applyConfig(config) {
-  TDEE = Number(config?.tdee) || 2705;
-  PROTEIN_TARGET = Number(config?.proteinTarget) || 180;
-  DEFICIT_TARGET = Number(config?.deficitTarget) || 500;
+  TDEE = roundInt(config?.tdee) || 2705;
+  PROTEIN_TARGET = roundInt(config?.proteinTarget) || 180;
+  DEFICIT_TARGET = roundInt(config?.deficitTarget) || 500;
   updateTargetForm();
 }
 
@@ -149,8 +149,8 @@ function updateEntryForm() {
   const saveBtn = document.getElementById("saveBtn");
   const isViewingToday = currentDate === getDietDate();
 
-  if (calories) calories.value = todayEntry ? todayEntry.calories : "";
-  if (protein) protein.value = todayEntry ? todayEntry.protein : "";
+  if (calories) calories.value = todayEntry ? roundInt(todayEntry.calories) : "";
+  if (protein) protein.value = todayEntry ? roundInt(todayEntry.protein) : "";
   if (deleteBtn) deleteBtn.hidden = !todayEntry;
   if (saveBtn) {
     if (todayEntry) {
@@ -323,8 +323,8 @@ function getFormValues() {
   }
 
   return {
-    calories,
-    protein
+    calories: roundInt(calories),
+    protein: roundInt(protein)
   };
 }
 
@@ -372,6 +372,9 @@ async function loadConfig() {
 async function saveEntry(calories, protein) {
   setLoading(true);
   setStatus("Saving...");
+  const roundedCalories = roundInt(calories);
+  const roundedProtein = roundInt(protein);
+  const savedDeficit = roundInt(TDEE - roundedCalories);
 
   try {
     await fetchJson(`${API_BASE}/api/save`, {
@@ -379,15 +382,15 @@ async function saveEntry(calories, protein) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         date: currentDate,
-        calories,
-        protein,
+        calories: roundedCalories,
+        protein: roundedProtein,
         tdee: TDEE
       })
     });
 
     todayLogged = true;
-    setStatus(`Saved · ${TDEE - calories} kcal`);
-    showToast(`Saved · ${TDEE - calories} kcal`);
+    setStatus(`Saved · ${formatInt(savedDeficit)} kcal`);
+    showToast(`Saved · ${formatInt(savedDeficit)} kcal`);
     closeQuickEntry();
     await loadWeekSummary("Entry saved");
   } catch (error) {
@@ -441,9 +444,18 @@ function getDayLabel() {
   return currentDate === getDietDate() ? "Today" : `Editing ${currentDate}`;
 }
 
+function roundInt(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.round(number) : 0;
+}
+
+function formatInt(value) {
+  return roundInt(value).toLocaleString();
+}
+
 function getCalorieResult(calories, tdee = TDEE) {
-  const deficit = tdee - calories;
-  const gap = DEFICIT_TARGET - deficit;
+  const deficit = roundInt(tdee - calories);
+  const gap = roundInt(DEFICIT_TARGET - deficit);
 
   return {
     deficit,
@@ -451,24 +463,25 @@ function getCalorieResult(calories, tdee = TDEE) {
     status: "Deficit",
     detail:
       deficit >= DEFICIT_TARGET
-        ? `${deficit} kcal · target hit`
-        : `${deficit} kcal · ${Math.abs(gap)} kcal short`
+        ? `${formatInt(deficit)} kcal · target hit`
+        : `${formatInt(deficit)} kcal · ${formatInt(Math.abs(gap))} kcal short`
   };
 }
 
 function getProteinResult(protein) {
-  const gap = Math.max(PROTEIN_TARGET - protein, 0);
+  const roundedProtein = roundInt(protein);
+  const gap = Math.max(roundInt(PROTEIN_TARGET - roundedProtein), 0);
 
   if (gap === 0) {
     return {
       status: "Protein target hit",
-      detail: `${protein}g / ${PROTEIN_TARGET}g`
+      detail: `${formatInt(roundedProtein)}g / ${formatInt(PROTEIN_TARGET)}g`
     };
   }
 
   return {
     status: gap <= 10 ? "Almost there" : "Protein short",
-    detail: `${protein}g / ${PROTEIN_TARGET}g · ${gap}g short`
+    detail: `${formatInt(roundedProtein)}g / ${formatInt(PROTEIN_TARGET)}g · ${formatInt(gap)}g short`
   };
 }
 
@@ -500,7 +513,7 @@ function renderTrendBars(entries) {
 
           return `
             <div class="trend-day ${isSelected ? "selected" : ""} ${isMissing ? "missing" : ""} ${isFuture ? "future" : ""}">
-              <div class="trend-bar" style="height:${height}px" title="${dateString}: ${entry ? `${entry.calories} kcal` : "No data"}"></div>
+              <div class="trend-bar" style="height:${height}px" title="${dateString}: ${entry ? `${formatInt(entry.calories)} kcal` : "No data"}"></div>
               <span>${day}</span>
             </div>
           `;
@@ -531,6 +544,8 @@ function renderSummary(summary) {
     const entryTdee = today.tdee || TDEE;
     const calorieResult = getCalorieResult(today.calories, entryTdee);
     const proteinResult = getProteinResult(today.protein);
+    const roundedCalories = roundInt(today.calories);
+    const roundedProtein = roundInt(today.protein);
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone}">
@@ -542,18 +557,18 @@ function renderSummary(summary) {
         <div class="daily-metrics">
           <div class="daily-metric">
             <span class="metric-label">Calories</span>
-            <strong>${today.calories.toLocaleString()}</strong>
+            <strong>${formatInt(roundedCalories)}</strong>
             <span>kcal</span>
           </div>
           <div class="daily-metric">
             <span class="metric-label">Protein</span>
-            <strong>${today.protein}</strong>
-            <span>g / ${PROTEIN_TARGET}g</span>
+            <strong>${formatInt(roundedProtein)}</strong>
+            <span>g / ${formatInt(PROTEIN_TARGET)}g</span>
           </div>
           <div class="daily-metric">
             <span class="metric-label">Deficit</span>
-            <strong>${calorieResult.deficit}</strong>
-            <span>kcal / ${DEFICIT_TARGET} kcal · TDEE ${entryTdee}</span>
+            <strong>${formatInt(calorieResult.deficit)}</strong>
+            <span>kcal / ${formatInt(DEFICIT_TARGET)} kcal · TDEE ${formatInt(entryTdee)}</span>
           </div>
         </div>
 
@@ -585,12 +600,12 @@ function renderSummary(summary) {
           <div class="daily-metric">
             <span class="metric-label">Protein</span>
             <strong>--</strong>
-            <span>g / ${PROTEIN_TARGET}g</span>
+            <span>g / ${formatInt(PROTEIN_TARGET)}g</span>
           </div>
           <div class="daily-metric">
             <span class="metric-label">Deficit</span>
             <strong>--</strong>
-            <span>kcal / ${DEFICIT_TARGET} kcal</span>
+            <span>kcal / ${formatInt(DEFICIT_TARGET)} kcal</span>
           </div>
         </div>
         <p class="empty-state">Settle this day by entering calories and protein below.</p>
@@ -607,15 +622,15 @@ function renderSummary(summary) {
       <div class="week-snapshot">
         <div class="metric">
           <span class="metric-label">Avg kcal</span>
-          <span class="metric-value">${summary.averageCalories || 0}</span>
+          <span class="metric-value">${formatInt(summary.averageCalories || 0)}</span>
         </div>
         <div class="metric">
           <span class="metric-label">Avg protein</span>
-          <span class="metric-value">${summary.averageProtein || 0}g</span>
+          <span class="metric-value">${formatInt(summary.averageProtein || 0)}g</span>
         </div>
         <div class="metric">
           <span class="metric-label">Fat loss</span>
-          <span class="metric-value">${Number(summary.fatLossKg || 0).toFixed(2)} kg</span>
+          <span class="metric-value">${formatInt(Number(summary.fatLossKg || 0) * 1000)}g</span>
         </div>
       </div>
       ${renderTrendBars(summary.entries || [])}
