@@ -853,13 +853,22 @@ button:focus-visible {
   background: transparent;
   box-shadow: none;
   color: var(--danger);
+  -webkit-text-fill-color: var(--danger);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1;
 }
 #deleteBtn:hover {
   background: transparent;
+  color: var(--danger-deep);
+  -webkit-text-fill-color: var(--danger-deep);
   text-decoration: underline;
+  transform: translateY(-1px);
+}
+#deleteBtn:active {
+  color: var(--danger-deep);
+  -webkit-text-fill-color: var(--danger-deep);
+  transform: scale(0.97);
 }
 
 input[type="number"]::-webkit-inner-spin-button,
@@ -1694,16 +1703,16 @@ input[type="number"] {
   position: fixed;
   right: 18px;
   bottom: 18px;
-  z-index: 5;
+  z-index: 90;
   max-width: calc(100vw - 36px);
   border: 1px solid color-mix(in srgb, var(--border-strong) 72%, transparent);
   border-radius: 8px;
-  background: color-mix(in srgb, #1d1d1f 94%, transparent);
-  color: #ffffff;
-  -webkit-text-fill-color: #ffffff;
+  background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
   padding: 10px 14px;
   box-shadow: var(--shadow-strong);
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(22px);
   transform: translateY(18px);
   opacity: 0;
   transition: opacity 180ms ease, transform 180ms ease;
@@ -1711,10 +1720,10 @@ input[type="number"] {
 
 @media (prefers-color-scheme: dark) {
   .toast {
-    background: color-mix(in srgb, #f5f5f7 94%, transparent);
-    color: #1d1d1f;
-    -webkit-text-fill-color: #1d1d1f;
-    border-color: color-mix(in srgb, #ffffff 24%, transparent);
+    background: color-mix(in srgb, #1c1c1e 94%, transparent);
+    color: #f5f5f7;
+    -webkit-text-fill-color: #f5f5f7;
+    border-color: rgba(235, 235, 245, 0.18);
     box-shadow: 0 18px 42px rgba(0, 0, 0, 0.48);
   }
 }
@@ -2067,7 +2076,11 @@ input[type="number"] {
     font-size: 24px;
   }
 
-  .settlement-form,
+  .settlement-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
   .targets-form {
     grid-template-columns: 1fr;
   }
@@ -2104,8 +2117,14 @@ input[type="number"] {
 
   .settlement-form.quick-entry {
     width: calc(100% - 20px);
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     padding: 10px;
+  }
+
+  .settlement-form.quick-entry .quick-entry-header,
+  .settlement-form.quick-entry .commit-btn,
+  .settlement-form.quick-entry #deleteBtn {
+    grid-column: 1 / -1;
   }
 
   .primary-btn,
