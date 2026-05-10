@@ -424,10 +424,10 @@ h1 {
 .input-card {
   position: relative;
   display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto 1fr;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr;
   align-items: start;
-  gap: 8px 10px;
+  gap: 10px 0;
   min-height: 122px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -465,9 +465,9 @@ h1 {
 }
 
 .input-unit {
-  grid-column: 2;
-  grid-row: 2;
-  justify-self: end;
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
@@ -479,14 +479,14 @@ h1 {
 
 .input-card input {
   grid-column: 1 / -1;
-  grid-row: 3;
+  grid-row: 2;
   width: 100%;
   min-height: 58px;
   border: 0;
   border-radius: 0;
   background: transparent;
   color: var(--text);
-  padding: 0;
+  padding: 0 44px 0 0;
   font-size: 34px;
   font-weight: 850;
   letter-spacing: 0;
@@ -807,11 +807,16 @@ button:focus-visible {
   border-color: color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
-.status-pill.surplus,
-.status-pill.missing {
+.status-pill.surplus {
   background: var(--danger-bg);
   color: var(--danger);
   border-color: color-mix(in srgb, var(--danger) 28%, transparent);
+}
+
+.status-pill.missing {
+  background: var(--surface-muted);
+  color: var(--muted);
+  border-color: color-mix(in srgb, var(--muted) 28%, transparent);
 }
 
 .week-snapshot {
@@ -880,7 +885,7 @@ button:focus-visible {
 }
 
 .trend-day.selected .trend-weekday {
-  color: var(--accent);
+  color: var(--success-text);
   font-weight: 800;
 }
 
@@ -889,7 +894,7 @@ button:focus-visible {
 }
 
 .trend-day.selected .trend-bar {
-  background: linear-gradient(180deg, #5ac8fa, var(--accent));
+  background: var(--success);
 }
 
 .trend-day.missing .trend-bar {
@@ -904,8 +909,14 @@ button:focus-visible {
   box-shadow: none;
 }
 
-.trend-day.selected.missing .trend-weekday {
-  color: var(--muted);
+.trend-day.selected.missing .trend-bar {
+  border: 1.5px dashed color-mix(in srgb, var(--muted) 58%, var(--border));
+  background: transparent;
+  box-shadow: none;
+}
+
+.trend-day.selected.missing span {
+  color: var(--text);
 }
 
 .trend-day.future {
@@ -919,6 +930,25 @@ button:focus-visible {
   line-height: 1;
 }
 
+.trend-date {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.trend-day.selected .trend-date {
+  color: var(--text);
+}
+
+.settlement-line.neutral {
+  color: var(--text);
+}
+
+.settlement-line.neutral .settlement-track span {
+  background: var(--accent);
+}
 
 .empty-state {
   margin: 0;

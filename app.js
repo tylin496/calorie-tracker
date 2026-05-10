@@ -130,19 +130,13 @@ function updateDietDayDisplay() {
   const label = document.getElementById("diet-day-label");
   const nextBtn = document.getElementById("nextDayBtn");
   const isAtToday = currentDate === getTodayDate();
-  const weekday = getWeekday(currentDate);
-  const date = new Date(`${currentDate}T12:00:00`);
-  const shortDate = date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric"
-  });
-
-  if (btn) {
-    btn.setAttribute("aria-label", `Selected day ${currentDate}`);
-  }
 
   if (label) {
-    label.textContent = currentDate === getDietDate() ? `${weekday} · Today` : `${weekday}, ${shortDate}`;
+    const displayLabel = getDisplayDateLabel(currentDate, { todayStyle: "compact" });
+    label.textContent = displayLabel;
+    if (btn) {
+      btn.setAttribute("aria-label", `Selected day ${displayLabel}`);
+    }
   }
 
   if (nextBtn) {
@@ -201,7 +195,7 @@ function updateEntryForm() {
     if (todayEntry) {
       saveBtn.textContent = "Update Entry";
     } else {
-      saveBtn.textContent = isViewingToday ? "Commit Today" : `Save ${currentDate}`;
+      saveBtn.textContent = isViewingToday ? "Commit Today" : "Save Entry";
     }
   }
 }
@@ -496,7 +490,21 @@ function getConsistency(entries) {
 }
 
 function getDayLabel() {
-  return currentDate === getDietDate() ? "Today" : `Editing ${currentDate}`;
+  return getDisplayDateLabel(currentDate, { todayStyle: "plain" });
+}
+
+function getDisplayDateLabel(dateString, options = {}) {
+  const { todayStyle = "compact" } = options;
+  const date = new Date(`${dateString}T12:00:00`);
+  const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
+  const shortDate = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric"
+  });
+  if (dateString === getDietDate()) {
+    return todayStyle === "plain" ? "Today" : `${weekday} · Today`;
+  }
+  return `${weekday}, ${shortDate}`;
 }
 
 function roundInt(value) {
@@ -516,13 +524,12 @@ function getProgressPercent(value, target) {
 function getCalorieResult(calories, tdee = TDEE) {
   const deficit = roundInt(tdee - calories);
   const gap = roundInt(DEFICIT_TARGET - deficit);
-  const isHit = deficit >= DEFICIT_TARGET;
 
   return {
     deficit,
     gap: Math.max(gap, 0),
     progress: getProgressPercent(deficit, DEFICIT_TARGET),
-    tone: "deficit",
+    tone: "logged",
     status: "Deficit",
     detail: `${formatInt(deficit)} kcal deficit`
   };
@@ -531,7 +538,6 @@ function getCalorieResult(calories, tdee = TDEE) {
 function getProteinResult(protein) {
   const roundedProtein = roundInt(protein);
   const gap = Math.max(roundInt(PROTEIN_TARGET - roundedProtein), 0);
-  const isHit = gap === 0;
 
   return {
     status: "Protein",
@@ -565,7 +571,8 @@ function renderTrendBars(entries) {
           const height = entry ? Math.max(18, Math.round(((entry.calories || 0) / maxCalories) * 76)) : 34;
           const isSelected = dateString === currentDate;
           const isFuture = isFutureDate(dateString);
-          const day = date.toLocaleDateString("en-US", { weekday: "short" });
+          const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
+          const shortDate = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
           const dayOfMonth = date.getDate();
 
           return `
@@ -573,12 +580,13 @@ function renderTrendBars(entries) {
               type="button"
               class="trend-day ${isSelected ? "selected" : ""} ${isMissing ? "missing" : ""} ${isFuture ? "future" : ""}"
               data-date="${dateString}"
-              aria-label="Select ${day} ${dateString}"
+              aria-label="Select ${weekday}, ${shortDate}"
               ${isFuture ? "disabled" : ""}
               ${isSelected ? "aria-current=\"date\"" : ""}
             >
               <div class="trend-bar" style="height:${height}px" title="${dateString}: ${entry ? `${formatInt(entry.calories)} kcal` : "No data"}"></div>
-              <span class="trend-weekday">${day}</span>
+              <span class="trend-weekday">${weekday}</span>
+              <span class="trend-date">${dayOfMonth}</span>
             </button>
           `;
         })
@@ -647,7 +655,7 @@ function renderSummary(summary) {
         </div>
 
         <div class="settlement-lines">
-          <div class="settlement-line ${calorieResult.gap === 0 ? "complete" : "short"}">
+          <div class="settlement-line neutral">
             <div class="settlement-line-top">
               <strong>${calorieResult.status}</strong>
               <span>${formatInt(calorieResult.deficit)} / ${formatInt(DEFICIT_TARGET)} kcal</span>
@@ -656,7 +664,7 @@ function renderSummary(summary) {
               <span style="width:${calorieResult.progress}%"></span>
             </div>
           </div>
-          <div class="settlement-line ${proteinResult.gap === 0 ? "complete" : "short"}">
+          <div class="settlement-line neutral">
             <div class="settlement-line-top">
               <strong>${proteinResult.status}</strong>
               <span>${formatInt(roundedProtein)} / ${formatInt(PROTEIN_TARGET)}g</span>
@@ -673,7 +681,7 @@ function renderSummary(summary) {
       <section class="daily-card empty">
         <div class="daily-card-top">
           <span class="day-label">${getDayLabel()}</span>
-          <span class="status-pill missing">Missing</span>
+          <span class="status-pill missing">No Entry</span>
         </div>
         <div class="daily-metrics">
           <div class="daily-metric">
@@ -692,7 +700,7 @@ function renderSummary(summary) {
             <span>kcal / ${formatInt(DEFICIT_TARGET)} kcal</span>
           </div>
         </div>
-        <p class="empty-state">Settle this day by entering calories and protein below.</p>
+        <p class="empty-state">Add calories and protein when ready.</p>
       </section>
     `;
   }
@@ -718,7 +726,7 @@ function renderSummary(summary) {
         </div>
       </div>
       ${renderTrendBars(summary.entries || [])}
-      <p class="subtle-text" style="margin-top:10px;">Consistency: ${consistency}</p>
+      <p class="subtle-text" style="margin-top:10px;">Trend: ${consistency}</p>
     </section>
   `;
 
