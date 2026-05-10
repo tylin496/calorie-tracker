@@ -22,31 +22,6 @@
   --shadow-strong: 0 30px 90px rgba(0, 0, 0, 0.22);
 
 }
-
-/* Unify metric card alignment */
-.daily-metric,
-.metric-button,
-.week-snapshot .metric {
-  text-align: left;
-  align-items: flex-start;
-}
-
-.daily-metric .metric-label,
-.daily-metric > span,
-.week-snapshot .metric .metric-label,
-.week-snapshot .metric .metric-value {
-  text-align: left;
-}
-
-.daily-metric:first-child {
-  text-align: left;
-}
-
-.daily-metric:first-child .metric-label,
-.daily-metric:first-child > span {
-  text-align: left;
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #000000;
@@ -486,6 +461,7 @@ h1 {
 .quick-entry-header strong,
 .quick-entry-header span {
   display: block;
+  text-align: left;
 }
 
 .quick-entry-header strong {
@@ -517,6 +493,7 @@ h1 {
     linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 72%, transparent), var(--surface)),
     var(--surface);
   padding: 14px;
+  text-align: left;
   box-shadow: var(--shadow);
   transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
@@ -530,6 +507,7 @@ h1 {
   font-size: 12px;
   font-weight: 750;
   letter-spacing: 0.02em;
+  text-align: right;
   pointer-events: none;
 }
 
@@ -544,6 +522,7 @@ h1 {
   color: var(--muted);
   font-size: 12px;
   font-weight: 800;
+  text-align: left;
   text-transform: uppercase;
 }
 
@@ -578,6 +557,7 @@ h1 {
   font-size: 34px;
   font-weight: 700;
   letter-spacing: 0;
+  text-align: left;
 }
 
 .input-card input::placeholder {
@@ -731,6 +711,7 @@ input[type="number"] {
   gap: 2px;
   padding: 10px 0 0;
   font-weight: 700;
+  text-align: left;
 }
 
 .settings-panel summary::marker {
@@ -742,6 +723,7 @@ input[type="number"] {
   color: var(--muted);
   font-size: 12px;
   font-weight: 600;
+  text-align: left;
 }
 
 .settings-panel[open] .targets-form {
@@ -915,6 +897,7 @@ input[type="number"] {
   min-width: 0;
   display: grid;
   justify-items: start;
+  align-items: start;
   align-content: start;
   border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
   border-radius: 8px;
@@ -929,6 +912,7 @@ input[type="number"] {
 .daily-metric > * {
   width: 100%;
   justify-self: start;
+  text-align: left;
 }
 
 .daily-metric > :not(strong) {
@@ -998,6 +982,7 @@ input[type="number"] {
   color: var(--muted);
   font-size: 12px;
   font-weight: 800;
+  line-height: 1.2;
 }
 
 .daily-metric > .metric-note.reward {
@@ -1030,6 +1015,7 @@ input[type="number"] {
 
 .settlement-line strong {
   font-size: 15px;
+  text-align: left;
 }
 
 .settlement-line-top span,
@@ -1048,6 +1034,7 @@ input[type="number"] {
   min-height: 16px;
   font-size: 12px;
   font-weight: 800;
+  text-align: left;
 }
 
 .settlement-line.complete small {
@@ -1136,7 +1123,9 @@ input[type="number"] {
   padding: 4px 9px;
   font-size: 12px;
   font-weight: 800;
+  text-align: center;
   text-transform: uppercase;
+  white-space: nowrap;
   border: 1px solid transparent;
 }
 
@@ -1174,6 +1163,11 @@ input[type="number"] {
     var(--surface-muted);
   border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
   padding: 12px 14px;
+  text-align: left;
+}
+
+.metric > * {
+  text-align: left;
 }
 
 .metric-label {
@@ -1181,6 +1175,7 @@ input[type="number"] {
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
+  text-align: left;
   text-transform: uppercase;
 }
 
@@ -1191,6 +1186,7 @@ input[type="number"] {
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.025em;
+  text-align: left;
 }
 
 .week-snapshot .metric {
