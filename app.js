@@ -441,8 +441,8 @@ function getDayLabel() {
   return currentDate === getDietDate() ? "Today" : `Editing ${currentDate}`;
 }
 
-function getCalorieResult(calories) {
-  const deficit = TDEE - calories;
+function getCalorieResult(calories, tdee = TDEE) {
+  const deficit = tdee - calories;
   const gap = DEFICIT_TARGET - deficit;
 
   return {
@@ -475,7 +475,10 @@ function getProteinResult(protein) {
 function renderTrendBars(entries) {
   const weekEntries = entries || [];
   const entryByDate = new Map(weekEntries.map((entry) => [entry.date, entry]));
-  const maxCalories = Math.max(TDEE, ...weekEntries.map((entry) => entry.calories || 0));
+  const maxCalories = Math.max(
+    TDEE,
+    ...weekEntries.map((entry) => Math.max(entry.calories || 0, entry.tdee || 0))
+  );
   const start = getWeekStart(currentDate);
   const days = Array.from({ length: 7 }, (_, index) => {
     const date = new Date(start);
@@ -525,7 +528,8 @@ function renderSummary(summary) {
   let dailyHtml = "";
 
   if (today) {
-    const calorieResult = getCalorieResult(today.calories);
+    const entryTdee = today.tdee || TDEE;
+    const calorieResult = getCalorieResult(today.calories, entryTdee);
     const proteinResult = getProteinResult(today.protein);
 
     dailyHtml = `
@@ -549,7 +553,7 @@ function renderSummary(summary) {
           <div class="daily-metric">
             <span class="metric-label">Deficit</span>
             <strong>${calorieResult.deficit}</strong>
-            <span>kcal / ${DEFICIT_TARGET} kcal</span>
+            <span>kcal / ${DEFICIT_TARGET} kcal · TDEE ${entryTdee}</span>
           </div>
         </div>
 
