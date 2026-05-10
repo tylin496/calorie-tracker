@@ -7,9 +7,16 @@ const LAST_LOGGED_DATE_STORAGE_KEY = "calorieTrackerLastLoggedDate";
 const CALENDAR_INITIAL_HISTORY_MONTHS = 6;
 const CALENDAR_HISTORY_CHUNK_MONTHS = 3;
 
+// The date the app defaults to on launch: yesterday if before 6am, today otherwise
+const DIET_INITIAL_DATE = (() => {
+  const now = new Date();
+  if (now.getHours() < 6) now.setDate(now.getDate() - 1);
+  return formatDate(now);
+})();
+
 let todayLogged = false;
 let todayEntry = null;
-let currentDate = getDietDate();
+let currentDate = DIET_INITIAL_DATE;
 let toastTimer = null;
 let autoSubmitArmed = true;
 let didAutoOpenQuickEntry = false;
@@ -19,9 +26,7 @@ let calendarHistoryMonths = CALENDAR_INITIAL_HISTORY_MONTHS;
 let calendarIsExtending = false;
 
 function getDietDate() {
-  const now = new Date();
-  if (now.getHours() < 3) now.setDate(now.getDate() - 1);
-  return formatDate(now);
+  return formatDate(new Date());
 }
 
 function formatDate(date) {
@@ -723,7 +728,7 @@ async function saveEntry(calories, protein) {
   const roundedCalories = roundInt(calories);
   const roundedProtein = roundInt(protein);
   const savedDeficit = roundInt(TDEE - roundedCalories);
-  const shouldCelebrateTodayCommit = !todayEntry && currentDate === getDietDate();
+  const shouldCelebrateTodayCommit = !todayEntry && currentDate === DIET_INITIAL_DATE;
 
   try {
     await fetchJson(`${API_BASE}/api/save`, {
@@ -1211,7 +1216,7 @@ async function loadWeekSummary(successMessage) {
     setSummaryRefreshing(false);
     setStatus(successMessage || "");
 
-    if (!didAutoOpenQuickEntry && currentDate === getDietDate() && !todayEntry) {
+    if (!didAutoOpenQuickEntry && currentDate === DIET_INITIAL_DATE && !todayEntry) {
       didAutoOpenQuickEntry = true;
       openQuickEntry();
     }
@@ -1270,7 +1275,7 @@ function handleProteinInput(event) {
   const protein = event.currentTarget;
   const digits = protein.value.replace(/\D/g, "");
 
-  if (digits.length < 3 || !autoSubmitArmed || todayEntry || currentDate !== getDietDate()) return;
+  if (digits.length < 3 || !autoSubmitArmed || todayEntry || currentDate !== DIET_INITIAL_DATE) return;
 
   autoSubmitArmed = false;
   setStatus("Auto submitting...");
