@@ -553,6 +553,12 @@ button:focus-visible {
   margin-bottom: 0;
 }
 
+.entry-edit-toggle {
+  position: relative;
+  z-index: 20;
+  pointer-events: auto;
+}
+
 #deleteBtn {
   width: auto;
   min-width: 0;
