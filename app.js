@@ -153,7 +153,7 @@ function updateTargetForm() {
   if (tdeeInput) tdeeInput.value = roundInt(TDEE);
   if (proteinInput) proteinInput.value = roundInt(PROTEIN_TARGET);
   if (deficitInput) deficitInput.value = roundInt(DEFICIT_TARGET);
-  if (summary) summary.textContent = `TDEE ${formatInt(TDEE)} kcal · Protein ${formatInt(PROTEIN_TARGET)}g · Deficit goal ${formatInt(DEFICIT_TARGET)} kcal`;
+  if (summary) summary.textContent = `TDEE ${formatInt(TDEE)} kcal · Protein ${formatInt(PROTEIN_TARGET)}g · Deficit ${formatInt(DEFICIT_TARGET)} kcal`;
 }
 
 function applyConfig(config) {
@@ -194,7 +194,7 @@ function updateEntryForm() {
 
   if (deleteBtn) {
     deleteBtn.hidden = !todayEntry;
-    deleteBtn.textContent = "Delete";
+    deleteBtn.textContent = "Delete Entry";
     deleteBtn.setAttribute("aria-label", "Delete this entry");
   }
   if (saveBtn) {
@@ -229,7 +229,7 @@ function updateEntryForm() {
 
     if (shouldCollapseLoggedEntry) {
       const isExpanded = editToggle?.getAttribute("aria-expanded") === "true";
-      if (editToggle) editToggle.textContent = isExpanded ? "Hide Entry Form" : "Edit Entry";
+      if (editToggle) editToggle.textContent = isExpanded ? "Done" : "Edit Entry";
       setEntryFormVisible(isExpanded);
     } else {
       setEntryFormVisible(true);
@@ -285,7 +285,7 @@ function toggleEntryEditForm(editToggle) {
   const nextExpanded = !isExpanded;
 
   editToggle.setAttribute("aria-expanded", String(nextExpanded));
-  editToggle.textContent = nextExpanded ? "Hide Entry Form" : "Edit Entry";
+  editToggle.textContent = nextExpanded ? "Done" : "Edit Entry";
   if (form) {
     setEntryFormVisible(nextExpanded);
     if (nextExpanded) {
@@ -828,7 +828,8 @@ function renderSummary(summary) {
   if (!dailyEl || !weeklyEl) return;
 
   const today = summary.todayEntry;
-  const consistency = summary.consistency || getConsistency(summary.entries || []);
+  const rawConsistency = summary.consistency || getConsistency(summary.entries || []);
+  const consistency = rawConsistency === "Stable" ? "Consistent" : rawConsistency;
   const consistencyTone = consistency.toLowerCase();
   const isCompactLayout = window.matchMedia?.("(max-width: 620px)")?.matches;
   let dailyHtml = "";
@@ -949,21 +950,21 @@ function renderSummary(summary) {
       </div>
       <div class="week-snapshot">
         <div class="metric">
-          <span class="metric-label">Avg kcal</span>
+          <span class="metric-label">Avg Calories</span>
           <span class="metric-value">${formatInt(summary.averageCalories || 0)}</span>
         </div>
         <div class="metric">
-          <span class="metric-label">Avg protein</span>
+          <span class="metric-label">Avg Protein</span>
           <span class="metric-value">${formatInt(summary.averageProtein || 0)}g</span>
         </div>
         <div class="metric">
-          <span class="metric-label">Fat loss</span>
+          <span class="metric-label">Estimated Fat Loss</span>
           <span class="metric-value">${formatInt(Number(summary.fatLossKg || 0) * 1000)}g</span>
         </div>
       </div>
       <div class="week-trend-panel">
         <div class="week-trend-header">
-          <span>Daily kcal</span>
+          <span>Daily Intake</span>
           <strong class="trend-status ${consistencyTone}">${consistency}</strong>
         </div>
         ${renderTrendBars(summary.entries || [])}
