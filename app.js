@@ -218,8 +218,11 @@ function updateEntryForm() {
       editToggle.setAttribute("aria-expanded", "false");
       editToggle.textContent = "Edit Entry";
       form.parentNode?.insertBefore(editToggle, form);
+    }
 
-      editToggle.addEventListener("click", () => {
+    if (editToggle) {
+      editToggle.hidden = !shouldCollapsePastEntry;
+      editToggle.onclick = () => {
         const currentForm = document.getElementById("today-form");
         const currentFormBody = currentForm?.querySelector(".input-grid");
         const currentFormActions = currentForm?.querySelector(".form-actions");
@@ -230,11 +233,7 @@ function updateEntryForm() {
         editToggle.textContent = nextExpanded ? "Hide Entry Form" : "Edit Entry";
         if (currentFormBody) currentFormBody.hidden = !nextExpanded;
         if (currentFormActions) currentFormActions.hidden = !nextExpanded;
-      });
-    }
-
-    if (editToggle) {
-      editToggle.hidden = !shouldCollapsePastEntry;
+      };
 
       if (!shouldCollapsePastEntry) {
         editToggle.setAttribute("aria-expanded", "false");
@@ -840,7 +839,7 @@ function renderSummary(summary) {
         </div>
       </div>
       ${renderTrendBars(summary.entries || [])}
-      <p class="subtle-text trend-summary"><strong>Weekly Trend</strong><span>${consistency}</span></p>
+      <p class="subtle-text trend-summary"><strong>Weekly Trend</strong> <span>${consistency}</span></p>
     </section>
   `;
 
