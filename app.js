@@ -271,6 +271,7 @@ function toggleEntryEditForm(editToggle) {
   if (form) {
     setEntryFormVisible(nextExpanded);
     if (nextExpanded) {
+      autoSubmitArmed = true;
       form.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
     }
   }
@@ -1275,7 +1276,7 @@ function handleProteinInput(event) {
   const protein = event.currentTarget;
   const digits = protein.value.replace(/\D/g, "");
 
-  if (digits.length < 3 || !autoSubmitArmed || todayEntry || currentDate !== DIET_INITIAL_DATE) return;
+  if (digits.length < 3 || !autoSubmitArmed) return;
 
   autoSubmitArmed = false;
   setStatus("Auto submitting...");
