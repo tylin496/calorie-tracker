@@ -153,7 +153,7 @@ function updateTargetForm() {
   if (tdeeInput) tdeeInput.value = roundInt(TDEE);
   if (proteinInput) proteinInput.value = roundInt(PROTEIN_TARGET);
   if (deficitInput) deficitInput.value = roundInt(DEFICIT_TARGET);
-  if (summary) summary.textContent = `${formatInt(TDEE)} kcal · ${formatInt(PROTEIN_TARGET)}g protein · ${formatInt(DEFICIT_TARGET)} kcal deficit`;
+  if (summary) summary.textContent = `TDEE ${formatInt(TDEE)} kcal · Protein ${formatInt(PROTEIN_TARGET)}g · Deficit goal ${formatInt(DEFICIT_TARGET)} kcal`;
 }
 
 function applyConfig(config) {
