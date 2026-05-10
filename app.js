@@ -411,55 +411,31 @@ function renderCalendar() {
   const grid = document.getElementById("calendarGrid");
   const dietTodayString = getDietDate();
   const dietToday = new Date(`${dietTodayString}T12:00:00`);
+  const visibleMonth = getMonthStart(currentDate);
 
   if (!title || !grid) return;
 
   title.textContent = "Select date";
-  grid.innerHTML = getCalendarMonths(dietToday, currentDate)
-    .map((month) => renderCalendarMonth(month, dietToday, dietTodayString))
-    .join("");
-
-  grid.onscroll = () => updateCalendarMonthLabel(grid);
+  grid.innerHTML = renderCalendarMonth(visibleMonth, dietToday, dietTodayString);
+  updateCalendarMonthLabel(visibleMonth);
 
   requestAnimationFrame(() => {
     const selected = grid.querySelector(".calendar-day.selected");
     selected?.scrollIntoView({ block: "center" });
-    updateCalendarMonthLabel(grid);
+    updateCalendarMonthLabel(visibleMonth);
   });
 }
 
-function updateCalendarMonthLabel(grid) {
-  const label = document.getElementById("calendarMonthLabel");
-  if (!label) return;
-  const sections = [...grid.querySelectorAll(".calendar-month")];
-  const containerTop = grid.getBoundingClientRect().top;
-  let current = sections[0];
-  for (const section of sections) {
-    if (section.getBoundingClientRect().top <= containerTop + 4) current = section;
-    else break;
-  }
-  if (current) label.textContent = current.dataset.month;
+function getCalendarMonthLabel(monthDate) {
+  const month = monthDate.toLocaleDateString("en-US", { month: "long" });
+  const year = monthDate.toLocaleDateString("en-US", { year: "numeric" });
+  return `<strong>${month}</strong> ${year}`;
 }
 
-function getCalendarMonths(endDate, selectedDateString) {
-  const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
-  const selectedMonth = getMonthStart(selectedDateString);
-  const startMonth = new Date(endMonth);
-  startMonth.setMonth(startMonth.getMonth() - 17);
-
-  if (selectedMonth < startMonth) {
-    startMonth.setFullYear(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
-  }
-
-  const months = [];
-  const cursor = new Date(startMonth);
-
-  while (cursor <= endMonth) {
-    months.push(new Date(cursor));
-    cursor.setMonth(cursor.getMonth() + 1);
-  }
-
-  return months;
+function updateCalendarMonthLabel(monthDate) {
+  const label = document.getElementById("calendarMonthLabel");
+  if (!label) return;
+  label.innerHTML = getCalendarMonthLabel(monthDate);
 }
 
 function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
@@ -965,7 +941,7 @@ function renderSummary(summary) {
             : (isCompactLayout ? `Target ${formatInt(DEFICIT_TARGET)}` : `Target ${formatInt(DEFICIT_TARGET)} kcal`);
 
     dailyHtml = `
-      <section class="daily-card ${calorieResult.tone}">
+      <section class="daily-card ${calorieResult.tone} ${doubleHit ? "double-hit" : ""}">
         <div class="daily-card-top">
           <span class="day-label">${getDayLabel()}</span>
           <span class="status-pill ${doubleHit ? "double-hit" : "logged"}">${statusPillText}</span>

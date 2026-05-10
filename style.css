@@ -234,50 +234,59 @@ h1 {
   left: 50%;
   top: 50%;
   z-index: 11;
-  width: min(380px, calc(100% - 24px));
+  width: min(390px, calc(100% - 32px));
   max-height: min(720px, calc(100dvh - 32px));
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
   transform: translate(-50%, -50%);
   border: 1px solid var(--border);
   border-radius: 8px;
   background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
   backdrop-filter: blur(28px);
   box-shadow: var(--shadow-strong);
-  padding: 12px;
+  padding: 22px 20px 24px;
   animation: modal-in 220ms ease both;
 }
 
 .calendar-header {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 8px;
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
 }
 
 .calendar-header strong {
   font-size: 17px;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
+}
+
+#calendarTitle {
+  justify-self: center;
+  padding: 6px 14px;
 }
 
 .calendar-month-label {
-  position: absolute;
-  right: 0;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 700;
+  justify-self: start;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+
+.calendar-month-label strong {
+  font-size: inherit;
+  font-weight: 800;
 }
 
 .calendar-months {
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
   display: grid;
   gap: 14px;
-  padding: 4px 2px 2px;
-  scrollbar-width: thin;
+  padding: 8px 0 0;
 }
 
 .calendar-month {
@@ -292,8 +301,8 @@ h1 {
 }
 
 .calendar-weekdays-fixed {
-  padding: 0 2px;
-  margin-bottom: 2px;
+  padding: 0;
+  margin-bottom: 8px;
 }
 
 .calendar-weekdays-fixed span {
@@ -968,6 +977,25 @@ input[type="number"] {
     color-mix(in srgb, var(--surface-muted) 76%, transparent);
 }
 
+.daily-card.double-hit {
+  border-color: color-mix(in srgb, var(--gold) 28%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--gold-soft) 34%, transparent), transparent 46%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 72%, transparent), var(--surface)),
+    var(--surface);
+  box-shadow:
+    var(--shadow),
+    0 0 22px color-mix(in srgb, var(--gold) 10%, transparent);
+}
+
+.daily-card.double-hit .daily-metric.rewarded,
+.daily-card.double-hit .daily-metric.on-track {
+  border-color: color-mix(in srgb, var(--gold) 38%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--gold-soft) 62%, transparent), transparent),
+    color-mix(in srgb, var(--surface-muted) 76%, transparent);
+}
+
 .daily-metric.caution {
   border-color: color-mix(in srgb, var(--danger-deep) 22%, var(--border));
   background:
@@ -1002,6 +1030,13 @@ input[type="number"] {
 .daily-metric > .metric-note.reward {
   color: var(--accent);
   -webkit-text-fill-color: var(--accent);
+}
+
+.daily-card.double-hit .daily-metric.rewarded .metric-note,
+.daily-card.double-hit .daily-metric.on-track .metric-note,
+.daily-card.double-hit .daily-metric > .metric-note.reward {
+  color: var(--gold);
+  -webkit-text-fill-color: var(--gold);
 }
 
 .daily-metric.caution .metric-note,
@@ -1427,6 +1462,12 @@ input[type="number"] {
   color: var(--accent);
 }
 
+.daily-card.double-hit .settlement-line.celebrated .settlement-line-top span,
+.daily-card.double-hit .settlement-line.celebrated small {
+  color: var(--gold);
+  -webkit-text-fill-color: var(--gold);
+}
+
 .daily-card.surplus .daily-metric:nth-child(3) > span:last-child {
   color: var(--danger-deep);
 }
@@ -1439,6 +1480,13 @@ input[type="number"] {
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent),
     0 0 8px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.daily-card.double-hit .settlement-line.celebrated .settlement-track span {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 52%, var(--muted)), color-mix(in srgb, var(--gold) 88%, #fff2a8));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--gold) 14%, transparent),
+    0 0 10px color-mix(in srgb, var(--gold) 18%, transparent);
 }
 
 .empty-state {
