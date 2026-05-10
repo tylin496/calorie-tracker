@@ -419,10 +419,26 @@ function renderCalendar() {
     .map((month) => renderCalendarMonth(month, dietToday, dietTodayString))
     .join("");
 
+  grid.onscroll = () => updateCalendarMonthLabel(grid);
+
   requestAnimationFrame(() => {
     const selected = grid.querySelector(".calendar-day.selected");
     selected?.scrollIntoView({ block: "center" });
+    updateCalendarMonthLabel(grid);
   });
+}
+
+function updateCalendarMonthLabel(grid) {
+  const label = document.getElementById("calendarMonthLabel");
+  if (!label) return;
+  const sections = [...grid.querySelectorAll(".calendar-month")];
+  const containerTop = grid.getBoundingClientRect().top;
+  let current = sections[0];
+  for (const section of sections) {
+    if (section.getBoundingClientRect().top <= containerTop + 4) current = section;
+    else break;
+  }
+  if (current) label.textContent = current.dataset.month;
 }
 
 function getCalendarMonths(endDate, selectedDateString) {
@@ -481,17 +497,7 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
   }
 
   return `
-    <section class="calendar-month" aria-label="${monthTitle}">
-      <h3>${monthTitle}</h3>
-      <div class="calendar-weekdays" aria-hidden="true">
-        <span>Mon</span>
-        <span>Tue</span>
-        <span>Wed</span>
-        <span>Thu</span>
-        <span>Fri</span>
-        <span>Sat</span>
-        <span>Sun</span>
-      </div>
+    <section class="calendar-month" data-month="${monthTitle}" aria-label="${monthTitle}">
       <div class="calendar-grid">${cells.join("")}</div>
     </section>
   `;

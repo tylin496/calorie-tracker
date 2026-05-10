@@ -17,6 +17,8 @@
   --warning: #ff9f0a;
   --success-bg: rgba(52, 199, 89, 0.14);
   --success-text: #248a3d;
+  --gold: #9a7200;
+  --gold-soft: rgba(154, 114, 0, 0.12);
   --danger-bg: rgba(255, 59, 48, 0.12);
   --shadow: 0 18px 40px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
   --shadow-strong: 0 30px 90px rgba(0, 0, 0, 0.22);
@@ -41,6 +43,8 @@
     --warning: #ffd60a;
     --success-bg: rgba(48, 209, 88, 0.16);
     --success-text: #30d158;
+    --gold: #ffd60a;
+    --gold-soft: rgba(255, 214, 10, 0.16);
     --danger-bg: rgba(255, 69, 58, 0.16);
     --shadow: 0 18px 42px rgba(0, 0, 0, 0.34), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
     --shadow-strong: 0 28px 90px rgba(0, 0, 0, 0.58);
@@ -233,7 +237,7 @@ h1 {
   width: min(380px, calc(100% - 24px));
   max-height: min(720px, calc(100dvh - 32px));
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   transform: translate(-50%, -50%);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -245,17 +249,25 @@ h1 {
 }
 
 .calendar-header {
-  display: grid;
-  grid-template-columns: 1fr;
+  position: relative;
+  display: flex;
   align-items: center;
+  justify-content: center;
   margin-bottom: 8px;
 }
 
 .calendar-header strong {
-  text-align: center;
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+.calendar-month-label {
+  position: absolute;
+  right: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .calendar-months {
@@ -263,43 +275,28 @@ h1 {
   overflow-y: auto;
   overscroll-behavior: contain;
   display: grid;
-  gap: 18px;
+  gap: 14px;
   padding: 4px 2px 2px;
   scrollbar-width: thin;
 }
 
 .calendar-month {
-  display: grid;
-  gap: 6px;
-  scroll-margin-block: 22px;
+  scroll-margin-block: 8px;
 }
 
-.calendar-month h3 {
-  position: sticky;
-  top: -4px;
-  z-index: 1;
-  margin: 0;
-  padding: 6px 0;
-  background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
-  color: var(--text);
-  font-size: 15px;
-  font-weight: 800;
-  text-align: left;
-  backdrop-filter: blur(18px);
-}
-
-.calendar-weekdays,
+.calendar-weekdays-fixed,
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
 }
 
-.calendar-weekdays {
-  margin-bottom: 0;
+.calendar-weekdays-fixed {
+  padding: 0 2px;
+  margin-bottom: 2px;
 }
 
-.calendar-weekdays span {
+.calendar-weekdays-fixed span {
   color: var(--muted);
   font-size: 11px;
   font-weight: 700;
@@ -1164,12 +1161,10 @@ input[type="number"] {
 }
 
 .status-pill.double-hit {
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--accent) 20%, transparent), color-mix(in srgb, var(--success-text) 18%, transparent)),
-    var(--accent-soft);
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 42%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 8%, transparent);
+  background: var(--gold-soft);
+  color: var(--gold);
+  border-color: color-mix(in srgb, var(--gold) 36%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 10%, transparent);
 }
 
 .status-pill.surplus {
@@ -1403,9 +1398,9 @@ input[type="number"] {
 }
 
 .trend-status.moderate {
-  background: color-mix(in srgb, var(--warning) 13%, transparent);
-  color: color-mix(in srgb, var(--warning) 72%, var(--text));
-  border-color: color-mix(in srgb, var(--warning) 24%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface-muted));
+  color: color-mix(in srgb, var(--accent) 55%, var(--muted));
+  border-color: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .trend-status.building {
@@ -1415,9 +1410,9 @@ input[type="number"] {
 }
 
 .trend-status.variable {
-  background: var(--danger-bg);
-  color: var(--danger-deep);
-  border-color: color-mix(in srgb, var(--danger) 22%, transparent);
+  background: color-mix(in srgb, var(--warning) 13%, transparent);
+  color: color-mix(in srgb, var(--warning) 72%, var(--text));
+  border-color: color-mix(in srgb, var(--warning) 24%, transparent);
 }
 
 .settlement-line.celebrated strong {
