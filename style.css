@@ -905,6 +905,18 @@ button:focus-visible {
   box-shadow: none;
 }
 
+.trend-day.selected.missing .trend-bar {
+  border: 1.5px dashed color-mix(in srgb, var(--danger) 78%, var(--border));
+  background: color-mix(in srgb, var(--danger) 5%, transparent);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--danger) 8%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.trend-day.selected.missing span {
+  color: var(--danger);
+}
+
 .trend-day.future {
   opacity: 0.36;
 }
