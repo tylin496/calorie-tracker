@@ -714,25 +714,76 @@ button:focus-visible {
 
 .settlement-lines {
   display: grid;
-  gap: 8px;
+  gap: 12px;
   border-top: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
   padding-top: 14px;
 }
 
-.settlement-lines div {
+.settlement-line {
+  display: grid;
+  gap: 7px;
+}
+
+.settlement-line-top {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: 12px;
 }
 
-.settlement-lines strong {
+.settlement-line strong {
   font-size: 15px;
 }
 
-.settlement-lines span {
+.settlement-line-top span,
+.settlement-line small {
   color: var(--muted);
   font-size: 14px;
+}
+
+.settlement-line-top span {
   text-align: right;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+.settlement-line small {
+  min-height: 16px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.settlement-line.complete small {
+  color: var(--success);
+}
+
+.settlement-line.short small {
+  color: var(--danger);
+}
+
+.settlement-track {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border) 56%, transparent);
+}
+
+.settlement-track span {
+  display: block;
+  height: 100%;
+  min-width: 8px;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 180ms ease;
+}
+
+.settlement-line.complete .settlement-track span {
+  background: var(--success);
+}
+
+.settlement-line.short .settlement-track span {
+  background: color-mix(in srgb, var(--danger) 72%, var(--accent));
 }
 
 .card-header {
@@ -940,12 +991,12 @@ button:focus-visible {
     margin-top: 10px;
   }
 
-  .settlement-lines div {
+  .settlement-line-top {
     display: grid;
     gap: 2px;
   }
 
-  .settlement-lines span {
+  .settlement-line-top span {
     text-align: left;
   }
 }

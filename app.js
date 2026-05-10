@@ -453,35 +453,36 @@ function formatInt(value) {
   return roundInt(value).toLocaleString();
 }
 
+function getProgressPercent(value, target) {
+  const safeTarget = Math.max(roundInt(target), 1);
+  return Math.max(0, Math.min(100, Math.round((roundInt(value) / safeTarget) * 100)));
+}
+
 function getCalorieResult(calories, tdee = TDEE) {
   const deficit = roundInt(tdee - calories);
   const gap = roundInt(DEFICIT_TARGET - deficit);
+  const isHit = deficit >= DEFICIT_TARGET;
 
   return {
     deficit,
-    tone: deficit >= DEFICIT_TARGET ? "deficit" : "surplus",
+    gap: Math.max(gap, 0),
+    progress: getProgressPercent(deficit, DEFICIT_TARGET),
+    tone: isHit ? "deficit" : "surplus",
     status: "Deficit",
-    detail:
-      deficit >= DEFICIT_TARGET
-        ? `${formatInt(deficit)} kcal · target hit`
-        : `${formatInt(deficit)} kcal · ${formatInt(Math.abs(gap))} kcal short`
+    detail: isHit ? "Target hit" : `${formatInt(Math.abs(gap))} kcal short`
   };
 }
 
 function getProteinResult(protein) {
   const roundedProtein = roundInt(protein);
   const gap = Math.max(roundInt(PROTEIN_TARGET - roundedProtein), 0);
-
-  if (gap === 0) {
-    return {
-      status: "Protein target hit",
-      detail: `${formatInt(roundedProtein)}g / ${formatInt(PROTEIN_TARGET)}g`
-    };
-  }
+  const isHit = gap === 0;
 
   return {
-    status: gap <= 10 ? "Almost there" : "Protein short",
-    detail: `${formatInt(roundedProtein)}g / ${formatInt(PROTEIN_TARGET)}g · ${formatInt(gap)}g short`
+    status: isHit ? "Protein target hit" : gap <= 10 ? "Almost there" : "Protein short",
+    gap,
+    progress: getProgressPercent(roundedProtein, PROTEIN_TARGET),
+    detail: isHit ? "Target hit" : `${formatInt(gap)}g short`
   };
 }
 
@@ -573,13 +574,25 @@ function renderSummary(summary) {
         </div>
 
         <div class="settlement-lines">
-          <div>
-            <strong>${calorieResult.status}</strong>
-            <span>${calorieResult.detail}</span>
+          <div class="settlement-line ${calorieResult.gap === 0 ? "complete" : "short"}">
+            <div class="settlement-line-top">
+              <strong>${calorieResult.status}</strong>
+              <span>${formatInt(calorieResult.deficit)} / ${formatInt(DEFICIT_TARGET)} kcal</span>
+            </div>
+            <div class="settlement-track" aria-hidden="true">
+              <span style="width:${calorieResult.progress}%"></span>
+            </div>
+            <small>${calorieResult.detail}</small>
           </div>
-          <div>
-            <strong>${proteinResult.status}</strong>
-            <span>${proteinResult.detail}</span>
+          <div class="settlement-line ${proteinResult.gap === 0 ? "complete" : "short"}">
+            <div class="settlement-line-top">
+              <strong>${proteinResult.status}</strong>
+              <span>${formatInt(roundedProtein)} / ${formatInt(PROTEIN_TARGET)}g</span>
+            </div>
+            <div class="settlement-track" aria-hidden="true">
+              <span style="width:${proteinResult.progress}%"></span>
+            </div>
+            <small>${proteinResult.detail}</small>
           </div>
         </div>
       </section>
