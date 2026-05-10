@@ -660,17 +660,17 @@ function renderSummary(summary) {
           <div class="daily-metric">
             <span class="metric-label">Calories</span>
             <strong>${formatInt(roundedCalories)}</strong>
-            <span>kcal · Target ${formatInt(calorieIntakeTarget)}</span>
+            <span>Target ${formatInt(calorieIntakeTarget)} kcal</span>
           </div>
           <div class="daily-metric">
             <span class="metric-label">Protein</span>
             <strong>${formatInt(roundedProtein)}</strong>
-            <span>g · Target ${formatInt(PROTEIN_TARGET)}</span>
+            <span>Target ${formatInt(PROTEIN_TARGET)} g</span>
           </div>
           <div class="daily-metric">
             <span class="metric-label">${calorieResult.isSurplus ? "Surplus" : "Deficit"}</span>
             <strong>${formatInt(calorieResult.isSurplus ? calorieResult.surplus : calorieResult.deficit)}</strong>
-            <span>kcal · ${deficitSummary}</span>
+            <span>${deficitSummary}</span>
           </div>
         </div>
 
