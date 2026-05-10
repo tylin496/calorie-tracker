@@ -4,8 +4,8 @@ let DEFICIT_TARGET = 500;
 const API_BASE = "https://calorie-tracker-omega-ten.vercel.app";
 const ACCESS_KEY_STORAGE_KEY = "calorieTrackerAccessKey";
 const LAST_LOGGED_DATE_STORAGE_KEY = "calorieTrackerLastLoggedDate";
-const CALENDAR_INITIAL_HISTORY_MONTHS = 36;
-const CALENDAR_HISTORY_CHUNK_MONTHS = 12;
+const CALENDAR_INITIAL_HISTORY_MONTHS = 6;
+const CALENDAR_HISTORY_CHUNK_MONTHS = 3;
 
 let todayLogged = false;
 let todayEntry = null;
@@ -398,18 +398,18 @@ function openCalendar() {
   document.body.classList.add("calendar-open");
   if (editToggle) editToggle.hidden = true;
 
-  // Scroll after panel is visible so getBoundingClientRect returns real values
+  // Double-RAF: first frame shows panel, second frame has stable layout (avoids
+  // modal-in CSS transform skewing getBoundingClientRect values)
   const grid = document.getElementById("calendarGrid");
-  requestAnimationFrame(() => {
+  requestAnimationFrame(() => requestAnimationFrame(() => {
     const monthSection = grid?.querySelector(`[data-month="${currentDate.slice(0, 7)}"]`);
     if (monthSection) {
-      const offset = monthSection.getBoundingClientRect().top - grid.getBoundingClientRect().top;
-      grid.scrollTop += offset;
+      monthSection.scrollIntoView({ block: "start" });
     } else {
       grid?.querySelector(".calendar-day.selected")?.scrollIntoView({ block: "center" });
     }
     updateCalendarMonthLabel(grid);
-  });
+  }));
 }
 
 function closeCalendar() {
