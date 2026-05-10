@@ -11,7 +11,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Calorie Tracker">
-  <link rel="stylesheet" href="style.css?v=20260510-0655">
+  <link rel="stylesheet" href="style.css?v=20260510-0715">
 </head>
 <body>
   <main class="app-shell">
@@ -24,7 +24,10 @@
 
     <nav class="date-controls" aria-label="Diet day controls">
       <button id="prevDayBtn" class="icon-btn" type="button" aria-label="Previous day">‹</button>
-      <input id="diet-day" class="date-btn" type="date" aria-label="Selected day" />
+      <label class="date-field" for="diet-day">
+        <span id="diet-day-label">Today</span>
+        <input id="diet-day" type="date" aria-label="Selected day" />
+      </label>
       <button id="nextDayBtn" class="icon-btn" type="button" aria-label="Next day">›</button>
     </nav>
 
@@ -43,6 +46,7 @@
 
       <label class="input-card" for="calories">
         <span class="input-label">Calories</span>
+        <span class="input-unit">kcal</span>
         <input id="calories" type="number" inputmode="numeric" min="0" step="1" placeholder="2430" required />
       </label>
 
@@ -60,9 +64,28 @@
       <button id="deleteBtn" class="danger-btn" type="button" hidden>Delete Entry</button>
     </div>
 
+    <details class="settings-panel">
+      <summary>Targets</summary>
+      <form id="targets-form" class="targets-form">
+        <label>
+          <span>TDEE</span>
+          <input id="tdeeInput" type="number" inputmode="numeric" min="1" step="1" />
+        </label>
+        <label>
+          <span>Protein target</span>
+          <input id="proteinTargetInput" type="number" inputmode="numeric" min="1" step="1" />
+        </label>
+        <label>
+          <span>Deficit target</span>
+          <input id="deficitTargetInput" type="number" inputmode="numeric" min="0" step="1" />
+        </label>
+        <button class="secondary-btn" type="submit">Save Targets</button>
+      </form>
+    </details>
+
     <div id="weekly-summary"></div>
   </main>
 
-  <script src="app.js?v=20260510-0655"></script>
+  <script src="app.js?v=20260510-0715"></script>
 </body>
 </html>

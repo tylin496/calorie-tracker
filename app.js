@@ -1,5 +1,6 @@
 let TDEE = Number(localStorage.getItem("tdee")) || 2705;
-const PROTEIN_TARGET = Number(localStorage.getItem("proteinTarget")) || 170;
+let PROTEIN_TARGET = Number(localStorage.getItem("proteinTarget")) || 180;
+let DEFICIT_TARGET = Number(localStorage.getItem("deficitTarget")) || 500;
 const API_BASE = "https://calorie-tracker-omega-ten.vercel.app";
 
 let todayLogged = false;
@@ -61,6 +62,7 @@ function showToast(message) {
 
 function updateDietDayDisplay() {
   const input = document.getElementById("diet-day");
+  const label = document.getElementById("diet-day-label");
   const nextBtn = document.getElementById("nextDayBtn");
   const isAtToday = currentDate === getTodayDate();
 
@@ -70,9 +72,23 @@ function updateDietDayDisplay() {
     input.setAttribute("aria-label", `Selected day ${currentDate}`);
   }
 
+  if (label) {
+    label.textContent = currentDate === getDietDate() ? "Today" : currentDate;
+  }
+
   if (nextBtn) {
     nextBtn.setAttribute("aria-disabled", String(isAtToday));
   }
+}
+
+function updateTargetForm() {
+  const tdeeInput = document.getElementById("tdeeInput");
+  const proteinInput = document.getElementById("proteinTargetInput");
+  const deficitInput = document.getElementById("deficitTargetInput");
+
+  if (tdeeInput) tdeeInput.value = TDEE;
+  if (proteinInput) proteinInput.value = PROTEIN_TARGET;
+  if (deficitInput) deficitInput.value = DEFICIT_TARGET;
 }
 
 function updateEntryForm() {
@@ -291,12 +307,16 @@ function getDayLabel() {
 
 function getCalorieResult(calories) {
   const deficit = TDEE - calories;
+  const gap = DEFICIT_TARGET - deficit;
 
   return {
     deficit,
-    tone: deficit >= 0 ? "deficit" : "surplus",
-    status: deficit >= 0 ? "On track" : "Over target",
-    detail: deficit >= 0 ? `${deficit} kcal under TDEE` : `${Math.abs(deficit)} kcal above TDEE`
+    tone: deficit >= DEFICIT_TARGET ? "deficit" : "surplus",
+    status: "赤字",
+    detail:
+      deficit >= DEFICIT_TARGET
+        ? `${deficit} kcal · 達標`
+        : `${deficit} kcal · 差 ${Math.abs(gap)} kcal`
   };
 }
 
@@ -342,6 +362,25 @@ function renderTrendBars(entries) {
         .join("")}
     </div>
   `;
+}
+
+function getWeekMissingDays(summary) {
+  const entries = summary.entries || [];
+  const loggedDates = new Set(entries.map((entry) => entry.date));
+  const start = new Date(`${summary.weekStart}T12:00:00`);
+  const end = new Date(`${summary.weekEnd}T12:00:00`);
+  const today = new Date(`${getTodayDate()}T12:00:00`);
+  const last = end > today ? today : end;
+  const missing = [];
+
+  for (const d = new Date(start); d <= last; d.setDate(d.getDate() + 1)) {
+    const date = formatDate(d);
+    if (!loggedDates.has(date)) {
+      missing.push(d.toLocaleDateString("en-US", { weekday: "short" }));
+    }
+  }
+
+  return missing;
 }
 
 function renderSummary(summary) {
@@ -415,6 +454,11 @@ function renderSummary(summary) {
     `;
   }
 
+  const missingDays = getWeekMissingDays(summary);
+  const missingHtml = missingDays.length
+    ? `<p class="missing-days">Missing: ${missingDays.join(", ")}</p>`
+    : `<p class="missing-days complete">No missing days so far.</p>`;
+
   const weekHtml = `
     <section class="card week-card">
       <div class="card-header">
@@ -436,6 +480,7 @@ function renderSummary(summary) {
         </div>
       </div>
       ${renderTrendBars(summary.entries || [])}
+      ${missingHtml}
       <p class="subtle-text" style="margin-top:10px;">Weekly pattern: ${consistency}</p>
     </section>
   `;
@@ -510,8 +555,44 @@ function handleProteinInput(event) {
   document.getElementById("today-form")?.requestSubmit();
 }
 
+function handleTargetsSubmit(event) {
+  event.preventDefault();
+
+  const nextTdee = Number(document.getElementById("tdeeInput")?.value);
+  const nextProteinTarget = Number(document.getElementById("proteinTargetInput")?.value);
+  const nextDeficitTarget = Number(document.getElementById("deficitTargetInput")?.value);
+
+  if (!Number.isFinite(nextTdee) || nextTdee <= 0) {
+    setStatus("Invalid TDEE");
+    return;
+  }
+
+  if (!Number.isFinite(nextProteinTarget) || nextProteinTarget <= 0) {
+    setStatus("Invalid protein target");
+    return;
+  }
+
+  if (!Number.isFinite(nextDeficitTarget) || nextDeficitTarget < 0) {
+    setStatus("Invalid deficit target");
+    return;
+  }
+
+  TDEE = Math.round(nextTdee);
+  PROTEIN_TARGET = Math.round(nextProteinTarget);
+  DEFICIT_TARGET = Math.round(nextDeficitTarget);
+
+  localStorage.setItem("tdee", String(TDEE));
+  localStorage.setItem("proteinTarget", String(PROTEIN_TARGET));
+  localStorage.setItem("deficitTarget", String(DEFICIT_TARGET));
+
+  setStatus("Targets saved");
+  showToast("Targets saved");
+  loadWeekSummary("Targets saved");
+}
+
 function initApp() {
   document.getElementById("today-form")?.addEventListener("submit", handleFormSubmit);
+  document.getElementById("targets-form")?.addEventListener("submit", handleTargetsSubmit);
   document.getElementById("diet-day")?.addEventListener("change", handleDietDayChange);
   document.getElementById("prevDayBtn")?.addEventListener("click", () => shiftDietDay(-1));
   document.getElementById("nextDayBtn")?.addEventListener("click", () => shiftDietDay(1));
@@ -522,6 +603,7 @@ function initApp() {
   document.getElementById("protein")?.addEventListener("input", handleProteinInput);
 
   updateDietDayDisplay();
+  updateTargetForm();
   loadWeekSummary();
 }
 
