@@ -62,6 +62,7 @@ function showToast(message) {
 function updateDietDayDisplay() {
   const input = document.getElementById("diet-day");
   const nextBtn = document.getElementById("nextDayBtn");
+  const isAtToday = currentDate === getTodayDate();
 
   if (input) {
     input.value = currentDate;
@@ -70,7 +71,7 @@ function updateDietDayDisplay() {
   }
 
   if (nextBtn) {
-    nextBtn.disabled = currentDate === getTodayDate();
+    nextBtn.setAttribute("aria-disabled", String(isAtToday));
   }
 }
 
