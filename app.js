@@ -484,7 +484,7 @@ function renderCalendar() {
 
 function renderCalendarMonths(grid, dietToday, dietTodayString) {
   grid.innerHTML = getCalendarMonths(dietToday, currentDate, calendarHistoryMonths)
-    .map((month) => renderCalendarMonth(month, dietToday, dietTodayString))
+    .map((month, index, months) => renderCalendarMonth(month, dietToday, dietTodayString, index === months.length - 1))
     .join("");
 }
 
@@ -602,41 +602,6 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString, includeTrail
   `;
 }
 
-  const currentMonth = monthDate.getMonth();
-  const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
-  const lastDayOffset = (lastDay.getDay() + 6) % 7;
-  const lastCell = new Date(lastDay);
-  lastCell.setDate(lastDay.getDate() + (6 - lastDayOffset));
-  const dayCount = Math.round((lastCell - firstCell) / 86400000) + 1;
-
-  for (let i = 0; i < dayCount; i += 1) {
-    const date = new Date(firstCell);
-    date.setDate(firstCell.getDate() + i);
-
-    const dateString = formatDate(date);
-    const isOutsideMonth = date.getMonth() !== currentMonth;
-    const isSelected = dateString === currentDate;
-    const isToday = dateString === dietTodayString;
-    const isFuture = date > dietToday;
-
-    cells.push(`
-      <button
-        class="calendar-day ${isSelected ? "selected" : ""} ${isToday ? "today" : ""} ${isOutsideMonth ? "outside-month" : ""}"
-        type="button"
-        data-date="${dateString}"
-        ${isFuture ? "disabled" : ""}
-      >
-        ${date.getDate()}
-      </button>
-    `);
-  }
-
-  return `
-    <section class="calendar-month ${isDietCurrentMonth ? "current-calendar-month" : "past-calendar-month"}" data-month="${formatDate(monthDate).slice(0, 7)}" aria-label="${monthTitle}">
-      <div class="calendar-grid">${cells.join("")}</div>
-    </section>
-  `;
-}
 
 function handleCalendarDayClick(event) {
   const btn = event.target.closest("[data-date]");
@@ -1316,7 +1281,6 @@ function renderSummary(summary) {
         <div class="card-actions">
           <span class="status-pill logged">${weeklyPillText}</span>
         </div>
-      </div>
       </div>
       <div class="week-snapshot">
         <div class="metric">

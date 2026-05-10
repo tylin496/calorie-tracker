@@ -329,6 +329,8 @@ h1 {
 }
 
 .calendar-day {
+  display: grid;
+  place-items: center;
   min-width: 0;
   min-height: 38px;
   border: 1px solid transparent;
@@ -337,6 +339,11 @@ h1 {
   color: color-mix(in srgb, var(--muted) 58%, transparent);
   -webkit-text-fill-color: color-mix(in srgb, var(--muted) 58%, transparent);
   font-weight: 700;
+}
+
+.calendar-day-placeholder {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .current-calendar-month .calendar-day {
@@ -1333,7 +1340,7 @@ input[type="number"] {
 
 .card h2 {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
   min-width: 0;
@@ -1365,10 +1372,12 @@ input[type="number"] {
 }
 
 .copy-summary-btn {
+  align-self: center;
   min-height: 30px;
   padding: 4px 10px;
   font-size: 12px;
   font-weight: 800;
+  line-height: 1;
   cursor: pointer;
   transition:
     transform 160ms ease,
@@ -1377,6 +1386,11 @@ input[type="number"] {
     background 180ms ease,
     color 180ms ease;
   will-change: transform;
+}
+
+.week-card h2 .copy-summary-btn {
+  margin-left: 2px;
+  flex: 0 0 auto;
 }
 
 .copy-summary-btn:hover:not(:disabled) {
@@ -2090,6 +2104,20 @@ input[type="number"] {
   }
 
   .status-pill {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .week-card .card-header {
+    align-items: center;
+  }
+
+  .week-card h2 {
+    gap: 6px;
+  }
+
+  .week-card h2 .copy-summary-btn {
+    min-height: 28px;
     padding: 4px 8px;
     font-size: 11px;
   }
