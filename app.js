@@ -557,15 +557,50 @@ function getCalendarMonths(endDate, selectedDateString, historyMonths = CALENDAR
   return months;
 }
 
-function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
+function renderCalendarMonth(monthDate, dietToday, dietTodayString, includeTrailingNextMonth = false) {
   const monthTitle = monthDate.toLocaleDateString("en-US", {
     month: "long",
     year: "numeric"
   });
   const isDietCurrentMonth = monthDate.getFullYear() === dietToday.getFullYear() && monthDate.getMonth() === dietToday.getMonth();
   const firstDayOffset = (monthDate.getDay() + 6) % 7;
-  const firstCell = new Date(monthDate);
-  firstCell.setDate(monthDate.getDate() - firstDayOffset);
+  const currentMonth = monthDate.getMonth();
+  const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+  const lastDayOffset = (lastDay.getDay() + 6) % 7;
+  const trailingDayCount = includeTrailingNextMonth ? 6 - lastDayOffset : 0;
+  const dayCount = lastDay.getDate() + trailingDayCount;
+  const cells = Array.from({ length: firstDayOffset }, () => `
+    <span class="calendar-day calendar-day-placeholder" aria-hidden="true"></span>
+  `);
+
+  for (let i = 0; i < dayCount; i += 1) {
+    const date = new Date(monthDate);
+    date.setDate(i + 1);
+
+    const dateString = formatDate(date);
+    const isOutsideMonth = date.getMonth() !== currentMonth;
+    const isSelected = dateString === currentDate;
+    const isToday = dateString === dietTodayString;
+    const isFuture = date > dietToday;
+
+    cells.push(`
+      <button
+        class="calendar-day ${isSelected ? "selected" : ""} ${isToday ? "today" : ""} ${isOutsideMonth ? "outside-month" : ""}"
+        type="button"
+        data-date="${dateString}"
+        ${isFuture ? "disabled" : ""}
+      >
+        ${date.getDate()}
+      </button>
+    `);
+  }
+
+  return `
+    <section class="calendar-month ${isDietCurrentMonth ? "current-calendar-month" : "past-calendar-month"}" data-month="${formatDate(monthDate).slice(0, 7)}" aria-label="${monthTitle}">
+      <div class="calendar-grid">${cells.join("")}</div>
+    </section>
+  `;
+}
 
   const currentMonth = monthDate.getMonth();
   const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
@@ -573,7 +608,6 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
   const lastCell = new Date(lastDay);
   lastCell.setDate(lastDay.getDate() + (6 - lastDayOffset));
   const dayCount = Math.round((lastCell - firstCell) / 86400000) + 1;
-  const cells = [];
 
   for (let i = 0; i < dayCount; i += 1) {
     const date = new Date(firstCell);
@@ -837,12 +871,11 @@ function renderInitialLoadingState() {
     const weekStart = formatDate(getWeekStart(currentDate));
     const weekEnd = new Date(`${weekStart}T12:00:00`);
     weekEnd.setDate(weekEnd.getDate() + 6);
-    const weekRangeText = formatDateRange(weekStart, formatDate(weekEnd));
-
+    const weekRangeText = formatDateRange(weekStart, formatDate(weekEnd)).replace(/, \d{4}/g, "");
     weekly.innerHTML = `
       <section class="card week-card loading-card">
         <div class="card-header">
-          <h2>This Week${weekRangeText ? ` <span>${weekRangeText}</span>` : ""}</h2>
+          <h2>This Week${weekRangeText ? ` <span>${weekRangeText}</span>` : ""}<button class="secondary-btn copy-summary-btn" type="button" data-copy-week-summary>Copy</button></h2>
           <div class="card-actions">
             <span class="status-pill logged">Loading</span>
           </div>
@@ -1156,7 +1189,7 @@ function renderSummary(summary) {
   const isCompactLayout = window.matchMedia?.("(max-width: 620px)")?.matches;
   const loggedDays = summary.count || 0;
   const weeklyPillText = loggedDays >= 7 ? "Full week" : `${loggedDays} days`;
-  const weekRangeText = formatDateRange(summary.weekStart, summary.weekEnd);
+  const weekRangeText = formatDateRange(summary.weekStart, summary.weekEnd).replace(/, \d{4}/g, "");
   latestWeekSummary = summary;
   let dailyHtml = "";
 
@@ -1279,11 +1312,11 @@ function renderSummary(summary) {
   const weekHtml = `
     <section class="card week-card">
       <div class="card-header">
-        <h2>This Week${weekRangeText ? ` <span>${weekRangeText}</span>` : ""}</h2>
+        <h2>This Week${weekRangeText ? ` <span>${weekRangeText}</span>` : ""}<button class="secondary-btn copy-summary-btn" type="button" data-copy-week-summary>Copy</button></h2>
         <div class="card-actions">
           <span class="status-pill logged">${weeklyPillText}</span>
-          <button class="secondary-btn copy-summary-btn" type="button" data-copy-week-summary>Copy</button>
         </div>
+      </div>
       </div>
       <div class="week-snapshot">
         <div class="metric">
