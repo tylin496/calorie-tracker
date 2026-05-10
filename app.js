@@ -131,13 +131,18 @@ function updateDietDayDisplay() {
   const nextBtn = document.getElementById("nextDayBtn");
   const isAtToday = currentDate === getTodayDate();
   const weekday = getWeekday(currentDate);
+  const date = new Date(`${currentDate}T12:00:00`);
+  const shortDate = date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric"
+  });
 
   if (btn) {
     btn.setAttribute("aria-label", `Selected day ${currentDate}`);
   }
 
   if (label) {
-    label.textContent = currentDate === getDietDate() ? `${weekday} · Today` : `${weekday} · ${currentDate}`;
+    label.textContent = currentDate === getDietDate() ? `${weekday} · Today` : `${weekday}, ${shortDate}`;
   }
 
   if (nextBtn) {
@@ -564,10 +569,17 @@ function renderTrendBars(entries) {
           const dayOfMonth = date.getDate();
 
           return `
-            <div class="trend-day ${isSelected ? "selected" : ""} ${isMissing ? "missing" : ""} ${isFuture ? "future" : ""}">
+            <button
+              type="button"
+              class="trend-day ${isSelected ? "selected" : ""} ${isMissing ? "missing" : ""} ${isFuture ? "future" : ""}"
+              data-date="${dateString}"
+              aria-label="Select ${day} ${dateString}"
+              ${isFuture ? "disabled" : ""}
+              ${isSelected ? "aria-current=\"date\"" : ""}
+            >
               <div class="trend-bar" style="height:${height}px" title="${dateString}: ${entry ? `${formatInt(entry.calories)} kcal` : "No data"}"></div>
               <span class="trend-weekday">${day}</span>
-            </div>
+            </button>
           `;
         })
         .join("")}
@@ -581,6 +593,16 @@ function getWeekStart(dateString) {
   const diffToMonday = day === 0 ? -6 : 1 - day;
   date.setDate(date.getDate() + diffToMonday);
   return date;
+}
+
+function handleTrendDayClick(event) {
+  const button = event.target.closest(".trend-day[data-date]");
+  if (!button || button.disabled) return;
+
+  const date = button.dataset.date;
+  if (!date) return;
+
+  setDietDay(date);
 }
 
 function renderSummary(summary) {
@@ -881,6 +903,7 @@ function initApp() {
   document.getElementById("calendarGrid")?.addEventListener("click", handleCalendarDayClick);
   document.getElementById("prevDayBtn")?.addEventListener("click", () => shiftDietDay(-1));
   document.getElementById("nextDayBtn")?.addEventListener("click", () => shiftDietDay(1));
+  document.getElementById("weekly-summary")?.addEventListener("click", handleTrendDayClick);
   document.getElementById("deleteBtn")?.addEventListener("click", deleteEntry);
   document.getElementById("closeQuickEntryBtn")?.addEventListener("click", closeQuickEntry);
   document.getElementById("quickEntryBackdrop")?.addEventListener("click", closeQuickEntry);
