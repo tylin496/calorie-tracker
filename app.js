@@ -365,16 +365,17 @@ function renderCalendar() {
     const dateString = formatDate(date);
     const isOutsideMonth = date.getMonth() !== currentMonth;
     const isSelected = dateString === currentDate;
+    const isToday = dateString === getTodayDate();
     const isFuture = date > today;
 
     cells.push(`
       <button
-        class="calendar-day ${isOutsideMonth ? "outside" : ""} ${isSelected ? "selected" : ""}"
+        class="calendar-day ${isOutsideMonth ? "outside" : ""} ${isSelected ? "selected" : ""} ${isToday ? "today" : ""}"
         type="button"
         data-date="${dateString}"
         ${isFuture ? "disabled" : ""}
       >
-        ${date.getDate()}
+        ${isToday ? `Today · ${date.getDate()}` : date.getDate()}
       </button>
     `);
   }
@@ -627,7 +628,7 @@ function getProteinResult(protein) {
     status: "Protein",
     gap,
     progress: getProgressPercent(roundedProtein, PROTEIN_TARGET),
-    celebrated: gap === 0,
+    celebrated: roundedProtein >= 170,
     detail: `${formatInt(roundedProtein)}g logged`
   };
 }
@@ -730,7 +731,7 @@ function renderSummary(summary) {
           <div class="daily-metric">
             <span class="metric-label">Calories</span>
             <strong>${formatInt(roundedCalories)}</strong>
-            <span>${calorieResult.isSurplus ? deficitSummary : ""}</span>
+            <span>${calorieResult.isSurplus ? deficitSummary : `Target ${formatInt(calorieIntakeTarget)} kcal`}</span>
           </div>
           <div class="daily-metric">
             <span class="metric-label">Protein</span>
@@ -738,9 +739,9 @@ function renderSummary(summary) {
             <span>Target ${formatInt(PROTEIN_TARGET)} g</span>
           </div>
           <div class="daily-metric">
-            <span class="metric-label">${calorieResult.isSurplus ? "Surplus" : "Deficit"}</span>
-            <strong>${formatInt(calorieResult.isSurplus ? calorieResult.surplus : calorieResult.deficit)}</strong>
-            <span>${!calorieResult.isSurplus ? deficitSummary : ""}</span>
+            <span class="metric-label">Deficit</span>
+            <strong>${calorieResult.isSurplus ? `+${formatInt(calorieResult.surplus)}` : formatInt(calorieResult.deficit)}</strong>
+            <span>${calorieResult.isSurplus ? `Surplus ${formatInt(calorieResult.surplus)} kcal` : deficitSummary}</span>
           </div>
         </div>
 
@@ -749,7 +750,7 @@ function renderSummary(summary) {
             <div class="settlement-line-top">
               <strong>${calorieResult.status}</strong>
               <span>${calorieResult.isSurplus
-                ? `${formatInt(calorieResult.surplus)} kcal`
+                ? `+${formatInt(calorieResult.surplus)} kcal`
                 : `${formatInt(calorieResult.deficit)} / ${formatInt(DEFICIT_TARGET)} kcal`}</span>
             </div>
             <div class="settlement-track" aria-hidden="true">
