@@ -20,6 +20,23 @@
   --danger-bg: rgba(255, 59, 48, 0.12);
   --shadow: 0 18px 40px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
   --shadow-strong: 0 30px 90px rgba(0, 0, 0, 0.22);
+
+}
+
+/* Unify metric card alignment */
+.daily-metric,
+.metric-button,
+.week-snapshot .metric {
+  text-align: left;
+  align-items: flex-start;
+}
+
+.daily-metric .metric-label,
+.daily-metric strong,
+.daily-metric > span,
+.week-snapshot .metric .metric-label,
+.week-snapshot .metric .metric-value {
+  text-align: left;
 }
 
 @media (prefers-color-scheme: dark) {
