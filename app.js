@@ -209,35 +209,14 @@ function updateEntryForm() {
     }
   }
   if (form) {
-    const shouldCollapseLoggedEntry = Boolean(todayEntry) && !isQuickEntryOpen();
-    let editToggle = document.getElementById("entryEditToggle");
-
-    if (shouldCollapseLoggedEntry && !editToggle) {
-      editToggle = document.createElement("button");
-      editToggle.id = "entryEditToggle";
-      editToggle.type = "button";
-      editToggle.className = "entry-edit-toggle";
+    const editToggle = document.getElementById("entryEditToggle");
+    if (editToggle) {
+      editToggle.hidden = true;
       editToggle.setAttribute("aria-expanded", "false");
       editToggle.textContent = "Edit Entry";
-      form.parentNode?.insertBefore(editToggle, form);
     }
 
-    if (editToggle) {
-      editToggle.hidden = !shouldCollapseLoggedEntry;
-
-      if (!shouldCollapseLoggedEntry) {
-        editToggle.setAttribute("aria-expanded", "false");
-        editToggle.textContent = "Edit Entry";
-      }
-    }
-
-    if (shouldCollapseLoggedEntry) {
-      const isExpanded = editToggle?.getAttribute("aria-expanded") === "true";
-      if (editToggle) editToggle.textContent = isExpanded ? "Done" : "Edit Entry";
-      setEntryFormVisible(isExpanded);
-    } else {
-      setEntryFormVisible(true);
-    }
+    setEntryFormVisible(!todayEntry || isQuickEntryOpen());
   }
 }
 
@@ -331,7 +310,7 @@ function isQuickEntryOpen() {
   return document.body.classList.contains("quick-entry-open");
 }
 
-function openQuickEntry() {
+function openQuickEntry(focusField = "calories") {
   const form = document.getElementById("today-form");
   if (form) form.hidden = false;
   const backdrop = document.getElementById("quickEntryBackdrop");
@@ -356,8 +335,9 @@ function openQuickEntry() {
   setStatus("Enter calories");
 
   setTimeout(() => {
-    calories.focus();
-    calories.select();
+    const focusTarget = focusField === "protein" ? protein : calories;
+    focusTarget.focus();
+    focusTarget.select();
   }, 80);
 }
 
@@ -853,6 +833,17 @@ function handleTrendDayClick(event) {
   setDietDay(date);
 }
 
+function handleDailyMetricClick(event) {
+  const metric = event.target.closest("[data-edit-field]");
+  if (!metric) return;
+
+  const field = metric.dataset.editField;
+  if (field !== "calories" && field !== "protein") return;
+
+  event.preventDefault();
+  openQuickEntry(field);
+}
+
 function renderSummary(summary) {
   const dailyEl = document.getElementById("daily-result");
   const weeklyEl = document.getElementById("weekly-summary");
@@ -886,9 +877,12 @@ function renderSummary(summary) {
     const deficitMetricTone = calorieResult.isSurplus ? "caution" : deficitOverTarget > 0 ? "rewarded" : calorieResult.celebrated ? "on-track" : "";
     // Responsive metric texts
     const calorieMetricText = isCompactLayout ? `Target ${formatInt(calorieIntakeTarget)}` : `Target ${formatInt(calorieIntakeTarget)} kcal`;
+    const proteinAlmostThere = proteinResult.celebrated && roundedProtein < PROTEIN_TARGET;
     const proteinMetricText = proteinOverTarget > 0
       ? (isCompactLayout ? `+${formatInt(proteinOverTarget)} over` : `+${formatInt(proteinOverTarget)} over goal`)
-      : (isCompactLayout ? `Target ${formatInt(PROTEIN_TARGET)}g` : `Target ${formatInt(PROTEIN_TARGET)} g`);
+      : proteinAlmostThere
+        ? "Almost there"
+        : (isCompactLayout ? `Target ${formatInt(PROTEIN_TARGET)}g` : `Target ${formatInt(PROTEIN_TARGET)} g`);
     const deficitMetricText = calorieResult.isSurplus
       ? (isCompactLayout ? `Surplus ${formatInt(calorieResult.surplus)}` : `Surplus ${formatInt(calorieResult.surplus)} kcal`)
       : deficitOverTarget > 0
@@ -903,17 +897,17 @@ function renderSummary(summary) {
         </div>
 
         <div class="daily-metrics">
-          <div class="daily-metric">
+          <button class="daily-metric metric-button" type="button" data-edit-field="calories" aria-label="Edit calories">
             <span class="metric-label">Calories</span>
             <strong>${formatInt(roundedCalories)}</strong>
             <span>${calorieMetricText}</span>
-          </div>
-          <div class="daily-metric ${proteinMetricTone}">
+          </button>
+          <button class="daily-metric metric-button ${proteinMetricTone}" type="button" data-edit-field="protein" aria-label="Edit protein">
             <span class="metric-label">Protein</span>
             <strong>${formatInt(roundedProtein)}</strong>
-            <span class="metric-note ${proteinOverTarget > 0 ? "reward" : ""}">${proteinMetricText}</span>
-          </div>
-          <div class="daily-metric ${deficitMetricTone}">
+            <span class="metric-note ${proteinOverTarget > 0 || proteinAlmostThere ? "reward" : ""}">${proteinMetricText}</span>
+          </button>
+          <div class="daily-metric ${deficitMetricTone}" aria-label="Deficit is calculated from calories and TDEE">
             <span class="metric-label">Deficit</span>
             <strong>${calorieResult.isSurplus ? `+${formatInt(calorieResult.surplus)}` : formatInt(calorieResult.deficit)}</strong>
             <span class="metric-note ${calorieResult.isSurplus ? "negative" : deficitOverTarget > 0 ? "reward" : ""}">${deficitMetricText}</span>
@@ -952,16 +946,16 @@ function renderSummary(summary) {
           <span class="status-pill missing">No Entry</span>
         </div>
         <div class="daily-metrics">
-          <div class="daily-metric">
+          <button class="daily-metric metric-button" type="button" data-edit-field="calories" aria-label="Add calories">
             <span class="metric-label">Calories</span>
             <strong>--</strong>
             <span>${isCompactLayout ? `Target ${formatInt(Math.max(0, TDEE - DEFICIT_TARGET))}` : `Target ${formatInt(Math.max(0, TDEE - DEFICIT_TARGET))} kcal`}</span>
-          </div>
-          <div class="daily-metric">
+          </button>
+          <button class="daily-metric metric-button" type="button" data-edit-field="protein" aria-label="Add protein">
             <span class="metric-label">Protein</span>
             <strong>--</strong>
             <span>${isCompactLayout ? `Target ${formatInt(PROTEIN_TARGET)}g` : `Target ${formatInt(PROTEIN_TARGET)} g`}</span>
-          </div>
+          </button>
           <div class="daily-metric">
             <span class="metric-label">Deficit</span>
             <strong>--</strong>
@@ -1187,6 +1181,7 @@ function initApp() {
   document.getElementById("prevDayBtn")?.addEventListener("click", () => shiftDietDay(-1));
   document.getElementById("nextDayBtn")?.addEventListener("click", () => shiftDietDay(1));
   document.getElementById("weekly-summary")?.addEventListener("click", handleTrendDayClick);
+  document.getElementById("daily-result")?.addEventListener("click", handleDailyMetricClick);
   document.getElementById("deleteBtn")?.addEventListener("click", deleteEntry);
   document.getElementById("closeQuickEntryBtn")?.addEventListener("click", closeQuickEntry);
   document.getElementById("quickEntryBackdrop")?.addEventListener("click", closeQuickEntry);
