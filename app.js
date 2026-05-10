@@ -1,6 +1,6 @@
-let TDEE = Number(localStorage.getItem("tdee")) || 2705;
-let PROTEIN_TARGET = Number(localStorage.getItem("proteinTarget")) || 180;
-let DEFICIT_TARGET = Number(localStorage.getItem("deficitTarget")) || 500;
+let TDEE = 2705;
+let PROTEIN_TARGET = 180;
+let DEFICIT_TARGET = 500;
 const API_BASE = "https://calorie-tracker-omega-ten.vercel.app";
 const ACCESS_KEY_STORAGE_KEY = "calorieTrackerAccessKey";
 
@@ -133,6 +133,13 @@ function updateTargetForm() {
   if (proteinInput) proteinInput.value = PROTEIN_TARGET;
   if (deficitInput) deficitInput.value = DEFICIT_TARGET;
   if (summary) summary.textContent = `${TDEE} kcal · ${PROTEIN_TARGET}g protein · ${DEFICIT_TARGET} kcal deficit`;
+}
+
+function applyConfig(config) {
+  TDEE = Number(config?.tdee) || 2705;
+  PROTEIN_TARGET = Number(config?.proteinTarget) || 180;
+  DEFICIT_TARGET = Number(config?.deficitTarget) || 500;
+  updateTargetForm();
 }
 
 function updateEntryForm() {
@@ -355,6 +362,11 @@ async function fetchJson(url, options = {}, didRetry = false) {
   }
 
   return data;
+}
+
+async function loadConfig() {
+  const data = await fetchJson(`${API_BASE}/api/config`);
+  applyConfig(data.config);
 }
 
 async function saveEntry(calories, protein) {
@@ -704,17 +716,36 @@ function handleTargetsSubmit(event) {
     return;
   }
 
-  TDEE = Math.round(nextTdee);
-  PROTEIN_TARGET = Math.round(nextProteinTarget);
-  DEFICIT_TARGET = Math.round(nextDeficitTarget);
+  setLoading(true);
+  setStatus("Saving targets...");
 
-  localStorage.setItem("tdee", String(TDEE));
-  localStorage.setItem("proteinTarget", String(PROTEIN_TARGET));
-  localStorage.setItem("deficitTarget", String(DEFICIT_TARGET));
+  fetchJson(`${API_BASE}/api/config`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      tdee: Math.round(nextTdee),
+      proteinTarget: Math.round(nextProteinTarget),
+      deficitTarget: Math.round(nextDeficitTarget)
+    })
+  })
+    .then((data) => {
+      applyConfig(data.config);
+      setStatus("Targets saved");
+      showToast("Targets saved");
+      return loadWeekSummary("Targets saved");
+    })
+    .catch((error) => {
+      if (error.isAuthError) {
+        setStatus("Locked");
+        return;
+      }
 
-  setStatus("Targets saved");
-  showToast("Targets saved");
-  loadWeekSummary("Targets saved");
+      setStatus("Target save failed");
+      alert(error.message || "Target save failed");
+    })
+    .finally(() => {
+      setLoading(false);
+    });
 }
 
 function handleAccessSubmit(event) {
@@ -731,7 +762,16 @@ function handleAccessSubmit(event) {
   localStorage.setItem(ACCESS_KEY_STORAGE_KEY, accessKey);
   hideAccessGate();
   setStatus("Unlocking...");
-  loadWeekSummary();
+  loadConfig()
+    .then(() => loadWeekSummary())
+    .catch((error) => {
+      if (error.isAuthError) {
+        setStatus("Locked");
+        return;
+      }
+
+      setStatus("Could not load targets");
+    });
 }
 
 function initApp() {
@@ -759,7 +799,16 @@ function initApp() {
 
   if (getStoredAccessKey()) {
     hideAccessGate();
-    loadWeekSummary();
+    loadConfig()
+      .then(() => loadWeekSummary())
+      .catch((error) => {
+        if (error.isAuthError) {
+          setStatus("Locked");
+          return;
+        }
+
+        setStatus("Could not load targets");
+      });
   } else {
     showAccessGate();
     setStatus("Locked");

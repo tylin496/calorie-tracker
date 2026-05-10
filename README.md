@@ -8,6 +8,14 @@ A small calorie and protein tracker backed by a Notion database through Vercel A
 - `NOTION_DATABASE_ID`
 - `APP_ACCESS_KEY` - private key required by the frontend for all API requests
 
+## Persistent Targets
+
+Target settings are stored in the same Notion database as a page named `Settings`.
+
+- `TDEE` stores the TDEE target
+- `Protein` stores the protein target
+- `Calories` stores the deficit target
+
 ## Notion Database Fields
 
 The API expects these properties:
@@ -26,3 +34,4 @@ The API expects these properties:
 - `api/save.js` - create or update a Notion entry
 - `api/summary.js` - weekly summary
 - `api/delete.js` - archive a Notion entry
+- `api/config.js` - read or update persistent targets
