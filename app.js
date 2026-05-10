@@ -217,11 +217,13 @@ function updateEntryForm() {
       editToggle.className = "entry-edit-toggle";
       editToggle.setAttribute("aria-expanded", "false");
       editToggle.textContent = "Edit Entry";
+      editToggle.addEventListener("click", handleEntryEditToggleClick);
       form.parentNode?.insertBefore(editToggle, form);
     }
 
     if (editToggle) {
       editToggle.hidden = !shouldCollapsePastEntry;
+      editToggle.onclick = handleEntryEditToggleClick;
 
       if (!shouldCollapsePastEntry) {
         editToggle.setAttribute("aria-expanded", "false");
@@ -243,10 +245,7 @@ function updateEntryForm() {
   }
 }
 
-function handleEntryEditToggleClick(event) {
-  const editToggle = event.target.closest("#entryEditToggle");
-  if (!editToggle) return;
-
+function toggleEntryEditForm(editToggle) {
   const form = document.getElementById("today-form");
   const formBody = form?.querySelector(".input-grid");
   const formActions = form?.querySelector(".form-actions");
@@ -255,8 +254,18 @@ function handleEntryEditToggleClick(event) {
 
   editToggle.setAttribute("aria-expanded", String(nextExpanded));
   editToggle.textContent = nextExpanded ? "Hide Entry Form" : "Edit Entry";
+  if (form) form.hidden = false;
   if (formBody) formBody.hidden = !nextExpanded;
   if (formActions) formActions.hidden = !nextExpanded;
+}
+
+function handleEntryEditToggleClick(event) {
+  const editToggle = event.target.closest?.("#entryEditToggle");
+  if (!editToggle) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  toggleEntryEditForm(editToggle);
 }
 
 function setLoading(isLoading) {
@@ -1035,7 +1044,7 @@ function initApp() {
   document.getElementById("quickEntryBackdrop")?.addEventListener("click", closeQuickEntry);
   document.getElementById("calories")?.addEventListener("input", handleCaloriesInput);
   document.getElementById("protein")?.addEventListener("input", handleProteinInput);
-  document.addEventListener("click", handleEntryEditToggleClick);
+  document.addEventListener("click", handleEntryEditToggleClick, true);
   document.addEventListener("keydown", handleGlobalKeydown);
 
   updateDietDayDisplay();
