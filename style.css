@@ -1331,6 +1331,102 @@ input[type="number"] {
   opacity: 1;
 }
 
+.save-celebration {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 220ms ease, visibility 220ms ease;
+}
+
+.save-celebration.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.save-celebration::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.34);
+  backdrop-filter: blur(18px);
+}
+
+.celebration-card {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-width: min(320px, calc(100vw - 48px));
+  padding: 26px 24px 24px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  border-radius: 28px;
+  background: color-mix(in srgb, var(--surface-solid) 86%, transparent);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18);
+  transform: scale(0.94) translateY(10px);
+  transition: transform 360ms cubic-bezier(0.2, 1.2, 0.2, 1);
+}
+
+.save-celebration.visible .celebration-card {
+  transform: scale(1) translateY(0);
+}
+
+.celebration-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 78%, white), var(--accent));
+  color: white;
+  font-size: 30px;
+  font-weight: 800;
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.celebration-card strong {
+  margin-top: 4px;
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+
+.celebration-card span:last-child {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.celebration-confetti {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.celebration-confetti span {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  width: 8px;
+  height: 14px;
+  border-radius: 4px;
+  background: hsl(calc(var(--i) * 28), 88%, 62%);
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+
+.save-celebration.visible .celebration-confetti span {
+  animation: confetti-pop 1100ms cubic-bezier(0.18, 0.8, 0.22, 1) forwards;
+  animation-delay: calc(var(--i) * 18ms);
+}
+
 @keyframes rise-in {
   from {
     opacity: 0;
@@ -1410,6 +1506,26 @@ input[type="number"] {
   }
 }
 
+@keyframes confetti-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4) rotate(0deg);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(
+        calc(-50% + cos(calc(var(--i) * 20deg)) * 190px),
+        calc(-50% + sin(calc(var(--i) * 20deg)) * 230px + 120px)
+      )
+      scale(1)
+      rotate(calc(var(--i) * 48deg));
+  }
+}
+
 @keyframes settings-reveal {
   from {
     opacity: 0;
@@ -1429,6 +1545,12 @@ input[type="number"] {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 1ms !important;
+  }
+  .save-celebration,
+  .celebration-card,
+  .celebration-confetti span {
+    animation: none !important;
+    transition: none !important;
   }
 }
 
@@ -1566,5 +1688,21 @@ input[type="number"] {
 
   .settlement-line-top span {
     text-align: left;
+  }
+
+  .celebration-card {
+    min-width: min(286px, calc(100vw - 40px));
+    padding: 24px 20px 22px;
+    border-radius: 24px;
+  }
+
+  .celebration-icon {
+    width: 54px;
+    height: 54px;
+    font-size: 28px;
+  }
+
+  .celebration-card strong {
+    font-size: 22px;
   }
 }

@@ -12,6 +12,7 @@ let toastTimer = null;
 let autoSubmitArmed = true;
 let didAutoOpenQuickEntry = false;
 let calendarMonth = getMonthStart(currentDate);
+let celebrationTimer = null;
 
 function getDietDate() {
   const now = new Date();
@@ -376,6 +377,38 @@ function closeQuickEntry() {
   if (backdrop) backdrop.hidden = true;
 }
 
+function showCelebration() {
+  let celebration = document.getElementById("saveCelebration");
+
+  if (!celebration) {
+    celebration = document.createElement("div");
+    celebration.id = "saveCelebration";
+    celebration.className = "save-celebration";
+    celebration.setAttribute("role", "status");
+    celebration.setAttribute("aria-live", "polite");
+    celebration.innerHTML = `
+      <div class="celebration-confetti" aria-hidden="true">
+        ${Array.from({ length: 18 }, (_, index) => `<span style="--i:${index}"></span>`).join("")}
+      </div>
+      <div class="celebration-card">
+        <span class="celebration-icon" aria-hidden="true">✓</span>
+        <strong>Logged for today</strong>
+        <span>Nice work. Entry saved.</span>
+      </div>
+    `;
+    document.body.appendChild(celebration);
+  }
+
+  clearTimeout(celebrationTimer);
+  celebration.classList.remove("visible");
+  void celebration.offsetWidth;
+  celebration.classList.add("visible");
+
+  celebrationTimer = setTimeout(() => {
+    celebration.classList.remove("visible");
+  }, 2100);
+}
+
 function openCalendar() {
   const panel = document.getElementById("calendarPanel");
   const backdrop = document.getElementById("calendarBackdrop");
@@ -568,6 +601,7 @@ async function saveEntry(calories, protein) {
   const roundedCalories = roundInt(calories);
   const roundedProtein = roundInt(protein);
   const savedDeficit = roundInt(TDEE - roundedCalories);
+  const shouldCelebrateTodayCommit = !todayEntry && currentDate === getDietDate();
 
   try {
     await fetchJson(`${API_BASE}/api/save`, {
@@ -588,6 +622,9 @@ async function saveEntry(calories, protein) {
     closeQuickEntry();
     await loadWeekSummary("Entry saved");
     triggerSaveReward();
+    if (shouldCelebrateTodayCommit) {
+      showCelebration();
+    }
   } catch (error) {
     setStatus("Save failed");
     alert(error.message || "Save failed");
