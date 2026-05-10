@@ -1,5 +1,5 @@
 function setCorsHeaders(res) {
-  res.setHeader("Access-Control-Allow-Origin", "https://thom436.github.io");
+  res.setHeader("Access-Control-Allow-Origin", "https://tylin496.github.io");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-App-Key");
   res.setHeader("Access-Control-Max-Age", "86400");
