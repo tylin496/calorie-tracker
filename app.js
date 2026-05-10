@@ -18,7 +18,6 @@ let todayLogged = false;
 let todayEntry = null;
 let currentDate = DIET_INITIAL_DATE;
 let toastTimer = null;
-let autoSubmitArmed = true;
 let didAutoOpenQuickEntry = false;
 let celebrationTimer = null;
 let calendarVisibleMonth = null;
@@ -271,7 +270,6 @@ function toggleEntryEditForm(editToggle) {
   if (form) {
     setEntryFormVisible(nextExpanded);
     if (nextExpanded) {
-      autoSubmitArmed = true;
       form.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
     }
   }
@@ -330,8 +328,6 @@ function openQuickEntry(focusField = "calories") {
     calories.value = "";
     protein.value = "";
   }
-
-  autoSubmitArmed = true;
 
   setTimeout(() => {
     const focusTarget = focusField === "protein" ? protein : calories;
@@ -1268,19 +1264,15 @@ function handleCaloriesInput(event) {
     protein.focus();
     protein.select();
   }
-
-  autoSubmitArmed = true;
 }
 
 function handleProteinInput(event) {
   const protein = event.currentTarget;
   const digits = protein.value.replace(/\D/g, "");
 
-  if (digits.length < 3 || !autoSubmitArmed) return;
-
-  autoSubmitArmed = false;
-  setStatus("Auto submitting...");
-  document.getElementById("today-form")?.requestSubmit();
+  if (digits.length === 3) {
+    document.getElementById("today-form")?.requestSubmit();
+  }
 }
 
 function handleTargetsSubmit(event) {
