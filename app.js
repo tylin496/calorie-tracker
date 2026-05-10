@@ -204,10 +204,10 @@ function updateEntryForm() {
     }
   }
   if (form) {
-    const shouldCollapsePastEntry = Boolean(todayEntry) && !isViewingToday && !isQuickEntryOpen();
+    const shouldCollapseLoggedEntry = Boolean(todayEntry) && !isQuickEntryOpen();
     let editToggle = document.getElementById("entryEditToggle");
 
-    if (shouldCollapsePastEntry && !editToggle) {
+    if (shouldCollapseLoggedEntry && !editToggle) {
       editToggle = document.createElement("button");
       editToggle.id = "entryEditToggle";
       editToggle.type = "button";
@@ -218,15 +218,15 @@ function updateEntryForm() {
     }
 
     if (editToggle) {
-      editToggle.hidden = !shouldCollapsePastEntry;
+      editToggle.hidden = !shouldCollapseLoggedEntry;
 
-      if (!shouldCollapsePastEntry) {
+      if (!shouldCollapseLoggedEntry) {
         editToggle.setAttribute("aria-expanded", "false");
         editToggle.textContent = "Edit Entry";
       }
     }
 
-    if (shouldCollapsePastEntry) {
+    if (shouldCollapseLoggedEntry) {
       const isExpanded = editToggle?.getAttribute("aria-expanded") === "true";
       if (editToggle) editToggle.textContent = isExpanded ? "Hide Entry Form" : "Edit Entry";
       setEntryFormVisible(isExpanded);
@@ -239,8 +239,16 @@ function updateEntryForm() {
 function setEntryFormVisible(isVisible) {
   const form = document.getElementById("today-form");
   if (!form) return;
+  const isQuickEntryOverlayOpen = isQuickEntryOpen();
 
-  form.hidden = !isVisible;
+  if (!isQuickEntryOverlayOpen) {
+    form.classList.remove("quick-entry");
+  }
+
+  form.hidden = false;
+  form.classList.toggle("entry-form-collapsed", !isVisible);
+  form.setAttribute("aria-hidden", String(!isVisible));
+  form.inert = !isVisible;
 
   form.querySelectorAll(".input-card, #saveBtn").forEach((element) => {
     element.hidden = false;
@@ -256,7 +264,12 @@ function hideEntryFormWhileLoading() {
   const form = document.getElementById("today-form");
   const editToggle = document.getElementById("entryEditToggle");
 
-  if (form) form.hidden = true;
+  if (form) {
+    form.classList.remove("entry-form-collapsed");
+    form.removeAttribute("aria-hidden");
+    form.inert = false;
+    form.hidden = true;
+  }
 
   if (editToggle) {
     editToggle.hidden = true;
@@ -272,7 +285,12 @@ function toggleEntryEditForm(editToggle) {
 
   editToggle.setAttribute("aria-expanded", String(nextExpanded));
   editToggle.textContent = nextExpanded ? "Hide Entry Form" : "Edit Entry";
-  if (form) setEntryFormVisible(nextExpanded);
+  if (form) {
+    setEntryFormVisible(nextExpanded);
+    if (nextExpanded) {
+      form.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
+    }
+  }
 }
 
 function handleEntryEditToggleClick(event) {
@@ -287,12 +305,25 @@ function setLoading(isLoading) {
   const saveBtn = document.getElementById("saveBtn");
   const deleteBtn = document.getElementById("deleteBtn");
 
-  if (saveBtn) saveBtn.disabled = isLoading;
+  if (saveBtn) {
+    if (isLoading) {
+      saveBtn.dataset.idleText = saveBtn.textContent;
+      saveBtn.textContent = "Saving...";
+    } else if (saveBtn.dataset.idleText && saveBtn.textContent === "Saving...") {
+      saveBtn.textContent = saveBtn.dataset.idleText;
+      delete saveBtn.dataset.idleText;
+    } else {
+      delete saveBtn.dataset.idleText;
+    }
+
+    saveBtn.disabled = isLoading;
+    saveBtn.classList.toggle("is-loading", isLoading);
+  }
   if (deleteBtn) deleteBtn.disabled = isLoading;
 }
 
 function isQuickEntryOpen() {
-  return document.getElementById("today-form")?.classList.contains("quick-entry") || false;
+  return document.body.classList.contains("quick-entry-open");
 }
 
 function openQuickEntry() {
@@ -304,6 +335,9 @@ function openQuickEntry() {
 
   if (!form || !calories || !protein) return;
 
+  form.classList.remove("entry-form-collapsed");
+  form.setAttribute("aria-hidden", "false");
+  form.inert = false;
   form.classList.add("quick-entry");
   document.body.classList.add("quick-entry-open");
   if (backdrop) backdrop.hidden = false;
@@ -325,7 +359,7 @@ function openQuickEntry() {
 function closeQuickEntry() {
   const form = document.getElementById("today-form");
 
-  if (form && todayEntry && currentDate !== getDietDate()) {
+  if (form && todayEntry) {
     const editToggle = document.getElementById("entryEditToggle");
 
     if (editToggle) {
@@ -547,12 +581,27 @@ async function saveEntry(calories, protein) {
     showToast(`Saved · ${formatInt(savedDeficit)} kcal`);
     closeQuickEntry();
     await loadWeekSummary("Entry saved");
+    triggerSaveReward();
   } catch (error) {
     setStatus("Save failed");
     alert(error.message || "Save failed");
   } finally {
     setLoading(false);
   }
+}
+
+function triggerSaveReward() {
+  const card = document.querySelector(".daily-card");
+  if (!card) return;
+
+  card.classList.remove("saved-pulse");
+  void card.offsetWidth;
+  card.classList.add("saved-pulse");
+}
+
+function setSummaryRefreshing(isRefreshing) {
+  document.getElementById("daily-result")?.classList.toggle("content-refreshing", isRefreshing);
+  document.getElementById("weekly-summary")?.classList.toggle("content-refreshing", isRefreshing);
 }
 
 async function deleteEntry() {
@@ -690,16 +739,18 @@ function renderTrendBars(entries) {
           const isFuture = isFutureDate(dateString);
           const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
           const shortDate = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          const valueLabel = entry ? `${formatInt(entry.calories)} kcal` : "No entry";
 
           return `
             <button
               type="button"
               class="trend-day ${isSelected ? "selected" : ""} ${isMissing ? "missing" : ""} ${isFuture ? "future" : ""}"
               data-date="${dateString}"
-              aria-label="Select ${weekday}, ${shortDate}"
+              aria-label="Select ${weekday}, ${shortDate}. ${valueLabel}"
               ${isFuture ? "disabled" : ""}
               ${isSelected ? "aria-current=\"date\"" : ""}
             >
+              <span class="trend-value">${valueLabel}</span>
               <div class="trend-bar" style="height:${height}px" title="${dateString}: ${entry ? `${formatInt(entry.calories)} kcal` : "No data"}"></div>
               <span class="trend-weekday">${weekday}</span>
             </button>
@@ -746,11 +797,17 @@ function renderSummary(summary) {
     const roundedProtein = roundInt(today.protein);
     const calorieIntakeTarget = Math.max(0, entryTdee - DEFICIT_TARGET);
     const deficitOverTarget = Math.max(roundInt(calorieResult.deficit - DEFICIT_TARGET), 0);
+    const proteinOverTarget = Math.max(roundInt(roundedProtein - PROTEIN_TARGET), 0);
     const deficitSummary = calorieResult.isSurplus
       ? `<span class="metric-note negative">${formatInt(calorieResult.surplus)} kcal surplus</span>`
       : deficitOverTarget > 0
-        ? `<span style="color: var(--accent); font-weight: 800;">+${formatInt(deficitOverTarget)} over goal</span>`
-        : `<span>Goal ${formatInt(DEFICIT_TARGET)} kcal</span>`;
+        ? `<span class="metric-note reward">+${formatInt(deficitOverTarget)} over goal</span>`
+        : `<span class="metric-note">Goal ${formatInt(DEFICIT_TARGET)} kcal</span>`;
+    const proteinSummary = proteinOverTarget > 0
+      ? `<span class="metric-note reward">+${formatInt(proteinOverTarget)} over goal</span>`
+      : `<span class="metric-note">Target ${formatInt(PROTEIN_TARGET)} g</span>`;
+    const proteinMetricTone = proteinOverTarget > 0 ? "rewarded" : proteinResult.celebrated ? "on-track" : "";
+    const deficitMetricTone = calorieResult.isSurplus ? "caution" : deficitOverTarget > 0 ? "rewarded" : calorieResult.celebrated ? "on-track" : "";
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone}">
@@ -765,15 +822,15 @@ function renderSummary(summary) {
             <strong>${formatInt(roundedCalories)}</strong>
             <span>Target ${formatInt(calorieIntakeTarget)} kcal</span>
           </div>
-          <div class="daily-metric">
+          <div class="daily-metric ${proteinMetricTone}">
             <span class="metric-label">Protein</span>
             <strong>${formatInt(roundedProtein)}</strong>
-            <span>Target ${formatInt(PROTEIN_TARGET)} g</span>
+            ${proteinSummary}
           </div>
-          <div class="daily-metric">
+          <div class="daily-metric ${deficitMetricTone}">
             <span class="metric-label">Deficit</span>
             <strong>${calorieResult.isSurplus ? `+${formatInt(calorieResult.surplus)}` : formatInt(calorieResult.deficit)}</strong>
-            <span>${calorieResult.isSurplus ? `Surplus ${formatInt(calorieResult.surplus)} kcal` : deficitSummary}</span>
+            ${calorieResult.isSurplus ? `<span class="metric-note negative">Surplus ${formatInt(calorieResult.surplus)} kcal</span>` : deficitSummary}
           </div>
         </div>
 
@@ -850,8 +907,13 @@ function renderSummary(summary) {
           <span class="metric-value">${formatInt(Number(summary.fatLossKg || 0) * 1000)}g</span>
         </div>
       </div>
-      ${renderTrendBars(summary.entries || [])}
-      <p class="subtle-text trend-summary"><strong>Weekly Trend</strong> <span class="trend-status ${consistencyTone}">${consistency}</span></p>
+      <div class="week-trend-panel">
+        <div class="week-trend-header">
+          <span>Daily kcal</span>
+          <strong class="trend-status ${consistencyTone}">${consistency}</strong>
+        </div>
+        ${renderTrendBars(summary.entries || [])}
+      </div>
     </section>
   `;
 
@@ -864,6 +926,7 @@ async function loadWeekSummary(successMessage) {
 
   updateDietDayDisplay();
   setStatus("Loading...");
+  setSummaryRefreshing(true);
 
   try {
     const data = await fetchJson(`${API_BASE}/api/summary?today=${encodeURIComponent(requestedDate)}&tdee=${encodeURIComponent(TDEE)}`);
@@ -881,6 +944,7 @@ async function loadWeekSummary(successMessage) {
 
     updateEntryForm();
     renderSummary(data.summary);
+    setSummaryRefreshing(false);
     setStatus(successMessage || "");
 
     if (!didAutoOpenQuickEntry && currentDate === getDietDate() && !todayEntry) {
@@ -889,11 +953,13 @@ async function loadWeekSummary(successMessage) {
     }
   } catch (error) {
     if (error.isAuthError) {
+      setSummaryRefreshing(false);
       setStatus("Locked");
       return;
     }
 
     setStatus("Could not load summary");
+    setSummaryRefreshing(false);
     document.getElementById("daily-result").innerHTML = `
       <section class="daily-card empty">
         <h2>Unable to load data</h2>

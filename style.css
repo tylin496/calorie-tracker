@@ -391,7 +391,22 @@ h1 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin: 10px 0 6px;
+  max-height: 340px;
+  overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
+  transform-origin: top center;
+  transition: max-height 260ms ease, opacity 180ms ease, margin 220ms ease, transform 220ms ease;
   animation: rise-in 300ms ease both;
+}
+
+.settlement-form.entry-form-collapsed {
+  max-height: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
 }
 
 .quick-entry-header {
@@ -424,6 +439,13 @@ h1 {
   padding: 12px;
   margin: 0;
   animation: quick-entry-in 240ms ease both;
+}
+
+.settlement-form.quick-entry.entry-form-collapsed {
+  max-height: calc(100dvh - 32px);
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%);
 }
 
 .settlement-form.quick-entry .quick-entry-header {
@@ -553,11 +575,22 @@ button:focus-visible {
   grid-column: 1 / -1;
   min-height: 54px;
   font-size: 16px;
+  position: relative;
+  overflow: hidden;
 }
 
 .primary-btn:hover {
   box-shadow: 0 18px 38px rgba(0, 122, 255, 0.32);
   transform: translateY(-1px);
+}
+
+.primary-btn.is-loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: translateX(-120%);
+  animation: button-shine 900ms ease infinite;
 }
 
 .primary-btn:active,
@@ -595,6 +628,16 @@ button:focus-visible {
   font-weight: 800;
   backdrop-filter: blur(16px);
   transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.entry-edit-toggle[aria-expanded="true"] {
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--accent-soft) 30%, var(--surface));
+  color: var(--text);
+}
+
+.entry-edit-toggle[aria-expanded="true"] + .settlement-form {
+  margin-top: 6px;
 }
 
 .entry-edit-toggle:hover {
@@ -646,7 +689,8 @@ input[type="number"] {
 }
 
 .settings-panel {
-  margin: -6px 0 18px;
+  margin: -4px 0 18px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
   color: var(--muted);
   font-size: 13px;
 }
@@ -655,15 +699,25 @@ input[type="number"] {
   width: 100%;
   cursor: pointer;
   touch-action: manipulation;
+  display: grid;
+  gap: 2px;
+  padding: 10px 0 0;
   font-weight: 700;
+}
+
+.settings-panel summary::marker {
+  color: color-mix(in srgb, var(--muted) 76%, transparent);
 }
 
 .settings-panel summary small {
   display: block;
-  margin-top: 3px;
   color: var(--muted);
   font-size: 12px;
   font-weight: 600;
+}
+
+.settings-panel[open] .targets-form {
+  animation: settings-reveal 220ms ease both;
 }
 
 .targets-form {
@@ -719,6 +773,18 @@ input[type="number"] {
   min-height: 0;
 }
 
+#daily-result,
+#weekly-summary {
+  transition: opacity 180ms ease, transform 220ms ease, filter 220ms ease;
+}
+
+#daily-result.content-refreshing,
+#weekly-summary.content-refreshing {
+  opacity: 0.58;
+  transform: translateY(6px);
+  filter: saturate(0.86);
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -745,19 +811,23 @@ input[type="number"] {
   animation: rise-in 360ms ease both;
 }
 
+.daily-card.saved-pulse {
+  animation: save-pulse 700ms ease both;
+}
+
 .daily-card > * {
   position: relative;
 }
 
 .daily-card.empty {
-  border-color: color-mix(in srgb, var(--danger) 34%, var(--border));
+  border-color: color-mix(in srgb, var(--muted) 24%, var(--border));
   background: var(--surface);
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--surface-muted) 76%, transparent), var(--surface)),
     var(--surface);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--danger) 12%, transparent),
-    0 18px 40px color-mix(in srgb, var(--danger) 8%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--muted) 8%, transparent),
+    0 18px 40px color-mix(in srgb, #000000 6%, transparent);
 }
 
 .daily-card-top {
@@ -798,6 +868,21 @@ input[type="number"] {
   transform: translateY(-1px);
 }
 
+.daily-metric.rewarded,
+.daily-metric.on-track {
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 42%, transparent), transparent),
+    color-mix(in srgb, var(--surface-muted) 76%, transparent);
+}
+
+.daily-metric.caution {
+  border-color: color-mix(in srgb, var(--danger-deep) 22%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--danger-bg) 28%, transparent), transparent),
+    color-mix(in srgb, var(--surface-muted) 76%, transparent);
+}
+
 .daily-metric strong {
   display: block;
   margin-top: 8px;
@@ -812,6 +897,14 @@ input[type="number"] {
   color: var(--muted);
   font-size: 12px;
   font-weight: 800;
+}
+
+.daily-metric > .metric-note.reward {
+  color: var(--accent);
+}
+
+.daily-metric > .metric-note.negative {
+  color: var(--danger-deep);
 }
 
 
@@ -874,9 +967,11 @@ input[type="number"] {
 
 .settlement-track span {
   display: block;
+  position: relative;
   height: 100%;
   min-width: 8px;
   border-radius: inherit;
+  overflow: hidden;
   background: var(--accent);
   transform-origin: left center;
   animation: progress-fill 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -898,6 +993,16 @@ input[type="number"] {
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent),
     0 0 10px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.daily-card.saved-pulse .settlement-line.celebrated .settlement-track span::after,
+.daily-card.saved-pulse .settlement-line.surplus .settlement-track span::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+  transform: translateX(-120%);
+  animation: track-shimmer 760ms ease;
 }
 
 .card-header {
@@ -956,18 +1061,18 @@ input[type="number"] {
 .week-snapshot {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .metric {
-  min-height: 84px;
+  min-height: 76px;
   border-radius: 8px;
   background: var(--surface-muted);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 62%, transparent), var(--surface-muted)),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 72%, transparent), var(--surface-muted)),
     var(--surface-muted);
   border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
-  padding: 12px;
+  padding: 12px 14px;
 }
 
 .metric-label {
@@ -980,26 +1085,56 @@ input[type="number"] {
 
 .metric-value {
   display: block;
-  margin-top: 6px;
-  font-size: 24px;
+  margin-top: 8px;
+  font-size: 26px;
   font-weight: 850;
   line-height: 1.15;
 }
 
 .week-snapshot .metric {
-  min-height: 76px;
+  min-height: 74px;
+}
+
+.week-trend-panel {
+  margin-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  padding-top: 13px;
+}
+
+.week-trend-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.week-trend-header > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .trend-bars {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(34px, 1fr));
-  gap: 8px;
+  gap: 10px;
   align-items: end;
-  min-height: 112px;
-  margin-top: 14px;
-  margin-bottom: 24px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
+  min-height: 118px;
+  margin: 0;
+  padding: 18px 4px 2px;
+}
+
+.trend-bars::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 26px;
+  height: 1px;
+  background: color-mix(in srgb, var(--border) 72%, transparent);
 }
 
 .trend-day {
@@ -1020,13 +1155,27 @@ input[type="number"] {
   transition: transform 180ms ease, opacity 180ms ease;
 }
 
+.trend-value {
+  min-height: 16px;
+  color: color-mix(in srgb, var(--muted) 72%, transparent);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity 160ms ease, transform 160ms ease, color 160ms ease;
+  white-space: nowrap;
+}
+
 .trend-bar {
   width: 100%;
-  max-width: 34px;
+  max-width: 32px;
   min-height: 18px;
-  border-radius: 8px 8px 3px 3px;
-  background: color-mix(in srgb, var(--muted) 54%, var(--surface-muted));
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface) 36%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--muted) 46%, var(--surface-muted));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--surface) 38%, transparent),
+    0 8px 16px color-mix(in srgb, #000000 10%, transparent);
   transform-origin: bottom center;
   animation: bar-rise 500ms ease both;
   transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
@@ -1042,12 +1191,26 @@ input[type="number"] {
   transform: scaleY(1.04);
 }
 
+.trend-day:hover .trend-value,
+.trend-day.selected .trend-value {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .trend-day.selected .trend-weekday {
   color: var(--accent);
   font-weight: 800;
 }
 
+.trend-day.selected .trend-value {
+  color: var(--accent);
+}
+
 .trend-day.missing .trend-weekday {
+  color: var(--muted);
+}
+
+.trend-day.missing .trend-value {
   color: var(--muted);
 }
 
@@ -1055,25 +1218,26 @@ input[type="number"] {
   background: linear-gradient(180deg, #5ac8fa, var(--accent));
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, #ffffff 34%, transparent),
-    0 0 10px color-mix(in srgb, var(--accent) 18%, transparent);
+    0 8px 18px color-mix(in srgb, var(--accent) 22%, transparent),
+    0 0 10px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .trend-day.missing .trend-bar {
-  border: 1px dashed color-mix(in srgb, var(--muted) 58%, transparent);
-  background: transparent;
+  border: 1px dashed color-mix(in srgb, var(--muted) 44%, transparent);
+  background: color-mix(in srgb, var(--surface-muted) 34%, transparent);
   box-shadow: none;
 }
 
 .trend-day.selected.missing .trend-bar {
-  background: transparent;
-  border: 1.5px dashed color-mix(in srgb, var(--danger) 78%, var(--border));
+  background: color-mix(in srgb, var(--danger-bg) 36%, transparent);
+  border: 1.5px dashed color-mix(in srgb, var(--danger-deep) 58%, var(--border));
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--danger) 10%, transparent),
-    0 0 8px color-mix(in srgb, var(--danger) 16%, transparent);
+    inset 0 1px 0 color-mix(in srgb, var(--danger-deep) 10%, transparent),
+    0 0 8px color-mix(in srgb, var(--danger-deep) 10%, transparent);
 }
 
 .trend-day.selected.missing span {
-  color: var(--danger);
+  color: var(--danger-deep);
 }
 
 .trend-day.future {
@@ -1087,15 +1251,9 @@ input[type="number"] {
   line-height: 1;
 }
 
-.trend-summary {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  margin-top: 18px;
-}
-
 .trend-status {
   color: var(--muted);
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -1217,6 +1375,43 @@ input[type="number"] {
   }
 }
 
+@keyframes save-pulse {
+  0% {
+    box-shadow: var(--shadow);
+  }
+  42% {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--accent) 26%, transparent),
+      0 20px 54px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  100% {
+    box-shadow: var(--shadow);
+  }
+}
+
+@keyframes button-shine {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes track-shimmer {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes settings-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -1254,6 +1449,29 @@ input[type="number"] {
   .daily-metrics,
   .targets-form {
     grid-template-columns: 1fr;
+  }
+
+  .week-snapshot {
+    gap: 8px;
+  }
+
+  .week-trend-header {
+    margin-bottom: 8px;
+  }
+
+  .trend-bars {
+    gap: 6px;
+    min-height: 104px;
+    padding-inline: 0;
+  }
+
+  .trend-bars::before {
+    left: 0;
+    right: 0;
+  }
+
+  .trend-bar {
+    max-width: 28px;
   }
 
   #deleteBtn {
