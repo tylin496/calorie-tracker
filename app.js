@@ -20,10 +20,6 @@ function getDietDate() {
   return formatDate(now);
 }
 
-function getTodayDate() {
-  return formatDate(new Date());
-}
-
 function formatDate(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
@@ -43,7 +39,7 @@ function isValidDateString(value) {
 }
 
 function isFutureDate(dateString) {
-  return new Date(`${dateString}T12:00:00`) > new Date(`${getTodayDate()}T12:00:00`);
+  return new Date(`${dateString}T12:00:00`) > new Date(`${getDietDate()}T12:00:00`);
 }
 
 function setStatus(msg) {
@@ -124,7 +120,7 @@ function updateDietDayDisplay() {
   const btn = document.getElementById("diet-day");
   const label = document.getElementById("diet-day-label");
   const nextBtn = document.getElementById("nextDayBtn");
-  const isAtToday = currentDate === getTodayDate();
+  const isAtDietToday = currentDate === getDietDate();
 
   if (label) {
     const displayLabel = getDisplayDateLabel(currentDate, { todayStyle: "compact" });
@@ -135,7 +131,7 @@ function updateDietDayDisplay() {
   }
 
   if (nextBtn) {
-    nextBtn.setAttribute("aria-disabled", String(isAtToday));
+    nextBtn.setAttribute("aria-disabled", String(isAtDietToday));
   }
 }
 
@@ -421,7 +417,8 @@ function renderCalendar() {
   const title = document.getElementById("calendarTitle");
   const grid = document.getElementById("calendarGrid");
   const nextMonthBtn = document.getElementById("nextMonthBtn");
-  const today = new Date(`${getTodayDate()}T12:00:00`);
+  const dietTodayString = getDietDate();
+  const dietToday = new Date(`${dietTodayString}T12:00:00`);
 
   if (!title || !grid) return;
 
@@ -444,8 +441,8 @@ function renderCalendar() {
     const dateString = formatDate(date);
     const isOutsideMonth = date.getMonth() !== currentMonth;
     const isSelected = dateString === currentDate;
-    const isToday = dateString === getTodayDate();
-    const isFuture = date > today;
+    const isToday = dateString === dietTodayString;
+    const isFuture = date > dietToday;
 
     cells.push(`
       <button
@@ -463,7 +460,7 @@ function renderCalendar() {
 
   if (nextMonthBtn) {
     const nextMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1);
-    nextMonthBtn.setAttribute("aria-disabled", String(nextMonth > today));
+    nextMonthBtn.setAttribute("aria-disabled", String(nextMonth > dietToday));
   }
 }
 
@@ -499,7 +496,7 @@ function shiftDietDay(days) {
   const d = new Date(`${currentDate}T12:00:00`);
   d.setDate(d.getDate() + days);
 
-  if (d > new Date(`${getTodayDate()}T12:00:00`)) return;
+  if (d > new Date(`${getDietDate()}T12:00:00`)) return;
 
   setDietDay(formatDate(d));
 }
