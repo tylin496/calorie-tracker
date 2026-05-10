@@ -793,6 +793,7 @@ function renderSummary(summary) {
   const today = summary.todayEntry;
   const consistency = summary.consistency || getConsistency(summary.entries || []);
   const consistencyTone = consistency.toLowerCase();
+  const isCompactLayout = window.matchMedia?.("(max-width: 620px)")?.matches;
   let dailyHtml = "";
 
   if (today) {
@@ -814,6 +815,16 @@ function renderSummary(summary) {
       : `<span class="metric-note">Target ${formatInt(PROTEIN_TARGET)} g</span>`;
     const proteinMetricTone = proteinOverTarget > 0 ? "rewarded" : proteinResult.celebrated ? "on-track" : "";
     const deficitMetricTone = calorieResult.isSurplus ? "caution" : deficitOverTarget > 0 ? "rewarded" : calorieResult.celebrated ? "on-track" : "";
+    // Responsive metric texts
+    const calorieMetricText = isCompactLayout ? `Target ${formatInt(calorieIntakeTarget)}` : `Target ${formatInt(calorieIntakeTarget)} kcal`;
+    const proteinMetricText = proteinOverTarget > 0
+      ? (isCompactLayout ? `+${formatInt(proteinOverTarget)} over` : `+${formatInt(proteinOverTarget)} over goal`)
+      : (isCompactLayout ? `Target ${formatInt(PROTEIN_TARGET)}g` : `Target ${formatInt(PROTEIN_TARGET)} g`);
+    const deficitMetricText = calorieResult.isSurplus
+      ? (isCompactLayout ? `Surplus ${formatInt(calorieResult.surplus)}` : `Surplus ${formatInt(calorieResult.surplus)} kcal`)
+      : deficitOverTarget > 0
+        ? (isCompactLayout ? `+${formatInt(deficitOverTarget)} over` : `+${formatInt(deficitOverTarget)} over goal`)
+        : (isCompactLayout ? `Goal ${formatInt(DEFICIT_TARGET)}` : `Goal ${formatInt(DEFICIT_TARGET)} kcal`);
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone}">
@@ -826,17 +837,17 @@ function renderSummary(summary) {
           <div class="daily-metric">
             <span class="metric-label">Calories</span>
             <strong>${formatInt(roundedCalories)}</strong>
-            <span>Target ${formatInt(calorieIntakeTarget)} kcal</span>
+            <span>${calorieMetricText}</span>
           </div>
           <div class="daily-metric ${proteinMetricTone}">
             <span class="metric-label">Protein</span>
             <strong>${formatInt(roundedProtein)}</strong>
-            ${proteinSummary}
+            <span class="metric-note ${proteinOverTarget > 0 ? "reward" : ""}">${proteinMetricText}</span>
           </div>
           <div class="daily-metric ${deficitMetricTone}">
             <span class="metric-label">Deficit</span>
             <strong>${calorieResult.isSurplus ? `+${formatInt(calorieResult.surplus)}` : formatInt(calorieResult.deficit)}</strong>
-            ${calorieResult.isSurplus ? `<span class="metric-note negative">Surplus ${formatInt(calorieResult.surplus)} kcal</span>` : deficitSummary}
+            <span class="metric-note ${calorieResult.isSurplus ? "negative" : deficitOverTarget > 0 ? "reward" : ""}">${deficitMetricText}</span>
           </div>
         </div>
 
@@ -875,17 +886,17 @@ function renderSummary(summary) {
           <div class="daily-metric">
             <span class="metric-label">Calories</span>
             <strong>--</strong>
-            <span>Target ${formatInt(Math.max(0, TDEE - DEFICIT_TARGET))} kcal</span>
+            <span>${isCompactLayout ? `Target ${formatInt(Math.max(0, TDEE - DEFICIT_TARGET))}` : `Target ${formatInt(Math.max(0, TDEE - DEFICIT_TARGET))} kcal`}</span>
           </div>
           <div class="daily-metric">
             <span class="metric-label">Protein</span>
             <strong>--</strong>
-            <span>Target ${formatInt(PROTEIN_TARGET)}g</span>
+            <span>${isCompactLayout ? `Target ${formatInt(PROTEIN_TARGET)}g` : `Target ${formatInt(PROTEIN_TARGET)} g`}</span>
           </div>
           <div class="daily-metric">
             <span class="metric-label">Deficit</span>
             <strong>--</strong>
-            <span>Goal ${formatInt(DEFICIT_TARGET)} kcal</span>
+            <span>${isCompactLayout ? `Goal ${formatInt(DEFICIT_TARGET)}` : `Goal ${formatInt(DEFICIT_TARGET)} kcal`}</span>
           </div>
         </div>
         <p class="empty-state">Add calories and protein when ready.</p>
@@ -1115,6 +1126,11 @@ function initApp() {
   document.addEventListener("click", handleEntryEditToggleClick);
   document.addEventListener("keydown", handleGlobalKeydown);
 
+  window.matchMedia?.("(max-width: 620px)")?.addEventListener?.("change", () => {
+    if (todayEntry || document.getElementById("daily-result")?.innerHTML) {
+      loadWeekSummary();
+    }
+  });
   updateDietDayDisplay();
   updateTargetForm();
 

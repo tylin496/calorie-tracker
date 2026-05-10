@@ -1453,14 +1453,65 @@ input[type="number"] {
     padding: 16px;
   }
 
+  .daily-card {
+    padding: 16px;
+  }
+
+  .daily-card-top {
+    margin-bottom: 12px;
+  }
+
+  .daily-metric {
+    min-height: 122px;
+    padding: 10px 8px;
+  }
+
+  .daily-metric strong {
+    margin-top: 10px;
+    font-size: clamp(30px, 8.8vw, 38px);
+    letter-spacing: -0.045em;
+  }
+
+  .daily-metric > span:last-child {
+    margin-top: 8px;
+    font-size: 10.5px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .day-label,
+  .input-label,
+  .metric-label,
+  .week-trend-header > span {
+    font-size: 11px;
+  }
+
+  .status-pill {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .settlement-lines {
+    gap: 14px;
+  }
+
+  .week-snapshot .metric {
+    min-height: 82px;
+    padding: 10px 8px;
+  }
+
+  .metric-value {
+    font-size: 24px;
+  }
+
   .settlement-form,
-  .week-snapshot,
-  .daily-metrics,
   .targets-form {
     grid-template-columns: 1fr;
   }
 
+  .daily-metrics,
   .week-snapshot {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
   }
 
