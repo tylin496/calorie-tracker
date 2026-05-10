@@ -220,11 +220,16 @@ function updateEntryForm() {
       form.parentNode?.insertBefore(editToggle, form);
 
       editToggle.addEventListener("click", () => {
+        const currentForm = document.getElementById("today-form");
+        const currentFormBody = currentForm?.querySelector(".input-grid");
+        const currentFormActions = currentForm?.querySelector(".form-actions");
         const isExpanded = editToggle.getAttribute("aria-expanded") === "true";
-        editToggle.setAttribute("aria-expanded", String(!isExpanded));
-        editToggle.textContent = isExpanded ? "Edit Entry" : "Hide Entry Form";
-        if (formBody) formBody.hidden = isExpanded;
-        if (formActions) formActions.hidden = isExpanded;
+        const nextExpanded = !isExpanded;
+
+        editToggle.setAttribute("aria-expanded", String(nextExpanded));
+        editToggle.textContent = nextExpanded ? "Hide Entry Form" : "Edit Entry";
+        if (currentFormBody) currentFormBody.hidden = !nextExpanded;
+        if (currentFormActions) currentFormActions.hidden = !nextExpanded;
       });
     }
 
@@ -240,9 +245,10 @@ function updateEntryForm() {
     form.hidden = false;
 
     if (shouldCollapsePastEntry) {
-      const shouldHideEditor = editToggle?.getAttribute("aria-expanded") !== "true";
-      if (formBody) formBody.hidden = shouldHideEditor;
-      if (formActions) formActions.hidden = shouldHideEditor;
+      const isExpanded = editToggle?.getAttribute("aria-expanded") === "true";
+      if (editToggle) editToggle.textContent = isExpanded ? "Hide Entry Form" : "Edit Entry";
+      if (formBody) formBody.hidden = !isExpanded;
+      if (formActions) formActions.hidden = !isExpanded;
     } else {
       if (formBody) formBody.hidden = false;
       if (formActions) formActions.hidden = false;
@@ -299,9 +305,17 @@ function openQuickEntryOptimistically() {
 
 function closeQuickEntry() {
   const form = document.getElementById("today-form");
+
   if (form && todayEntry && currentDate !== getDietDate()) {
+    const editToggle = document.getElementById("entryEditToggle");
     const formBody = form.querySelector(".input-grid");
     const formActions = form.querySelector(".form-actions");
+
+    if (editToggle) {
+      editToggle.setAttribute("aria-expanded", "false");
+      editToggle.textContent = "Edit Entry";
+    }
+
     if (formBody) formBody.hidden = true;
     if (formActions) formActions.hidden = true;
   }
@@ -400,6 +414,12 @@ function setDietDay(date) {
   currentDate = date;
   todayLogged = false;
   todayEntry = null;
+
+  const editToggle = document.getElementById("entryEditToggle");
+  if (editToggle) {
+    editToggle.setAttribute("aria-expanded", "false");
+    editToggle.textContent = "Edit Entry";
+  }
 
   updateDietDayDisplay();
   updateEntryForm();

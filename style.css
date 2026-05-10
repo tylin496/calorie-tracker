@@ -843,12 +843,23 @@ input[type="number"] {
 }
 
 .card h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
   margin: 0;
   font-size: 18px;
 }
 
+.card h2 span {
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 700;
+}
+
 
 .status-pill {
+  margin-left: 8px;
   border-radius: 999px;
   padding: 4px 9px;
   font-size: 12px;
@@ -920,6 +931,7 @@ input[type="number"] {
   align-items: end;
   min-height: 112px;
   margin-top: 14px;
+  margin-bottom: 24px;
   padding-top: 10px;
   border-top: 1px solid var(--border);
 }
