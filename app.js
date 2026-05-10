@@ -205,7 +205,40 @@ function updateEntryForm() {
     }
   }
   if (form) {
-    form.hidden = Boolean(todayEntry) && !isViewingToday && !isQuickEntryOpen();
+    const shouldCollapsePastEntry = Boolean(todayEntry) && !isViewingToday && !isQuickEntryOpen();
+    let editToggle = document.getElementById("entryEditToggle");
+
+    if (shouldCollapsePastEntry && !editToggle) {
+      editToggle = document.createElement("button");
+      editToggle.id = "entryEditToggle";
+      editToggle.type = "button";
+      editToggle.className = "entry-edit-toggle";
+      editToggle.setAttribute("aria-expanded", "false");
+      editToggle.textContent = "Edit Entry";
+      form.parentNode?.insertBefore(editToggle, form);
+
+      editToggle.addEventListener("click", () => {
+        const isExpanded = editToggle.getAttribute("aria-expanded") === "true";
+        editToggle.setAttribute("aria-expanded", String(!isExpanded));
+        editToggle.textContent = isExpanded ? "Edit Entry" : "Hide Entry Form";
+        form.hidden = isExpanded;
+      });
+    }
+
+    if (editToggle) {
+      editToggle.hidden = !shouldCollapsePastEntry;
+
+      if (!shouldCollapsePastEntry) {
+        editToggle.setAttribute("aria-expanded", "false");
+        editToggle.textContent = "Edit Entry";
+      }
+    }
+
+    if (shouldCollapsePastEntry) {
+      form.hidden = editToggle?.getAttribute("aria-expanded") !== "true";
+    } else {
+      form.hidden = false;
+    }
   }
 }
 
