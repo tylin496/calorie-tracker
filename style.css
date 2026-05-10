@@ -1374,11 +1374,21 @@ input[type="number"] {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
-.status-pill.logged,
+
+.status-pill.logged {
+  background: var(--success-bg);
+  color: var(--success-text);
+  border-color: color-mix(in srgb, var(--success-text) 26%, transparent);
+}
+
 .status-pill.deficit {
   background: var(--accent-soft);
   color: var(--accent);
   border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.status-pill.logged {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success-text) 8%, transparent);
 }
 
 .status-pill.double-hit {
