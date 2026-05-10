@@ -215,13 +215,11 @@ function updateEntryForm() {
       editToggle.className = "entry-edit-toggle";
       editToggle.setAttribute("aria-expanded", "false");
       editToggle.textContent = "Edit Entry";
-      editToggle.addEventListener("click", handleEntryEditToggleClick);
       form.parentNode?.insertBefore(editToggle, form);
     }
 
     if (editToggle) {
       editToggle.hidden = !shouldCollapsePastEntry;
-      editToggle.onclick = handleEntryEditToggleClick;
 
       if (!shouldCollapsePastEntry) {
         editToggle.setAttribute("aria-expanded", "false");
@@ -268,11 +266,10 @@ function toggleEntryEditForm(editToggle) {
 }
 
 function handleEntryEditToggleClick(event) {
-  const editToggle = event.target.closest?.("#entryEditToggle");
+  const editToggle = event.target?.closest?.("#entryEditToggle");
   if (!editToggle) return;
 
   event.preventDefault();
-  event.stopPropagation();
   toggleEntryEditForm(editToggle);
 }
 
@@ -1049,7 +1046,7 @@ function initApp() {
   document.getElementById("quickEntryBackdrop")?.addEventListener("click", closeQuickEntry);
   document.getElementById("calories")?.addEventListener("input", handleCaloriesInput);
   document.getElementById("protein")?.addEventListener("input", handleProteinInput);
-  document.addEventListener("click", handleEntryEditToggleClick, true);
+  document.addEventListener("click", handleEntryEditToggleClick);
   document.addEventListener("keydown", handleGlobalKeydown);
 
   updateDietDayDisplay();
