@@ -4,6 +4,8 @@ let DEFICIT_TARGET = 500;
 const API_BASE = "https://calorie-tracker-omega-ten.vercel.app";
 const ACCESS_KEY_STORAGE_KEY = "calorieTrackerAccessKey";
 const LAST_LOGGED_DATE_STORAGE_KEY = "calorieTrackerLastLoggedDate";
+const CALENDAR_INITIAL_HISTORY_MONTHS = 36;
+const CALENDAR_HISTORY_CHUNK_MONTHS = 12;
 
 let todayLogged = false;
 let todayEntry = null;
@@ -12,6 +14,9 @@ let toastTimer = null;
 let autoSubmitArmed = true;
 let didAutoOpenQuickEntry = false;
 let celebrationTimer = null;
+let calendarVisibleMonth = null;
+let calendarHistoryMonths = CALENDAR_INITIAL_HISTORY_MONTHS;
+let calendarIsExtending = false;
 
 function getDietDate() {
   const now = new Date();
@@ -131,6 +136,7 @@ function updateDietDayDisplay() {
 
   if (nextBtn) {
     nextBtn.setAttribute("aria-disabled", String(isAtDietToday));
+    nextBtn.disabled = isAtDietToday;
   }
 }
 
@@ -406,6 +412,28 @@ function closeCalendar() {
   }
 }
 
+function openDeleteConfirm() {
+  if (!todayEntry) return;
+
+  const panel = document.getElementById("deleteConfirmPanel");
+  const backdrop = document.getElementById("deleteConfirmBackdrop");
+  const confirmBtn = document.getElementById("confirmDeleteBtn");
+
+  if (panel) panel.hidden = false;
+  if (backdrop) backdrop.hidden = false;
+  document.body.classList.add("delete-confirm-open");
+  confirmBtn?.focus();
+}
+
+function closeDeleteConfirm() {
+  const panel = document.getElementById("deleteConfirmPanel");
+  const backdrop = document.getElementById("deleteConfirmBackdrop");
+
+  if (panel) panel.hidden = true;
+  if (backdrop) backdrop.hidden = true;
+  document.body.classList.remove("delete-confirm-open");
+}
+
 function renderCalendar() {
   const title = document.getElementById("calendarTitle");
   const grid = document.getElementById("calendarGrid");
@@ -415,17 +443,26 @@ function renderCalendar() {
   if (!title || !grid) return;
 
   title.textContent = "Select date";
-  grid.innerHTML = getCalendarMonths(dietToday, currentDate)
-    .map((month) => renderCalendarMonth(month, dietToday, dietTodayString))
-    .join("");
+  renderCalendarMonths(grid, dietToday, dietTodayString);
 
-  grid.onscroll = () => updateCalendarMonthLabel(grid);
+  grid.onscroll = () => {
+    extendCalendarIfNeeded(grid);
+    updateCalendarMonthLabel(grid);
+  };
 
   requestAnimationFrame(() => {
     const selected = grid.querySelector(".calendar-day.selected");
-    selected?.scrollIntoView({ block: "center" });
+    const monthSection = grid.querySelector(`[data-month="${currentDate.slice(0, 7)}"]`);
+    if (selected) selected.scrollIntoView({ block: "center" });
+    else monthSection?.scrollIntoView({ block: "center" });
     updateCalendarMonthLabel(grid);
   });
+}
+
+function renderCalendarMonths(grid, dietToday, dietTodayString) {
+  grid.innerHTML = getCalendarMonths(dietToday, currentDate, calendarHistoryMonths)
+    .map((month) => renderCalendarMonth(month, dietToday, dietTodayString))
+    .join("");
 }
 
 function getCalendarMonthLabel(monthDate) {
@@ -438,20 +475,49 @@ function updateCalendarMonthLabel(grid) {
   const label = document.getElementById("calendarMonthLabel");
   if (!label) return;
   const sections = [...grid.querySelectorAll(".calendar-month")];
-  const containerTop = grid.getBoundingClientRect().top;
+  const containerRect = grid.getBoundingClientRect();
+  const referenceY = containerRect.top + containerRect.height * 0.45;
   let current = sections[0];
+
   for (const section of sections) {
-    if (section.getBoundingClientRect().top <= containerTop + 4) current = section;
-    else break;
+    const rect = section.getBoundingClientRect();
+    if (rect.top <= referenceY && rect.bottom >= referenceY) {
+      current = section;
+      break;
+    }
+
+    if (rect.top <= referenceY) current = section;
   }
-  if (current) label.innerHTML = getCalendarMonthLabel(new Date(`${current.dataset.month}-01T12:00:00`));
+
+  if (current) {
+    calendarVisibleMonth = current.dataset.month;
+    label.innerHTML = getCalendarMonthLabel(new Date(`${calendarVisibleMonth}-01T12:00:00`));
+  }
 }
 
-function getCalendarMonths(endDate, selectedDateString) {
+function extendCalendarIfNeeded(grid) {
+  if (calendarIsExtending || grid.scrollTop > 96) return;
+
+  calendarIsExtending = true;
+  const previousHeight = grid.scrollHeight;
+  const dietTodayString = getDietDate();
+  const dietToday = new Date(`${dietTodayString}T12:00:00`);
+
+  calendarHistoryMonths += CALENDAR_HISTORY_CHUNK_MONTHS;
+  renderCalendarMonths(grid, dietToday, dietTodayString);
+
+  requestAnimationFrame(() => {
+    grid.scrollTop += grid.scrollHeight - previousHeight;
+    updateCalendarMonthLabel(grid);
+    calendarIsExtending = false;
+  });
+}
+
+function getCalendarMonths(endDate, selectedDateString, historyMonths = CALENDAR_INITIAL_HISTORY_MONTHS) {
   const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
   const selectedMonth = getMonthStart(selectedDateString);
   const startMonth = new Date(endMonth);
-  startMonth.setMonth(startMonth.getMonth() - 17);
+  startMonth.setMonth(startMonth.getMonth() - historyMonths);
 
   if (selectedMonth < startMonth) {
     startMonth.setFullYear(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
@@ -527,6 +593,7 @@ function setDietDay(date) {
   if (date === currentDate) return;
 
   currentDate = date;
+  calendarVisibleMonth = date.slice(0, 7);
   todayLogged = false;
   todayEntry = null;
 
@@ -552,9 +619,23 @@ function shiftDietDay(days) {
 }
 
 function handleGlobalKeydown(event) {
+  if (event.key === "Escape") {
+    if (document.body.classList.contains("delete-confirm-open")) {
+      event.preventDefault();
+      closeDeleteConfirm();
+      return;
+    }
+
+    if (document.body.classList.contains("calendar-open")) {
+      event.preventDefault();
+      closeCalendar();
+      return;
+    }
+  }
+
   const activeElement = document.activeElement;
   const isTyping = activeElement?.matches?.("input, textarea, select, button") || activeElement?.isContentEditable;
-  const isOverlayOpen = document.body.classList.contains("calendar-open") || document.body.classList.contains("quick-entry-open") || document.body.classList.contains("auth-locked");
+  const isOverlayOpen = document.body.classList.contains("calendar-open") || document.body.classList.contains("quick-entry-open") || document.body.classList.contains("auth-locked") || document.body.classList.contains("delete-confirm-open");
 
   if (isTyping || isOverlayOpen || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
 
@@ -603,11 +684,13 @@ async function fetchJson(url, options = {}, didRetry = false) {
     }
   });
   let data = null;
+  let parseOk = true;
 
   try {
     data = await res.json();
   } catch {
     data = {};
+    parseOk = false;
   }
 
   if (!res.ok) {
@@ -617,7 +700,8 @@ async function fetchJson(url, options = {}, didRetry = false) {
       throw createAuthError("Access key incorrect");
     }
 
-    throw new Error(data.error || data.detail?.message || "Request failed");
+    const message = parseOk && (data.error || data.detail?.message);
+    throw new Error(message || `Request failed (${res.status})`);
   }
 
   return data;
@@ -742,11 +826,16 @@ function renderInitialLoadingState() {
   }
 }
 
-async function deleteEntry() {
-  if (!todayEntry || !confirm("Delete this entry?")) return;
+function deleteEntry() {
+  openDeleteConfirm();
+}
+
+async function confirmDeleteEntry() {
+  if (!todayEntry) return;
 
   setLoading(true);
   setStatus("Deleting...");
+  closeDeleteConfirm();
 
   try {
     await fetchJson(`${API_BASE}/api/delete`, {
@@ -1126,13 +1215,21 @@ async function loadWeekSummary(successMessage) {
 
     setStatus("Could not load summary");
     setSummaryRefreshing(false);
-    document.getElementById("daily-result").innerHTML = `
-      <section class="daily-card empty">
-        <h2>Unable to load data</h2>
-        <p class="empty-state">${error.message || "Please try again later."}</p>
-      </section>
-    `;
-    document.getElementById("weekly-summary").innerHTML = "";
+    const dailyResult = document.getElementById("daily-result");
+    if (dailyResult) {
+      const section = document.createElement("section");
+      section.className = "daily-card empty";
+      const h2 = document.createElement("h2");
+      h2.textContent = "Unable to load data";
+      const p = document.createElement("p");
+      p.className = "empty-state";
+      p.textContent = error.message || "Please try again later.";
+      section.appendChild(h2);
+      section.appendChild(p);
+      dailyResult.replaceChildren(section);
+    }
+    const weeklySummary = document.getElementById("weekly-summary");
+    if (weeklySummary) weeklySummary.innerHTML = "";
   }
 }
 
@@ -1256,6 +1353,7 @@ function initApp() {
   document.getElementById("today-form")?.addEventListener("submit", handleFormSubmit);
   document.getElementById("targets-form")?.addEventListener("submit", handleTargetsSubmit);
   document.getElementById("diet-day")?.addEventListener("click", openCalendar);
+  document.getElementById("closeCalendarBtn")?.addEventListener("click", closeCalendar);
   document.getElementById("calendarBackdrop")?.addEventListener("click", closeCalendar);
   document.getElementById("calendarGrid")?.addEventListener("click", handleCalendarDayClick);
   document.getElementById("prevDayBtn")?.addEventListener("click", () => shiftDietDay(-1));
@@ -1263,6 +1361,9 @@ function initApp() {
   document.getElementById("weekly-summary")?.addEventListener("click", handleTrendDayClick);
   document.getElementById("daily-result")?.addEventListener("click", handleDailyMetricClick);
   document.getElementById("deleteBtn")?.addEventListener("click", deleteEntry);
+  document.getElementById("deleteConfirmBackdrop")?.addEventListener("click", closeDeleteConfirm);
+  document.getElementById("cancelDeleteBtn")?.addEventListener("click", closeDeleteConfirm);
+  document.getElementById("confirmDeleteBtn")?.addEventListener("click", confirmDeleteEntry);
   document.getElementById("closeQuickEntryBtn")?.addEventListener("click", closeQuickEntry);
   document.getElementById("quickEntryBackdrop")?.addEventListener("click", closeQuickEntry);
   document.getElementById("calories")?.addEventListener("input", handleCaloriesInput);

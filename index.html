@@ -11,7 +11,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Calorie Tracker">
-  <link rel="stylesheet" href="style.css?v=20260511-0055">
+  <link rel="stylesheet" href="style.css?v=20260511-0135">
 </head>
 <body class="auth-locked">
   <section id="accessGate" class="access-gate" aria-label="Access gate">
@@ -60,15 +60,28 @@
     <div id="quickEntryBackdrop" class="quick-entry-backdrop" hidden></div>
     <div id="calendarBackdrop" class="calendar-backdrop" hidden></div>
 
-    <section id="calendarPanel" class="calendar-panel" aria-label="Date picker" hidden>
+    <section id="calendarPanel" class="calendar-panel" role="dialog" aria-modal="true" aria-label="Date picker" hidden>
       <div class="calendar-header">
         <strong id="calendarTitle">Select date</strong>
+        <button id="closeCalendarBtn" class="icon-btn calendar-close-btn" type="button" aria-label="Close date picker">×</button>
         <span id="calendarMonthLabel" class="calendar-month-label"></span>
       </div>
       <div class="calendar-weekdays-fixed" aria-hidden="true">
         <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
       </div>
       <div id="calendarGrid" class="calendar-months"></div>
+    </section>
+
+    <div id="deleteConfirmBackdrop" class="delete-confirm-backdrop" hidden></div>
+    <section id="deleteConfirmPanel" class="delete-confirm-panel" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle" aria-describedby="deleteConfirmText" hidden>
+      <div>
+        <strong id="deleteConfirmTitle">Delete entry?</strong>
+        <p id="deleteConfirmText">This removes the selected day's calories and protein.</p>
+      </div>
+      <div class="delete-confirm-actions">
+        <button id="cancelDeleteBtn" class="secondary-btn" type="button">Cancel</button>
+        <button id="confirmDeleteBtn" class="danger-btn" type="button">Delete</button>
+      </div>
     </section>
 
     <form id="today-form" class="settlement-form">
@@ -129,6 +142,6 @@
     </details>
   </main>
 
-  <script src="app.js?v=20260511-0055"></script>
+  <script src="app.js?v=20260511-0135"></script>
 </body>
 </html>

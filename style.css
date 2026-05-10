@@ -88,6 +88,10 @@ body.calendar-open {
   overflow: hidden;
 }
 
+body.delete-confirm-open {
+  overflow: hidden;
+}
+
 body.auth-locked {
   overflow: hidden;
 }
@@ -266,6 +270,16 @@ h1 {
   padding: 6px 14px;
 }
 
+.calendar-close-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 38px;
+  min-height: 38px;
+  font-size: 24px;
+  line-height: 1;
+}
+
 .calendar-month-label {
   justify-self: start;
   color: var(--text);
@@ -361,6 +375,55 @@ h1 {
 .calendar-day:not(:disabled):hover {
   background: var(--accent-soft);
   transform: translateY(-1px);
+}
+
+.delete-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(18px);
+}
+
+.delete-confirm-panel {
+  position: fixed;
+  left: 50%;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 21;
+  width: min(390px, calc(100% - 32px));
+  display: grid;
+  gap: 16px;
+  transform: translateX(-50%);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-solid) 94%, transparent);
+  backdrop-filter: blur(28px);
+  box-shadow: var(--shadow-strong);
+  padding: 18px;
+  animation: quick-entry-in 220ms ease both;
+}
+
+.delete-confirm-panel strong {
+  display: block;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.delete-confirm-panel p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.delete-confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.delete-confirm-actions .secondary-btn,
+.delete-confirm-actions .danger-btn {
+  width: 100%;
 }
 
 .access-gate {

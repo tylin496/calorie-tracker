@@ -179,6 +179,13 @@ export default async function handler(req, res) {
       });
     }
 
+    // Allow up to tomorrow UTC to handle clients in UTC+ timezones
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 1);
+    if (new Date(`${date}T00:00:00Z`) > maxDate) {
+      return res.status(400).json({ error: "Cannot log entries for future dates" });
+    }
+
     const properties = buildProperties(
       date,
       Math.round(calories),
@@ -210,8 +217,7 @@ export default async function handler(req, res) {
     console.error(error);
 
     return res.status(error.status || 500).json({
-      error: "API error",
-      detail: error.data || error.message || error
+      error: "API error"
     });
   }
 }

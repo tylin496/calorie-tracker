@@ -130,8 +130,7 @@ export default async function handler(req, res) {
     console.error(error);
 
     return res.status(error.status || 500).json({
-      error: "API error",
-      detail: error.data || error.message || error
+      error: "API error"
     });
   }
 }
