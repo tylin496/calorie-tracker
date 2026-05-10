@@ -190,7 +190,11 @@ function updateEntryForm() {
     proteinCard.dataset.target = `Target ${formatInt(PROTEIN_TARGET)}g`;
   }
 
-  if (deleteBtn) deleteBtn.hidden = !todayEntry;
+  if (deleteBtn) {
+    deleteBtn.hidden = !todayEntry;
+    deleteBtn.textContent = "Delete";
+    deleteBtn.setAttribute("aria-label", "Delete this entry");
+  }
   if (saveBtn) {
     if (todayEntry) {
       saveBtn.textContent = "Update Entry";
