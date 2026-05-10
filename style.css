@@ -1038,9 +1038,15 @@ input[type="number"] {
   color: color-mix(in srgb, var(--danger) 82%, var(--text));
 }
 
+.settlement-line.surplus .settlement-track {
+  background: color-mix(in srgb, var(--danger) 12%, var(--border));
+}
+
 .settlement-line.surplus .settlement-track span {
-  background: color-mix(in srgb, var(--muted) 52%, var(--surface-muted));
-  box-shadow: none;
+  background: color-mix(in srgb, var(--danger) 82%, var(--text));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--danger) 18%, transparent),
+    0 0 10px color-mix(in srgb, var(--danger) 16%, transparent);
 }
 
 .settlement-line.celebrated .settlement-track span {
