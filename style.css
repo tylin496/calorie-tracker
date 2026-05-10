@@ -829,10 +829,10 @@ input[type="number"] {
 }
 
 .settlement-line.surplus .settlement-track span {
-  background: var(--danger);
+  background: var(--accent);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--danger) 18%, transparent),
-    0 0 10px color-mix(in srgb, var(--danger) 16%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent),
+    0 0 10px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .card-header {
