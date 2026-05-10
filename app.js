@@ -619,7 +619,6 @@ function renderSummary(summary) {
         </div>
       </div>
       ${renderTrendBars(summary.entries || [])}
-      <p class="trend-legend">Solid bars are logged days. Dashed bars still need data.</p>
       <p class="subtle-text" style="margin-top:10px;">Weekly pattern: ${consistency}</p>
     </section>
   `;

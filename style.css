@@ -868,16 +868,6 @@ button:focus-visible {
   font-weight: 800;
 }
 
-.trend-legend {
-  margin: 12px 0 0;
-  border-radius: 8px;
-  background: var(--surface-muted);
-  color: var(--muted);
-  padding: 9px 10px;
-  font-size: 13px;
-  font-weight: 800;
-}
-
 .empty-state,
 .warning-text {
   margin: 0;
