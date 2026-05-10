@@ -965,6 +965,25 @@ input[type="number"] {
   text-align: left;
 }
 
+.daily-metric.rewarded strong,
+.daily-metric.on-track strong,
+.daily-metric.caution strong,
+.daily-card.surplus .daily-metric strong {
+  color: var(--text);
+}
+
+.daily-metric.rewarded .metric-note,
+.daily-metric.on-track .metric-note,
+.daily-metric > .metric-note.reward {
+  color: var(--accent);
+}
+
+.daily-metric.caution .metric-note,
+.daily-metric > .metric-note.negative,
+.daily-card.surplus .daily-metric:nth-child(3) > span:last-child {
+  color: var(--danger-deep);
+}
+
 .daily-metric > span:last-child {
   display: block;
   margin-top: 6px;
