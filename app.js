@@ -183,7 +183,8 @@ function updateEntryForm() {
   }
 
   if (caloriesCard) {
-    caloriesCard.dataset.target = `Target ${formatInt(TDEE)}`;
+    const calorieIntakeTarget = Math.max(0, TDEE - DEFICIT_TARGET);
+    caloriesCard.dataset.target = `Target ${formatInt(calorieIntakeTarget)} kcal`;
   }
 
   if (proteinCard) {
@@ -634,6 +635,11 @@ function renderSummary(summary) {
     const proteinResult = getProteinResult(today.protein);
     const roundedCalories = roundInt(today.calories);
     const roundedProtein = roundInt(today.protein);
+    const calorieIntakeTarget = Math.max(0, entryTdee - DEFICIT_TARGET);
+    const deficitOverTarget = Math.max(roundInt(calorieResult.deficit - DEFICIT_TARGET), 0);
+    const deficitSummary = deficitOverTarget > 0
+      ? `+${formatInt(deficitOverTarget)} over goal`
+      : `Goal ${formatInt(DEFICIT_TARGET)}`;
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone}">
@@ -646,17 +652,17 @@ function renderSummary(summary) {
           <div class="daily-metric">
             <span class="metric-label">Calories</span>
             <strong>${formatInt(roundedCalories)}</strong>
-            <span>kcal</span>
+            <span>kcal · Target ${formatInt(calorieIntakeTarget)}</span>
           </div>
           <div class="daily-metric">
             <span class="metric-label">Protein</span>
             <strong>${formatInt(roundedProtein)}</strong>
-            <span>g / ${formatInt(PROTEIN_TARGET)}g</span>
+            <span>g · Target ${formatInt(PROTEIN_TARGET)}</span>
           </div>
           <div class="daily-metric">
             <span class="metric-label">Deficit</span>
             <strong>${formatInt(calorieResult.deficit)}</strong>
-            <span>kcal / ${formatInt(DEFICIT_TARGET)} kcal · TDEE ${formatInt(entryTdee)}</span>
+            <span>kcal · ${deficitSummary}</span>
           </div>
         </div>
 
@@ -664,7 +670,7 @@ function renderSummary(summary) {
           <div class="settlement-line ${calorieResult.celebrated ? "celebrated" : "neutral"}">
             <div class="settlement-line-top">
               <strong>${calorieResult.status}</strong>
-              <span>${formatInt(calorieResult.deficit)} / ${formatInt(DEFICIT_TARGET)} kcal</span>
+              <span>${formatInt(calorieResult.deficit)} / ${formatInt(DEFICIT_TARGET)} kcal${calorieResult.celebrated ? " ✓" : ""}</span>
             </div>
             <div class="settlement-track" aria-hidden="true">
               <span style="width:${calorieResult.progress}%"></span>
@@ -693,17 +699,17 @@ function renderSummary(summary) {
           <div class="daily-metric">
             <span class="metric-label">Calories</span>
             <strong>--</strong>
-            <span>kcal</span>
+            <span>Target ${formatInt(Math.max(0, TDEE - DEFICIT_TARGET))} kcal</span>
           </div>
           <div class="daily-metric">
             <span class="metric-label">Protein</span>
             <strong>--</strong>
-            <span>g / ${formatInt(PROTEIN_TARGET)}g</span>
+            <span>Target ${formatInt(PROTEIN_TARGET)}g</span>
           </div>
           <div class="daily-metric">
             <span class="metric-label">Deficit</span>
             <strong>--</strong>
-            <span>kcal / ${formatInt(DEFICIT_TARGET)} kcal</span>
+            <span>Goal ${formatInt(DEFICIT_TARGET)} kcal</span>
           </div>
         </div>
         <p class="empty-state">Add calories and protein when ready.</p>
@@ -732,7 +738,7 @@ function renderSummary(summary) {
         </div>
       </div>
       ${renderTrendBars(summary.entries || [])}
-      <p class="subtle-text" style="margin-top:10px;">Trend: ${consistency}</p>
+      <p class="subtle-text trend-summary" style="margin-top:10px;"><strong>Weekly Trend</strong><span>${consistency}</span></p>
     </section>
   `;
 
