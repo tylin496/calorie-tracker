@@ -32,7 +32,6 @@
 }
 
 .daily-metric .metric-label,
-.daily-metric strong,
 .daily-metric > span,
 .week-snapshot .metric .metric-label,
 .week-snapshot .metric .metric-value {
@@ -44,7 +43,6 @@
 }
 
 .daily-metric:first-child .metric-label,
-.daily-metric:first-child strong,
 .daily-metric:first-child > span {
   text-align: left;
 }
@@ -931,6 +929,9 @@ input[type="number"] {
 .daily-metric > * {
   width: 100%;
   justify-self: start;
+}
+
+.daily-metric > :not(strong) {
   text-align: left;
 }
 
@@ -966,7 +967,7 @@ input[type="number"] {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   letter-spacing: -0.035em;
-  text-align: left;
+  text-align: center;
 }
 
 .daily-metric.rewarded strong,
@@ -1703,6 +1704,7 @@ input[type="number"] {
     margin-top: 10px;
     font-size: clamp(30px, 8.8vw, 38px);
     letter-spacing: -0.045em;
+    text-align: center;
   }
 
   .daily-metric > span:last-child {
