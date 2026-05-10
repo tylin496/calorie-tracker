@@ -11,7 +11,6 @@ let currentDate = getDietDate();
 let toastTimer = null;
 let autoSubmitArmed = true;
 let didAutoOpenQuickEntry = false;
-let didOptimisticQuickEntryOpen = false;
 let calendarMonth = getMonthStart(currentDate);
 
 function getDietDate() {
@@ -253,6 +252,19 @@ function setEntryFormVisible(isVisible) {
   }
 }
 
+function hideEntryFormWhileLoading() {
+  const form = document.getElementById("today-form");
+  const editToggle = document.getElementById("entryEditToggle");
+
+  if (form) form.hidden = true;
+
+  if (editToggle) {
+    editToggle.hidden = true;
+    editToggle.setAttribute("aria-expanded", "false");
+    editToggle.textContent = "Edit Entry";
+  }
+}
+
 function toggleEntryEditForm(editToggle) {
   const form = document.getElementById("today-form");
   const isExpanded = editToggle.getAttribute("aria-expanded") === "true";
@@ -308,14 +320,6 @@ function openQuickEntry() {
     calories.focus();
     calories.select();
   }, 80);
-}
-
-function openQuickEntryOptimistically() {
-  if (currentDate !== getDietDate() || getLastLoggedDate() === currentDate) return;
-
-  didAutoOpenQuickEntry = true;
-  didOptimisticQuickEntryOpen = true;
-  openQuickEntry();
 }
 
 function closeQuickEntry() {
@@ -427,14 +431,8 @@ function setDietDay(date) {
   todayLogged = false;
   todayEntry = null;
 
-  const editToggle = document.getElementById("entryEditToggle");
-  if (editToggle) {
-    editToggle.setAttribute("aria-expanded", "false");
-    editToggle.textContent = "Edit Entry";
-  }
-
   updateDietDayDisplay();
-  updateEntryForm();
+  hideEntryFormWhileLoading();
   loadWeekSummary();
 }
 
@@ -862,11 +860,15 @@ function renderSummary(summary) {
 }
 
 async function loadWeekSummary(successMessage) {
+  const requestedDate = currentDate;
+
   updateDietDayDisplay();
   setStatus("Loading...");
 
   try {
-    const data = await fetchJson(`${API_BASE}/api/summary?today=${encodeURIComponent(currentDate)}&tdee=${encodeURIComponent(TDEE)}`);
+    const data = await fetchJson(`${API_BASE}/api/summary?today=${encodeURIComponent(requestedDate)}&tdee=${encodeURIComponent(TDEE)}`);
+
+    if (requestedDate !== currentDate) return;
 
     todayLogged = Boolean(data.summary.todayLogged);
     todayEntry = data.summary.todayEntry;
@@ -880,11 +882,6 @@ async function loadWeekSummary(successMessage) {
     updateEntryForm();
     renderSummary(data.summary);
     setStatus(successMessage || "");
-
-    if (todayEntry && didOptimisticQuickEntryOpen && isQuickEntryOpen()) {
-      closeQuickEntry();
-      didOptimisticQuickEntryOpen = false;
-    }
 
     if (!didAutoOpenQuickEntry && currentDate === getDietDate() && !todayEntry) {
       didAutoOpenQuickEntry = true;
@@ -1010,7 +1007,6 @@ function handleAccessSubmit(event) {
 
   localStorage.setItem(ACCESS_KEY_STORAGE_KEY, accessKey);
   hideAccessGate();
-  openQuickEntryOptimistically();
   setStatus("Unlocking...");
   loadConfig()
     .then(() => loadWeekSummary())
@@ -1052,7 +1048,6 @@ function initApp() {
 
   if (getStoredAccessKey()) {
     hideAccessGate();
-    openQuickEntryOptimistically();
     loadConfig()
       .then(() => loadWeekSummary())
       .catch((error) => {

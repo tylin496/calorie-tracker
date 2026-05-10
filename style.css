@@ -390,7 +390,7 @@ h1 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  margin: 14px 0 6px;
+  margin: 10px 0 6px;
   animation: rise-in 300ms ease both;
 }
 
@@ -583,6 +583,29 @@ button:focus-visible {
   position: relative;
   z-index: 20;
   pointer-events: auto;
+  min-height: 34px;
+  margin: 8px 0 4px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-solid) 48%, transparent);
+  box-shadow: none;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  backdrop-filter: blur(16px);
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.entry-edit-toggle:hover {
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--accent-soft) 34%, var(--surface));
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+.entry-edit-toggle:active {
+  transform: scale(0.98);
 }
 
 #deleteBtn {
