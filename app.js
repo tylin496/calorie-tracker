@@ -171,6 +171,7 @@ function updateEntryForm() {
   const caloriesCard = calories?.closest(".input-card");
   const proteinCard = protein?.closest(".input-card");
   const isViewingToday = currentDate === getDietDate();
+  const form = document.getElementById("today-form");
 
   if (calories) {
     calories.value = todayEntry ? roundInt(todayEntry.calories) : "";
@@ -203,6 +204,9 @@ function updateEntryForm() {
       saveBtn.textContent = isViewingToday ? "Commit Today" : "Save Entry";
     }
   }
+  if (form) {
+    form.hidden = Boolean(todayEntry) && !isViewingToday && !isQuickEntryOpen();
+  }
 }
 
 function setLoading(isLoading) {
@@ -219,6 +223,7 @@ function isQuickEntryOpen() {
 
 function openQuickEntry() {
   const form = document.getElementById("today-form");
+  if (form) form.hidden = false;
   const backdrop = document.getElementById("quickEntryBackdrop");
   const calories = document.getElementById("calories");
   const protein = document.getElementById("protein");
@@ -253,6 +258,9 @@ function openQuickEntryOptimistically() {
 
 function closeQuickEntry() {
   const form = document.getElementById("today-form");
+  if (form && todayEntry && currentDate !== getDietDate()) {
+    form.hidden = true;
+  }
   const backdrop = document.getElementById("quickEntryBackdrop");
 
   if (form) form.classList.remove("quick-entry");
