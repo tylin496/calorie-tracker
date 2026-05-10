@@ -781,11 +781,41 @@ input[type="number"] {
   transition: opacity 180ms ease, transform 220ms ease, filter 220ms ease;
 }
 
+
 #daily-result.content-refreshing,
 #weekly-summary.content-refreshing {
   opacity: 0.58;
   transform: translateY(6px);
   filter: saturate(0.86);
+}
+
+.loading-card {
+  animation: initial-loading-in 240ms ease both;
+}
+
+.loading-card .daily-card-top,
+.loading-card .card-header {
+  margin-bottom: 0;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 56px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--muted) 22%, transparent);
+  border-top-color: var(--accent);
+  animation: loading-spin 760ms linear infinite;
 }
 
 .card {
@@ -1425,6 +1455,22 @@ input[type="number"] {
 .save-celebration.visible .celebration-confetti span {
   animation: confetti-pop 1100ms cubic-bezier(0.18, 0.8, 0.22, 1) forwards;
   animation-delay: calc(var(--i) * 18ms);
+}
+@keyframes initial-loading-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes rise-in {

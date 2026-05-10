@@ -488,9 +488,14 @@ function setDietDay(date) {
   todayLogged = false;
   todayEntry = null;
 
-  updateDietDayDisplay();
-  hideEntryFormWhileLoading();
-  loadWeekSummary();
+updateDietDayDisplay();
+updateTargetForm();
+
+document.querySelectorAll('[data-unit="protein"]').forEach((el) => {
+  el.textContent = "g";
+});
+
+renderInitialLoadingState();
 }
 
 function shiftDietDay(days) {
@@ -655,6 +660,41 @@ function setSummaryRefreshing(isRefreshing) {
         </section>
       `;
     }
+  }
+}
+
+function renderInitialLoadingState() {
+  const daily = document.getElementById("daily-result");
+  const weekly = document.getElementById("weekly-summary");
+
+  if (daily) {
+    daily.innerHTML = `
+      <section class="daily-card loading-card">
+        <div class="daily-card-top">
+          <span class="day-label">Today</span>
+          <span class="status-pill logged">Loading</span>
+        </div>
+        <div class="loading-state">
+          <span class="loading-spinner" aria-hidden="true"></span>
+          <span>Loading your log…</span>
+        </div>
+      </section>
+    `;
+  }
+
+  if (weekly) {
+    weekly.innerHTML = `
+      <section class="card week-card loading-card">
+        <div class="card-header">
+          <h2>This Week</h2>
+          <span class="status-pill logged">Loading</span>
+        </div>
+        <div class="loading-state">
+          <span class="loading-spinner" aria-hidden="true"></span>
+          <span>Syncing summary…</span>
+        </div>
+      </section>
+    `;
   }
 }
 
@@ -1197,6 +1237,7 @@ function initApp() {
   });
   updateDietDayDisplay();
   updateTargetForm();
+  renderInitialLoadingState();
 
   if (getStoredAccessKey()) {
     hideAccessGate();
