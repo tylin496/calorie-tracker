@@ -687,14 +687,6 @@ input[type="number"] {
   position: relative;
 }
 
-.daily-card.deficit {
-  border-color: var(--border);
-}
-
-.daily-card.surplus {
-  border-color: var(--border);
-}
-
 .daily-card.empty {
   border-color: color-mix(in srgb, var(--danger) 34%, var(--border));
   background: var(--surface);
@@ -998,7 +990,6 @@ input[type="number"] {
   color: var(--danger);
 }
 
-
 .trend-day.future {
   opacity: 0.36;
 }
@@ -1021,15 +1012,6 @@ input[type="number"] {
   color: var(--muted);
 }
 
-
-.settlement-line.neutral {
-  color: var(--text);
-}
-
-.settlement-line.neutral .settlement-track span {
-  background: var(--accent);
-}
-
 .settlement-line.celebrated strong,
 .settlement-line.celebrated span {
   color: var(--accent);
@@ -1050,10 +1032,15 @@ input[type="number"] {
 }
 
 .settlement-line.surplus .settlement-track span {
-  background: color-mix(in srgb, var(--danger) 82%, var(--text));
+  background: var(--danger);
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--danger) 18%, transparent),
     0 0 10px color-mix(in srgb, var(--danger) 16%, transparent);
+}
+
+.daily-card.surplus .daily-metric:nth-child(3) strong,
+.daily-card.surplus .daily-metric:nth-child(3) > span:last-child {
+  color: var(--text);
 }
 
 .settlement-line.celebrated .settlement-track span {
