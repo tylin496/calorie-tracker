@@ -234,24 +234,26 @@ function updateEntryForm() {
     if (shouldCollapsePastEntry) {
       const isExpanded = editToggle?.getAttribute("aria-expanded") === "true";
       if (editToggle) editToggle.textContent = isExpanded ? "Hide Entry Form" : "Edit Entry";
-      setEntryFormControlsVisible(isExpanded);
+      setEntryFormVisible(isExpanded);
     } else {
-      setEntryFormControlsVisible(true);
+      setEntryFormVisible(true);
     }
   }
 }
 
-function setEntryFormControlsVisible(isVisible) {
+function setEntryFormVisible(isVisible) {
   const form = document.getElementById("today-form");
   if (!form) return;
 
+  form.hidden = !isVisible;
+
   form.querySelectorAll(".input-card, #saveBtn").forEach((element) => {
-    element.hidden = !isVisible;
+    element.hidden = false;
   });
 
   const deleteBtn = document.getElementById("deleteBtn");
   if (deleteBtn) {
-    deleteBtn.hidden = !isVisible || !todayEntry;
+    deleteBtn.hidden = !todayEntry;
   }
 }
 
@@ -262,8 +264,7 @@ function toggleEntryEditForm(editToggle) {
 
   editToggle.setAttribute("aria-expanded", String(nextExpanded));
   editToggle.textContent = nextExpanded ? "Hide Entry Form" : "Edit Entry";
-  if (form) form.hidden = false;
-  setEntryFormControlsVisible(nextExpanded);
+  if (form) setEntryFormVisible(nextExpanded);
 }
 
 function handleEntryEditToggleClick(event) {
@@ -333,7 +334,7 @@ function closeQuickEntry() {
       editToggle.textContent = "Edit Entry";
     }
 
-    setEntryFormControlsVisible(false);
+    setEntryFormVisible(false);
   }
   const backdrop = document.getElementById("quickEntryBackdrop");
 
