@@ -997,6 +997,23 @@ input[type="number"] {
   color: var(--accent);
 }
 
+.settlement-line.celebrated small {
+  color: var(--accent);
+}
+
+.settlement-line.surplus strong,
+.settlement-line.surplus span,
+.settlement-line.surplus small {
+  color: var(--danger);
+}
+
+.settlement-line.surplus .settlement-track span {
+  background: var(--danger);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--danger) 20%, transparent),
+    0 0 12px color-mix(in srgb, var(--danger) 18%, transparent);
+}
+
 .settlement-line.celebrated .settlement-track span {
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent),

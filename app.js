@@ -655,7 +655,7 @@ function renderSummary(summary) {
       ? `<span class="metric-note negative">${formatInt(calorieResult.surplus)} kcal surplus</span>`
       : deficitOverTarget > 0
         ? `<span class="metric-note positive">+${formatInt(deficitOverTarget)} over goal</span>`
-        : "";
+        : `<span>Goal ${formatInt(DEFICIT_TARGET)} kcal</span>`;
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone}">
