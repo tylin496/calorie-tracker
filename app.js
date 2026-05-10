@@ -127,10 +127,12 @@ function updateTargetForm() {
   const tdeeInput = document.getElementById("tdeeInput");
   const proteinInput = document.getElementById("proteinTargetInput");
   const deficitInput = document.getElementById("deficitTargetInput");
+  const summary = document.getElementById("targetSummary");
 
   if (tdeeInput) tdeeInput.value = TDEE;
   if (proteinInput) proteinInput.value = PROTEIN_TARGET;
   if (deficitInput) deficitInput.value = DEFICIT_TARGET;
+  if (summary) summary.textContent = `${TDEE} kcal · ${PROTEIN_TARGET}g protein · ${DEFICIT_TARGET} kcal deficit`;
 }
 
 function updateEntryForm() {
@@ -444,11 +446,11 @@ function getCalorieResult(calories) {
   return {
     deficit,
     tone: deficit >= DEFICIT_TARGET ? "deficit" : "surplus",
-    status: "赤字",
+    status: "Deficit",
     detail:
       deficit >= DEFICIT_TARGET
-        ? `${deficit} kcal · 達標`
-        : `${deficit} kcal · 差 ${Math.abs(gap)} kcal`
+        ? `${deficit} kcal · target hit`
+        : `${deficit} kcal · ${Math.abs(gap)} kcal short`
   };
 }
 
@@ -470,23 +472,30 @@ function getProteinResult(protein) {
 
 function renderTrendBars(entries) {
   const weekEntries = entries || [];
+  const entryByDate = new Map(weekEntries.map((entry) => [entry.date, entry]));
   const maxCalories = Math.max(TDEE, ...weekEntries.map((entry) => entry.calories || 0));
-
-  if (!weekEntries.length) {
-    return `<p class="empty-state">No weekly trend yet.</p>`;
-  }
+  const start = getWeekStart(currentDate);
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+    return date;
+  });
 
   return `
     <div class="trend-bars" aria-label="Weekly calorie trend">
-      ${weekEntries
-        .map((entry) => {
-          const height = Math.max(18, Math.round(((entry.calories || 0) / maxCalories) * 76));
-          const isSelected = entry.date === currentDate;
-          const day = new Date(`${entry.date}T12:00:00`).toLocaleDateString("en-US", { weekday: "short" });
+      ${days
+        .map((date) => {
+          const dateString = formatDate(date);
+          const entry = entryByDate.get(dateString);
+          const isMissing = !entry;
+          const height = entry ? Math.max(18, Math.round(((entry.calories || 0) / maxCalories) * 76)) : 34;
+          const isSelected = dateString === currentDate;
+          const isFuture = isFutureDate(dateString);
+          const day = date.toLocaleDateString("en-US", { weekday: "short" });
 
           return `
-            <div class="trend-day ${isSelected ? "selected" : ""}">
-              <div class="trend-bar" style="height:${height}px" title="${entry.date}: ${entry.calories} kcal"></div>
+            <div class="trend-day ${isSelected ? "selected" : ""} ${isMissing ? "missing" : ""} ${isFuture ? "future" : ""}">
+              <div class="trend-bar" style="height:${height}px" title="${dateString}: ${entry ? `${entry.calories} kcal` : "No data"}"></div>
               <span>${day}</span>
             </div>
           `;
@@ -496,23 +505,12 @@ function renderTrendBars(entries) {
   `;
 }
 
-function getWeekMissingDays(summary) {
-  const entries = summary.entries || [];
-  const loggedDates = new Set(entries.map((entry) => entry.date));
-  const start = new Date(`${summary.weekStart}T12:00:00`);
-  const end = new Date(`${summary.weekEnd}T12:00:00`);
-  const today = new Date(`${getTodayDate()}T12:00:00`);
-  const last = end > today ? today : end;
-  const missing = [];
-
-  for (const d = new Date(start); d <= last; d.setDate(d.getDate() + 1)) {
-    const date = formatDate(d);
-    if (!loggedDates.has(date)) {
-      missing.push(d.toLocaleDateString("en-US", { weekday: "short" }));
-    }
-  }
-
-  return missing;
+function getWeekStart(dateString) {
+  const date = new Date(`${dateString}T12:00:00`);
+  const day = date.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  date.setDate(date.getDate() + diffToMonday);
+  return date;
 }
 
 function renderSummary(summary) {
@@ -537,14 +535,21 @@ function renderSummary(summary) {
           <span class="status-pill logged">Logged</span>
         </div>
 
-        <div class="hero-result">
-          <div>
-            <span class="hero-value">${today.calories.toLocaleString()}</span>
-            <span class="hero-unit">kcal</span>
+        <div class="daily-metrics">
+          <div class="daily-metric">
+            <span class="metric-label">Calories</span>
+            <strong>${today.calories.toLocaleString()}</strong>
+            <span>kcal</span>
           </div>
-          <div>
-            <span class="hero-value secondary">${today.protein}</span>
-            <span class="hero-unit">g protein</span>
+          <div class="daily-metric">
+            <span class="metric-label">Protein</span>
+            <strong>${today.protein}</strong>
+            <span>g / ${PROTEIN_TARGET}g</span>
+          </div>
+          <div class="daily-metric">
+            <span class="metric-label">Deficit</span>
+            <strong>${calorieResult.deficit}</strong>
+            <span>kcal / ${DEFICIT_TARGET} kcal</span>
           </div>
         </div>
 
@@ -571,25 +576,27 @@ function renderSummary(summary) {
           <span class="day-label">${getDayLabel()}</span>
           <span class="status-pill missing">Missing</span>
         </div>
-        <div class="hero-result">
-          <div>
-            <span class="hero-value">--</span>
-            <span class="hero-unit">kcal</span>
+        <div class="daily-metrics">
+          <div class="daily-metric">
+            <span class="metric-label">Calories</span>
+            <strong>--</strong>
+            <span>kcal</span>
           </div>
-          <div>
-            <span class="hero-value secondary">--</span>
-            <span class="hero-unit">g protein</span>
+          <div class="daily-metric">
+            <span class="metric-label">Protein</span>
+            <strong>--</strong>
+            <span>g / ${PROTEIN_TARGET}g</span>
+          </div>
+          <div class="daily-metric">
+            <span class="metric-label">Deficit</span>
+            <strong>--</strong>
+            <span>kcal / ${DEFICIT_TARGET} kcal</span>
           </div>
         </div>
         <p class="empty-state">Settle this day by entering calories and protein below.</p>
       </section>
     `;
   }
-
-  const missingDays = getWeekMissingDays(summary);
-  const missingHtml = missingDays.length
-    ? `<p class="missing-days">Missing: ${missingDays.join(", ")}</p>`
-    : `<p class="missing-days complete">No missing days so far.</p>`;
 
   const weekHtml = `
     <section class="card week-card">
@@ -612,7 +619,7 @@ function renderSummary(summary) {
         </div>
       </div>
       ${renderTrendBars(summary.entries || [])}
-      ${missingHtml}
+      <p class="trend-legend">Solid bars are logged days. Dashed bars still need data.</p>
       <p class="subtle-text" style="margin-top:10px;">Weekly pattern: ${consistency}</p>
     </section>
   `;

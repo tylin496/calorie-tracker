@@ -527,10 +527,18 @@ button:focus-visible {
 }
 
 .settings-panel summary {
-  width: fit-content;
+  width: 100%;
   cursor: pointer;
   touch-action: manipulation;
   font-weight: 700;
+}
+
+.settings-panel summary small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .targets-form {
@@ -654,6 +662,37 @@ button:focus-visible {
   gap: 16px;
   align-items: end;
   margin-bottom: 16px;
+}
+
+.daily-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.daily-metric {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-muted) 74%, transparent);
+  padding: 12px;
+}
+
+.daily-metric strong {
+  display: block;
+  margin-top: 8px;
+  font-size: clamp(28px, 7vw, 38px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.daily-metric > span:last-child {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .hero-value {
@@ -813,25 +852,30 @@ button:focus-visible {
   background: linear-gradient(180deg, #5ac8fa, var(--accent));
 }
 
+.trend-day.missing .trend-bar {
+  border: 1px dashed color-mix(in srgb, var(--muted) 58%, transparent);
+  background: transparent;
+  box-shadow: none;
+}
+
+.trend-day.future {
+  opacity: 0.36;
+}
+
 .trend-day span {
   color: var(--muted);
   font-size: 11px;
   font-weight: 800;
 }
 
-.missing-days {
+.trend-legend {
   margin: 12px 0 0;
   border-radius: 8px;
-  background: var(--danger-bg);
-  color: var(--danger);
+  background: var(--surface-muted);
+  color: var(--muted);
   padding: 9px 10px;
   font-size: 13px;
   font-weight: 800;
-}
-
-.missing-days.complete {
-  background: var(--success-bg);
-  color: var(--success-text);
 }
 
 .empty-state,
@@ -891,6 +935,7 @@ button:focus-visible {
   .metric-grid,
   .week-snapshot,
   .hero-result,
+  .daily-metrics,
   .targets-form {
     grid-template-columns: 1fr;
   }
