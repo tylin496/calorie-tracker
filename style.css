@@ -51,6 +51,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -386,7 +390,7 @@ h1 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  margin: 14px 0 10px;
+  margin: 14px 0 6px;
   animation: rise-in 300ms ease both;
 }
 
@@ -583,10 +587,11 @@ button:focus-visible {
 
 #deleteBtn {
   width: auto;
+  min-height: 18px;
   min-width: 0;
   grid-column: 2;
   justify-self: end;
-  margin: -2px 0 0;
+  margin: -4px 0 0;
   padding: 0 2px;
   display: block;
   border: 0;
@@ -685,6 +690,10 @@ input[type="number"] {
   min-height: 22px;
   color: var(--muted);
   font-size: 14px;
+}
+
+#status:empty {
+  min-height: 0;
 }
 
 .card {
@@ -1226,6 +1235,7 @@ input[type="number"] {
 
   #deleteBtn {
     grid-column: 1 / -1;
+    justify-self: end;
   }
 
   .settlement-form.quick-entry {
@@ -1240,6 +1250,12 @@ input[type="number"] {
 
   .danger-btn {
     margin-top: 10px;
+  }
+
+  #deleteBtn {
+    width: auto;
+    min-height: 18px;
+    margin-top: -4px;
   }
 
   .settlement-line-top {
