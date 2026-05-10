@@ -647,8 +647,35 @@ function triggerSaveReward() {
 }
 
 function setSummaryRefreshing(isRefreshing) {
-  document.getElementById("daily-result")?.classList.toggle("content-refreshing", isRefreshing);
-  document.getElementById("weekly-summary")?.classList.toggle("content-refreshing", isRefreshing);
+  const daily = document.getElementById("daily-result");
+  const weekly = document.getElementById("weekly-summary");
+
+  daily?.classList.toggle("content-refreshing", isRefreshing);
+  weekly?.classList.toggle("content-refreshing", isRefreshing);
+
+  if (isRefreshing) {
+    if (daily && !daily.innerHTML.trim()) {
+      daily.innerHTML = `
+        <section class="daily-card loading-card">
+          <div class="loading-state">
+            <span class="loading-spinner" aria-hidden="true"></span>
+            <span>Loading today…</span>
+          </div>
+        </section>
+      `;
+    }
+
+    if (weekly && !weekly.innerHTML.trim()) {
+      weekly.innerHTML = `
+        <section class="card week-card loading-card">
+          <div class="loading-state">
+            <span class="loading-spinner" aria-hidden="true"></span>
+            <span>Loading week…</span>
+          </div>
+        </section>
+      `;
+    }
+  }
 }
 
 async function deleteEntry() {
