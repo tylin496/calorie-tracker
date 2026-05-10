@@ -272,7 +272,12 @@ function toggleEntryEditForm(editToggle) {
 
   editToggle.setAttribute("aria-expanded", String(nextExpanded));
   editToggle.textContent = nextExpanded ? "Hide Entry Form" : "Edit Entry";
-  if (form) setEntryFormVisible(nextExpanded);
+  if (form) {
+    setEntryFormVisible(nextExpanded);
+    if (nextExpanded) {
+      form.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }
 }
 
 function handleEntryEditToggleClick(event) {
@@ -547,12 +552,22 @@ async function saveEntry(calories, protein) {
     showToast(`Saved · ${formatInt(savedDeficit)} kcal`);
     closeQuickEntry();
     await loadWeekSummary("Entry saved");
+    triggerSaveReward();
   } catch (error) {
     setStatus("Save failed");
     alert(error.message || "Save failed");
   } finally {
     setLoading(false);
   }
+}
+
+function triggerSaveReward() {
+  const card = document.querySelector(".daily-card");
+  if (!card) return;
+
+  card.classList.remove("saved-pulse");
+  void card.offsetWidth;
+  card.classList.add("saved-pulse");
 }
 
 async function deleteEntry() {
@@ -690,16 +705,18 @@ function renderTrendBars(entries) {
           const isFuture = isFutureDate(dateString);
           const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
           const shortDate = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          const valueLabel = entry ? `${formatInt(entry.calories)} kcal` : "No entry";
 
           return `
             <button
               type="button"
               class="trend-day ${isSelected ? "selected" : ""} ${isMissing ? "missing" : ""} ${isFuture ? "future" : ""}"
               data-date="${dateString}"
-              aria-label="Select ${weekday}, ${shortDate}"
+              aria-label="Select ${weekday}, ${shortDate}. ${valueLabel}"
               ${isFuture ? "disabled" : ""}
               ${isSelected ? "aria-current=\"date\"" : ""}
             >
+              <span class="trend-value">${valueLabel}</span>
               <div class="trend-bar" style="height:${height}px" title="${dateString}: ${entry ? `${formatInt(entry.calories)} kcal` : "No data"}"></div>
               <span class="trend-weekday">${weekday}</span>
             </button>
@@ -746,11 +763,17 @@ function renderSummary(summary) {
     const roundedProtein = roundInt(today.protein);
     const calorieIntakeTarget = Math.max(0, entryTdee - DEFICIT_TARGET);
     const deficitOverTarget = Math.max(roundInt(calorieResult.deficit - DEFICIT_TARGET), 0);
+    const proteinOverTarget = Math.max(roundInt(roundedProtein - PROTEIN_TARGET), 0);
     const deficitSummary = calorieResult.isSurplus
       ? `<span class="metric-note negative">${formatInt(calorieResult.surplus)} kcal surplus</span>`
       : deficitOverTarget > 0
         ? `<span style="color: var(--accent); font-weight: 800;">+${formatInt(deficitOverTarget)} over goal</span>`
         : `<span>Goal ${formatInt(DEFICIT_TARGET)} kcal</span>`;
+    const proteinSummary = proteinOverTarget > 0
+      ? `<span style="color: var(--accent); font-weight: 800;">+${formatInt(proteinOverTarget)} over goal</span>`
+      : `<span>Target ${formatInt(PROTEIN_TARGET)} g</span>`;
+    const proteinMetricTone = proteinOverTarget > 0 ? "rewarded" : proteinResult.celebrated ? "on-track" : "";
+    const deficitMetricTone = calorieResult.isSurplus ? "caution" : deficitOverTarget > 0 ? "rewarded" : calorieResult.celebrated ? "on-track" : "";
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone}">
@@ -765,12 +788,12 @@ function renderSummary(summary) {
             <strong>${formatInt(roundedCalories)}</strong>
             <span>Target ${formatInt(calorieIntakeTarget)} kcal</span>
           </div>
-          <div class="daily-metric">
+          <div class="daily-metric ${proteinMetricTone}">
             <span class="metric-label">Protein</span>
             <strong>${formatInt(roundedProtein)}</strong>
-            <span>Target ${formatInt(PROTEIN_TARGET)} g</span>
+            <span>${proteinSummary}</span>
           </div>
-          <div class="daily-metric">
+          <div class="daily-metric ${deficitMetricTone}">
             <span class="metric-label">Deficit</span>
             <strong>${calorieResult.isSurplus ? `+${formatInt(calorieResult.surplus)}` : formatInt(calorieResult.deficit)}</strong>
             <span>${calorieResult.isSurplus ? `Surplus ${formatInt(calorieResult.surplus)} kcal` : deficitSummary}</span>
@@ -850,8 +873,13 @@ function renderSummary(summary) {
           <span class="metric-value">${formatInt(Number(summary.fatLossKg || 0) * 1000)}g</span>
         </div>
       </div>
-      ${renderTrendBars(summary.entries || [])}
-      <p class="subtle-text trend-summary"><strong>Weekly Trend</strong> <span class="trend-status ${consistencyTone}">${consistency}</span></p>
+      <div class="week-trend-panel">
+        <div class="week-trend-header">
+          <span>Daily kcal</span>
+          <strong class="trend-status ${consistencyTone}">${consistency}</strong>
+        </div>
+        ${renderTrendBars(summary.entries || [])}
+      </div>
     </section>
   `;
 
