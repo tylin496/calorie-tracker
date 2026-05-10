@@ -78,6 +78,15 @@ body.calendar-open {
   overflow: hidden;
 }
 
+body.auth-locked {
+  overflow: hidden;
+}
+
+body.auth-locked .app-shell {
+  pointer-events: none;
+  user-select: none;
+}
+
 button,
 input {
   font: inherit;
@@ -278,6 +287,75 @@ h1 {
 
 .calendar-day:not(:disabled):hover {
   background: var(--accent-soft);
+}
+
+.access-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 50% 0, rgba(0, 122, 255, 0.16), transparent 360px),
+    color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(22px);
+}
+
+.access-gate[hidden] {
+  display: none;
+}
+
+.access-card {
+  width: min(390px, 100%);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
+  box-shadow: var(--shadow-strong);
+  padding: 18px;
+}
+
+.access-label {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.access-card h2 {
+  margin: 6px 0 4px;
+  font-size: 28px;
+}
+
+.access-card p {
+  margin: 0 0 14px;
+  color: var(--muted);
+}
+
+.access-card input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-solid);
+  color: var(--text);
+  padding: 0 12px;
+  font: inherit;
+}
+
+.access-card button {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 10px;
+}
+
+.access-error {
+  min-height: 20px;
+  margin-top: 10px;
+  color: var(--danger) !important;
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .settlement-form {

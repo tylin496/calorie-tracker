@@ -67,22 +67,41 @@ function showToast(message) {
   }, 2200);
 }
 
-function getAccessKey() {
-  let accessKey = localStorage.getItem(ACCESS_KEY_STORAGE_KEY);
-
-  if (!accessKey) {
-    accessKey = prompt("Access key");
-
-    if (accessKey) {
-      localStorage.setItem(ACCESS_KEY_STORAGE_KEY, accessKey);
-    }
-  }
-
-  return accessKey;
+function getStoredAccessKey() {
+  return localStorage.getItem(ACCESS_KEY_STORAGE_KEY);
 }
 
 function clearAccessKey() {
   localStorage.removeItem(ACCESS_KEY_STORAGE_KEY);
+}
+
+function createAuthError(message) {
+  const error = new Error(message);
+  error.isAuthError = true;
+  return error;
+}
+
+function showAccessGate(message = "") {
+  const gate = document.getElementById("accessGate");
+  const error = document.getElementById("accessError");
+  const input = document.getElementById("accessKeyInput");
+
+  document.body.classList.add("auth-locked");
+  if (gate) gate.hidden = false;
+  if (error) error.textContent = message;
+
+  setTimeout(() => {
+    input?.focus();
+  }, 60);
+}
+
+function hideAccessGate() {
+  const gate = document.getElementById("accessGate");
+  const error = document.getElementById("accessError");
+
+  document.body.classList.remove("auth-locked");
+  if (gate) gate.hidden = true;
+  if (error) error.textContent = "";
 }
 
 function updateDietDayDisplay() {
@@ -301,10 +320,11 @@ function getFormValues() {
 }
 
 async function fetchJson(url, options = {}, didRetry = false) {
-  const accessKey = getAccessKey();
+  const accessKey = getStoredAccessKey();
 
   if (!accessKey) {
-    throw new Error("Access key required");
+    showAccessGate();
+    throw createAuthError("Access key required");
   }
 
   const res = await fetch(url, {
@@ -325,7 +345,8 @@ async function fetchJson(url, options = {}, didRetry = false) {
   if (!res.ok) {
     if (res.status === 401 && !didRetry) {
       clearAccessKey();
-      return fetchJson(url, options, true);
+      showAccessGate("Access key incorrect");
+      throw createAuthError("Access key incorrect");
     }
 
     throw new Error(data.error || data.detail?.message || "Request failed");
@@ -619,6 +640,11 @@ async function loadWeekSummary(successMessage) {
       openQuickEntry();
     }
   } catch (error) {
+    if (error.isAuthError) {
+      setStatus("Locked");
+      return;
+    }
+
     setStatus("Could not load summary");
     document.getElementById("daily-result").innerHTML = `
       <section class="daily-card empty">
@@ -701,7 +727,25 @@ function handleTargetsSubmit(event) {
   loadWeekSummary("Targets saved");
 }
 
+function handleAccessSubmit(event) {
+  event.preventDefault();
+
+  const input = document.getElementById("accessKeyInput");
+  const accessKey = input?.value.trim();
+
+  if (!accessKey) {
+    showAccessGate("Access key required");
+    return;
+  }
+
+  localStorage.setItem(ACCESS_KEY_STORAGE_KEY, accessKey);
+  hideAccessGate();
+  setStatus("Unlocking...");
+  loadWeekSummary();
+}
+
 function initApp() {
+  document.getElementById("accessForm")?.addEventListener("submit", handleAccessSubmit);
   document.getElementById("today-form")?.addEventListener("submit", handleFormSubmit);
   document.getElementById("targets-form")?.addEventListener("submit", handleTargetsSubmit);
   document.getElementById("diet-day")?.addEventListener("click", openCalendar);
@@ -722,7 +766,14 @@ function initApp() {
 
   updateDietDayDisplay();
   updateTargetForm();
-  loadWeekSummary();
+
+  if (getStoredAccessKey()) {
+    hideAccessGate();
+    loadWeekSummary();
+  } else {
+    showAccessGate();
+    setStatus("Locked");
+  }
 }
 
 document.addEventListener("DOMContentLoaded", initApp);
