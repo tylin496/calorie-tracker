@@ -239,7 +239,7 @@ h1 {
   top: 50%;
   z-index: 11;
   width: min(390px, calc(100% - 32px));
-  max-height: min(720px, calc(100dvh - 32px));
+  max-height: min(620px, calc(100dvh - 32px));
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   transform: translate(-50%, -50%);
@@ -299,7 +299,7 @@ h1 {
   overflow-y: auto;
   overscroll-behavior: contain;
   display: grid;
-  gap: 14px;
+  gap: 10px;
   padding: 8px 0 0;
   scrollbar-width: thin;
 }
@@ -330,7 +330,7 @@ h1 {
 
 .calendar-day {
   min-width: 0;
-  min-height: 42px;
+  min-height: 38px;
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
@@ -361,14 +361,11 @@ h1 {
   -webkit-text-fill-color: var(--text);
 }
 
-.calendar-day.outside {
-  color: color-mix(in srgb, var(--muted) 38%, transparent);
-  -webkit-text-fill-color: color-mix(in srgb, var(--muted) 38%, transparent);
-}
-
-.calendar-day-placeholder {
-  pointer-events: none;
-  visibility: hidden;
+.calendar-day.outside-month,
+.current-calendar-month .calendar-day.outside-month,
+.past-calendar-month .calendar-day.outside-month {
+  color: color-mix(in srgb, var(--muted) 36%, transparent);
+  -webkit-text-fill-color: color-mix(in srgb, var(--muted) 36%, transparent);
 }
 
 .calendar-day.selected {
@@ -398,6 +395,13 @@ h1 {
   cursor: not-allowed;
   opacity: 1;
 }
+.calendar-day.outside-month:disabled,
+.current-calendar-month .calendar-day.outside-month:disabled,
+.past-calendar-month .calendar-day.outside-month:disabled {
+  color: color-mix(in srgb, var(--muted) 36%, transparent);
+  -webkit-text-fill-color: color-mix(in srgb, var(--muted) 36%, transparent);
+  opacity: 1;
+}
 @media (prefers-color-scheme: dark) {
   .calendar-day {
     color: rgba(245, 245, 247, 0.34);
@@ -414,7 +418,9 @@ h1 {
     -webkit-text-fill-color: rgba(245, 245, 247, 0.34);
   }
 
-  .calendar-day.outside {
+  .calendar-day.outside-month,
+  .current-calendar-month .calendar-day.outside-month,
+  .past-calendar-month .calendar-day.outside-month {
     color: rgba(245, 245, 247, 0.24);
     -webkit-text-fill-color: rgba(245, 245, 247, 0.24);
   }
@@ -423,6 +429,13 @@ h1 {
   .calendar-day:disabled {
     color: rgba(245, 245, 247, 0.48);
     -webkit-text-fill-color: rgba(245, 245, 247, 0.48);
+    opacity: 1;
+  }
+  .calendar-day.outside-month:disabled,
+  .current-calendar-month .calendar-day.outside-month:disabled,
+  .past-calendar-month .calendar-day.outside-month:disabled {
+    color: rgba(245, 245, 247, 0.24);
+    -webkit-text-fill-color: rgba(245, 245, 247, 0.24);
     opacity: 1;
   }
 
@@ -2004,6 +2017,24 @@ input[type="number"] {
 }
 
 @media (max-width: 620px) {
+  .calendar-panel {
+    width: min(360px, calc(100% - 24px));
+    max-height: min(560px, calc(100dvh - 24px));
+    padding: 18px 16px 20px;
+  }
+
+  .calendar-header {
+    margin-bottom: 14px;
+  }
+
+  .calendar-months {
+    gap: 8px;
+  }
+
+  .calendar-day {
+    min-height: 36px;
+    font-size: 14px;
+  }
   .app-shell {
     width: min(100% - 20px, 760px);
     padding-top: 18px;

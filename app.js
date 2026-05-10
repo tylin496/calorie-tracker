@@ -568,9 +568,14 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
   firstCell.setDate(monthDate.getDate() - firstDayOffset);
 
   const currentMonth = monthDate.getMonth();
+  const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+  const lastDayOffset = (lastDay.getDay() + 6) % 7;
+  const lastCell = new Date(lastDay);
+  lastCell.setDate(lastDay.getDate() + (6 - lastDayOffset));
+  const dayCount = Math.round((lastCell - firstCell) / 86400000) + 1;
   const cells = [];
 
-  for (let i = 0; i < 42; i += 1) {
+  for (let i = 0; i < dayCount; i += 1) {
     const date = new Date(firstCell);
     date.setDate(firstCell.getDate() + i);
 
@@ -580,14 +585,9 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
     const isToday = dateString === dietTodayString;
     const isFuture = date > dietToday;
 
-    if (isOutsideMonth) {
-      cells.push('<span class="calendar-day calendar-day-placeholder" aria-hidden="true"></span>');
-      continue;
-    }
-
     cells.push(`
       <button
-        class="calendar-day ${isSelected ? "selected" : ""} ${isToday ? "today" : ""}"
+        class="calendar-day ${isSelected ? "selected" : ""} ${isToday ? "today" : ""} ${isOutsideMonth ? "outside-month" : ""}"
         type="button"
         data-date="${dateString}"
         ${isFuture ? "disabled" : ""}
