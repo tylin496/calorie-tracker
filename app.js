@@ -966,7 +966,7 @@ function renderSummary(summary) {
         <div class="settlement-lines">
           <div class="settlement-line ${calorieResult.isSurplus ? "surplus" : calorieResult.celebrated ? "celebrated" : "neutral"}">
             <div class="settlement-line-top">
-              <strong>${calorieResult.isPerfect ? "Perfect!" : calorieResult.status}</strong>
+              <strong>${calorieResult.status}</strong>
               <span>${calorieResult.isSurplus
                 ? `+${formatInt(calorieResult.surplus)} kcal`
                 : `${formatInt(calorieResult.deficit)} / ${formatInt(DEFICIT_TARGET)} kcal`}</span>
@@ -977,7 +977,7 @@ function renderSummary(summary) {
           </div>
           <div class="settlement-line ${proteinResult.celebrated ? "celebrated" : "neutral"}">
             <div class="settlement-line-top">
-              <strong>${proteinResult.isPerfect ? "Perfect!" : proteinResult.status}</strong>
+              <strong>${proteinResult.status}</strong>
               <span>${formatInt(roundedProtein)} / ${formatInt(PROTEIN_TARGET)}g</span>
             </div>
             <div class="settlement-track" aria-hidden="true">
