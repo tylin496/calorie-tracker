@@ -822,6 +822,13 @@ input[type="number"] {
   background: linear-gradient(180deg, #5ac8fa, var(--accent));
 }
 
+.settlement-line.surplus .settlement-track span {
+  background: var(--danger);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--danger) 18%, transparent),
+    0 0 10px color-mix(in srgb, var(--danger) 16%, transparent);
+}
+
 .card-header {
   display: flex;
   align-items: center;
@@ -1048,14 +1055,8 @@ input[type="number"] {
   background: color-mix(in srgb, var(--danger) 12%, var(--border));
 }
 
-.settlement-line.surplus .settlement-track span {
-  background: var(--danger);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--danger) 18%, transparent),
-    0 0 10px color-mix(in srgb, var(--danger) 16%, transparent);
-}
 
-.daily-card.surplus .daily-metric:nth-child(3) > span {
+.daily-card.surplus .daily-metric:nth-child(3) > span:last-child {
   color: var(--danger);
 }
 
