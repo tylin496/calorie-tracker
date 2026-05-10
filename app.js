@@ -11,7 +11,6 @@ let currentDate = getDietDate();
 let toastTimer = null;
 let autoSubmitArmed = true;
 let didAutoOpenQuickEntry = false;
-let calendarMonth = getMonthStart(currentDate);
 let celebrationTimer = null;
 
 function getDietDate() {
@@ -386,7 +385,6 @@ function openCalendar() {
   const backdrop = document.getElementById("calendarBackdrop");
   const editToggle = document.getElementById("entryEditToggle");
 
-  calendarMonth = getMonthStart(currentDate);
   renderCalendar();
 
   if (panel) panel.hidden = false;
@@ -408,30 +406,56 @@ function closeCalendar() {
   }
 }
 
-function shiftCalendarMonth(months) {
-  calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + months, 1);
-  renderCalendar();
-}
-
 function renderCalendar() {
   const title = document.getElementById("calendarTitle");
   const grid = document.getElementById("calendarGrid");
-  const nextMonthBtn = document.getElementById("nextMonthBtn");
   const dietTodayString = getDietDate();
   const dietToday = new Date(`${dietTodayString}T12:00:00`);
 
   if (!title || !grid) return;
 
-  title.textContent = calendarMonth.toLocaleDateString("en-US", {
+  title.textContent = "Select date";
+  grid.innerHTML = getCalendarMonths(dietToday, currentDate)
+    .map((month) => renderCalendarMonth(month, dietToday, dietTodayString))
+    .join("");
+
+  requestAnimationFrame(() => {
+    const selected = grid.querySelector(".calendar-day.selected");
+    selected?.scrollIntoView({ block: "center" });
+  });
+}
+
+function getCalendarMonths(endDate, selectedDateString) {
+  const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+  const selectedMonth = getMonthStart(selectedDateString);
+  const startMonth = new Date(endMonth);
+  startMonth.setMonth(startMonth.getMonth() - 17);
+
+  if (selectedMonth < startMonth) {
+    startMonth.setFullYear(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
+  }
+
+  const months = [];
+  const cursor = new Date(startMonth);
+
+  while (cursor <= endMonth) {
+    months.push(new Date(cursor));
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+
+  return months;
+}
+
+function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
+  const monthTitle = monthDate.toLocaleDateString("en-US", {
     month: "long",
     year: "numeric"
   });
+  const firstDayOffset = (monthDate.getDay() + 6) % 7;
+  const firstCell = new Date(monthDate);
+  firstCell.setDate(monthDate.getDate() - firstDayOffset);
 
-  const firstDayOffset = (calendarMonth.getDay() + 6) % 7;
-  const firstCell = new Date(calendarMonth);
-  firstCell.setDate(calendarMonth.getDate() - firstDayOffset);
-
-  const currentMonth = calendarMonth.getMonth();
+  const currentMonth = monthDate.getMonth();
   const cells = [];
 
   for (let i = 0; i < 42; i += 1) {
@@ -456,12 +480,21 @@ function renderCalendar() {
     `);
   }
 
-  grid.innerHTML = cells.join("");
-
-  if (nextMonthBtn) {
-    const nextMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1);
-    nextMonthBtn.setAttribute("aria-disabled", String(nextMonth > dietToday));
-  }
+  return `
+    <section class="calendar-month" aria-label="${monthTitle}">
+      <h3>${monthTitle}</h3>
+      <div class="calendar-weekdays" aria-hidden="true">
+        <span>Mon</span>
+        <span>Tue</span>
+        <span>Wed</span>
+        <span>Thu</span>
+        <span>Fri</span>
+        <span>Sat</span>
+        <span>Sun</span>
+      </div>
+      <div class="calendar-grid">${cells.join("")}</div>
+    </section>
+  `;
 }
 
 function handleCalendarDayClick(event) {
@@ -1207,11 +1240,6 @@ function initApp() {
   document.getElementById("targets-form")?.addEventListener("submit", handleTargetsSubmit);
   document.getElementById("diet-day")?.addEventListener("click", openCalendar);
   document.getElementById("calendarBackdrop")?.addEventListener("click", closeCalendar);
-  document.getElementById("prevMonthBtn")?.addEventListener("click", () => shiftCalendarMonth(-1));
-  document.getElementById("nextMonthBtn")?.addEventListener("click", () => {
-    if (document.getElementById("nextMonthBtn")?.getAttribute("aria-disabled") === "true") return;
-    shiftCalendarMonth(1);
-  });
   document.getElementById("calendarGrid")?.addEventListener("click", handleCalendarDayClick);
   document.getElementById("prevDayBtn")?.addEventListener("click", () => shiftDietDay(-1));
   document.getElementById("nextDayBtn")?.addEventListener("click", () => shiftDietDay(1));

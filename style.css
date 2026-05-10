@@ -231,6 +231,9 @@ h1 {
   top: 50%;
   z-index: 11;
   width: min(380px, calc(100% - 24px));
+  max-height: min(720px, calc(100dvh - 32px));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   transform: translate(-50%, -50%);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -243,10 +246,9 @@ h1 {
 
 .calendar-header {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  grid-template-columns: 1fr;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .calendar-header strong {
@@ -254,6 +256,36 @@ h1 {
   font-size: 19px;
   font-weight: 700;
   letter-spacing: -0.02em;
+}
+
+.calendar-months {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  gap: 18px;
+  padding: 4px 2px 2px;
+  scrollbar-width: thin;
+}
+
+.calendar-month {
+  display: grid;
+  gap: 6px;
+  scroll-margin-block: 22px;
+}
+
+.calendar-month h3 {
+  position: sticky;
+  top: -4px;
+  z-index: 1;
+  margin: 0;
+  padding: 6px 0;
+  background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+  text-align: left;
+  backdrop-filter: blur(18px);
 }
 
 .calendar-weekdays,
@@ -264,7 +296,7 @@ h1 {
 }
 
 .calendar-weekdays {
-  margin-bottom: 6px;
+  margin-bottom: 0;
 }
 
 .calendar-weekdays span {

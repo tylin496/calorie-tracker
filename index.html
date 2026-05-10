@@ -11,7 +11,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Calorie Tracker">
-  <link rel="stylesheet" href="style.css?v=20260511-0040">
+  <link rel="stylesheet" href="style.css?v=20260511-0055">
 </head>
 <body class="auth-locked">
   <section id="accessGate" class="access-gate" aria-label="Access gate">
@@ -62,20 +62,9 @@
 
     <section id="calendarPanel" class="calendar-panel" aria-label="Date picker" hidden>
       <div class="calendar-header">
-        <button id="prevMonthBtn" class="icon-btn" type="button" aria-label="Previous month">‹</button>
-        <strong id="calendarTitle"></strong>
-        <button id="nextMonthBtn" class="icon-btn" type="button" aria-label="Next month">›</button>
+        <strong id="calendarTitle">Select date</strong>
       </div>
-      <div class="calendar-weekdays" aria-hidden="true">
-        <span>Mon</span>
-        <span>Tue</span>
-        <span>Wed</span>
-        <span>Thu</span>
-        <span>Fri</span>
-        <span>Sat</span>
-        <span>Sun</span>
-      </div>
-      <div id="calendarGrid" class="calendar-grid"></div>
+      <div id="calendarGrid" class="calendar-months"></div>
     </section>
 
     <form id="today-form" class="settlement-form">
@@ -136,6 +125,6 @@
     </details>
   </main>
 
-  <script src="app.js?v=20260511-0030"></script>
+  <script src="app.js?v=20260511-0055"></script>
 </body>
 </html>
