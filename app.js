@@ -176,10 +176,16 @@ function updateEntryForm() {
 
   if (calories) {
     calories.value = todayEntry ? roundInt(todayEntry.calories) : "";
+    calories.inputMode = "numeric";
+    calories.autocomplete = "off";
+    calories.placeholder = "kcal";
   }
 
   if (protein) {
     protein.value = todayEntry ? roundInt(todayEntry.protein) : "";
+    protein.inputMode = "numeric";
+    protein.autocomplete = "off";
+    protein.placeholder = "g";
   }
 
   if (caloriesCard) {
@@ -208,6 +214,7 @@ function updateEntryForm() {
     }
   }
   if (form) {
+    form.classList.toggle("compact-entry-fields", window.matchMedia?.("(max-width: 620px)")?.matches ?? false);
     const editToggle = document.getElementById("entryEditToggle");
     if (editToggle) {
       editToggle.hidden = true;
@@ -322,6 +329,7 @@ function openQuickEntry(focusField = "calories") {
   form.setAttribute("aria-hidden", "false");
   form.inert = false;
   form.classList.add("quick-entry");
+  form.classList.toggle("compact-entry-fields", window.matchMedia?.("(max-width: 620px)")?.matches ?? false);
   document.body.classList.add("quick-entry-open");
   if (backdrop) backdrop.hidden = false;
 
@@ -352,7 +360,10 @@ function closeQuickEntry() {
   }
   const backdrop = document.getElementById("quickEntryBackdrop");
 
-  if (form) form.classList.remove("quick-entry");
+  if (form) {
+    form.classList.remove("quick-entry");
+    form.classList.toggle("compact-entry-fields", window.matchMedia?.("(max-width: 620px)")?.matches ?? false);
+  }
   document.body.classList.remove("quick-entry-open");
   if (backdrop) backdrop.hidden = true;
 }
@@ -1375,6 +1386,10 @@ function handleCaloriesInput(event) {
   const protein = document.getElementById("protein");
   const digits = calories.value.replace(/\D/g, "");
 
+  if (digits !== calories.value) {
+    calories.value = digits;
+  }
+
   if (digits.length >= 4 && protein && document.activeElement === calories) {
     protein.focus();
     protein.select();
@@ -1384,6 +1399,10 @@ function handleCaloriesInput(event) {
 function handleProteinInput(event) {
   const protein = event.currentTarget;
   const digits = protein.value.replace(/\D/g, "");
+
+  if (digits !== protein.value) {
+    protein.value = digits;
+  }
 
   if (digits.length === 3) {
     document.getElementById("today-form")?.requestSubmit();
@@ -1494,7 +1513,8 @@ function initApp() {
   document.addEventListener("click", handleEntryEditToggleClick);
   document.addEventListener("keydown", handleGlobalKeydown);
 
-  window.matchMedia?.("(max-width: 620px)")?.addEventListener?.("change", () => {
+  window.matchMedia?.("(max-width: 620px)")?.addEventListener?.("change", (event) => {
+    document.getElementById("today-form")?.classList.toggle("compact-entry-fields", event.matches);
     if (todayEntry || document.getElementById("daily-result")?.innerHTML) {
       loadWeekSummary();
     }
