@@ -967,7 +967,7 @@ input[type="number"] {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   letter-spacing: -0.035em;
-  text-align: center;
+  text-align: left;
 }
 
 .daily-metric.rewarded strong,
