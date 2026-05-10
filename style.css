@@ -911,6 +911,15 @@ button:focus-visible {
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface) 36%, transparent);
 }
 
+.trend-day.selected .trend-weekday {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.trend-day.missing .trend-weekday {
+  color: var(--muted);
+}
+
 .trend-day.selected .trend-bar {
   background: linear-gradient(180deg, #5ac8fa, var(--accent));
 }

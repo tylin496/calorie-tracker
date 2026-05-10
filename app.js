@@ -33,6 +33,11 @@ function getMonthStart(dateString) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
 
+function getWeekday(dateString) {
+  const date = new Date(`${dateString}T12:00:00`);
+  return date.toLocaleDateString("en-US", { weekday: "short" });
+}
+
 function isValidDateString(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
 
@@ -125,13 +130,14 @@ function updateDietDayDisplay() {
   const label = document.getElementById("diet-day-label");
   const nextBtn = document.getElementById("nextDayBtn");
   const isAtToday = currentDate === getTodayDate();
+  const weekday = getWeekday(currentDate);
 
   if (btn) {
     btn.setAttribute("aria-label", `Selected day ${currentDate}`);
   }
 
   if (label) {
-    label.textContent = currentDate === getDietDate() ? "Today" : currentDate;
+    label.textContent = currentDate === getDietDate() ? `${weekday} · Today` : `${weekday} · ${currentDate}`;
   }
 
   if (nextBtn) {
@@ -561,7 +567,6 @@ function renderTrendBars(entries) {
             <div class="trend-day ${isSelected ? "selected" : ""} ${isMissing ? "missing" : ""} ${isFuture ? "future" : ""}">
               <div class="trend-bar" style="height:${height}px" title="${dateString}: ${entry ? `${formatInt(entry.calories)} kcal` : "No data"}"></div>
               <span class="trend-weekday">${day}</span>
-              <span class="trend-date">${dayOfMonth}</span>
             </div>
           `;
         })
