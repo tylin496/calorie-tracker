@@ -893,11 +893,20 @@ button:focus-visible {
 }
 
 .trend-day {
+  appearance: none;
+  -webkit-appearance: none;
   display: grid;
   align-items: end;
   justify-items: center;
   gap: 6px;
   min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
 }
 
 .trend-bar {
@@ -909,8 +918,10 @@ button:focus-visible {
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface) 36%, transparent);
 }
 
-.trend-day:hover .trend-bar {
-  background: color-mix(in srgb, var(--muted) 54%, var(--surface-muted));
+.trend-day:hover {
+  background: transparent;
+  box-shadow: none;
+  transform: none;
 }
 
 .trend-day.selected .trend-weekday {
