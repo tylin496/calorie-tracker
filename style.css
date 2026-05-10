@@ -1017,13 +1017,16 @@ input[type="number"] {
   color: var(--accent);
 }
 
-.trend-status.moderate,
+.trend-status.moderate {
+  color: color-mix(in srgb, var(--accent) 72%, var(--text));
+}
+
 .trend-status.building {
-  color: color-mix(in srgb, var(--warning) 82%, var(--text));
+  color: color-mix(in srgb, var(--accent) 48%, var(--text));
 }
 
 .trend-status.variable {
-  color: var(--danger);
+  color: var(--muted);
 }
 
 .settlement-line.celebrated strong,
