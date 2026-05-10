@@ -753,10 +753,6 @@ input[type="number"] {
   font-weight: 800;
 }
 
-.daily-card.surplus .daily-metric:nth-child(3) strong,
-.daily-card.surplus .daily-metric:nth-child(3) > span:last-child {
-  color: color-mix(in srgb, var(--danger) 82%, var(--text));
-}
 
 .settlement-lines {
   display: grid;
