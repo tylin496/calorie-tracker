@@ -420,14 +420,23 @@ function openCalendar() {
     const selectedButton = grid?.querySelector(".calendar-day.selected");
     const scrollTarget = todayButton || selectedButton;
 
-    if (scrollTarget) {
-      scrollTarget.scrollIntoView({ block: "center" });
-    } else {
-      grid?.querySelector(`[data-month="${getDietDate().slice(0, 7)}"]`)?.scrollIntoView({ block: "center" });
-    }
-
+    scrollCalendarToSelectedDate(grid, scrollTarget);
     updateCalendarMonthLabel(grid);
   }));
+}
+
+function scrollCalendarToSelectedDate(grid, scrollTarget) {
+  if (!grid || !scrollTarget) {
+    grid?.querySelector(`[data-month="${getDietDate().slice(0, 7)}"]`)?.scrollIntoView({ block: "start" });
+    return;
+  }
+
+  const gridRect = grid.getBoundingClientRect();
+  const targetRect = scrollTarget.getBoundingClientRect();
+  const targetTop = targetRect.top - gridRect.top + grid.scrollTop;
+  const preferredOffset = Math.min(Math.max(gridRect.height * 0.34, 112), 152);
+
+  grid.scrollTop = Math.max(0, targetTop - preferredOffset);
 }
 
 function closeCalendar() {
@@ -484,7 +493,7 @@ function renderCalendar() {
 
 function renderCalendarMonths(grid, dietToday, dietTodayString) {
   grid.innerHTML = getCalendarMonths(dietToday, currentDate, calendarHistoryMonths)
-    .map((month, index, months) => renderCalendarMonth(month, dietToday, dietTodayString, index === months.length - 1))
+    .map((month) => renderCalendarMonth(month, dietToday, dietTodayString))
     .join("");
 }
 
@@ -557,7 +566,7 @@ function getCalendarMonths(endDate, selectedDateString, historyMonths = CALENDAR
   return months;
 }
 
-function renderCalendarMonth(monthDate, dietToday, dietTodayString, includeTrailingNextMonth = false) {
+function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
   const monthTitle = monthDate.toLocaleDateString("en-US", {
     month: "long",
     year: "numeric"
@@ -566,8 +575,7 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString, includeTrail
   const firstDayOffset = (monthDate.getDay() + 6) % 7;
   const currentMonth = monthDate.getMonth();
   const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
-  const lastDayOffset = (lastDay.getDay() + 6) % 7;
-  const trailingDayCount = includeTrailingNextMonth ? Math.max(6 - lastDayOffset, 7) : 0;
+  const trailingDayCount = Math.max(14 - ((firstDayOffset + lastDay.getDate()) % 7 || 7), 0);
   const dayCount = lastDay.getDate() + trailingDayCount;
   const cells = Array.from({ length: firstDayOffset }, () => `
     <span class="calendar-day calendar-day-placeholder" aria-hidden="true"></span>
