@@ -174,12 +174,12 @@ function updateEntryForm() {
 
   if (calories) {
     calories.value = todayEntry ? roundInt(todayEntry.calories) : "";
-    calories.placeholder = "Enter";
+    calories.placeholder = "";
   }
 
   if (protein) {
     protein.value = todayEntry ? roundInt(todayEntry.protein) : "";
-    protein.placeholder = "Enter";
+    protein.placeholder = "";
   }
 
   if (caloriesCard) {
