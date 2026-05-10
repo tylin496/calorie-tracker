@@ -411,18 +411,20 @@ function renderCalendar() {
   const grid = document.getElementById("calendarGrid");
   const dietTodayString = getDietDate();
   const dietToday = new Date(`${dietTodayString}T12:00:00`);
-  const visibleMonth = getMonthStart(currentDate);
 
   if (!title || !grid) return;
 
   title.textContent = "Select date";
-  grid.innerHTML = renderCalendarMonth(visibleMonth, dietToday, dietTodayString);
-  updateCalendarMonthLabel(visibleMonth);
+  grid.innerHTML = getCalendarMonths(dietToday, currentDate)
+    .map((month) => renderCalendarMonth(month, dietToday, dietTodayString))
+    .join("");
+
+  grid.onscroll = () => updateCalendarMonthLabel(grid);
 
   requestAnimationFrame(() => {
     const selected = grid.querySelector(".calendar-day.selected");
     selected?.scrollIntoView({ block: "center" });
-    updateCalendarMonthLabel(visibleMonth);
+    updateCalendarMonthLabel(grid);
   });
 }
 
@@ -432,10 +434,38 @@ function getCalendarMonthLabel(monthDate) {
   return `<strong>${month}</strong> ${year}`;
 }
 
-function updateCalendarMonthLabel(monthDate) {
+function updateCalendarMonthLabel(grid) {
   const label = document.getElementById("calendarMonthLabel");
   if (!label) return;
-  label.innerHTML = getCalendarMonthLabel(monthDate);
+  const sections = [...grid.querySelectorAll(".calendar-month")];
+  const containerTop = grid.getBoundingClientRect().top;
+  let current = sections[0];
+  for (const section of sections) {
+    if (section.getBoundingClientRect().top <= containerTop + 4) current = section;
+    else break;
+  }
+  if (current) label.innerHTML = getCalendarMonthLabel(new Date(`${current.dataset.month}-01T12:00:00`));
+}
+
+function getCalendarMonths(endDate, selectedDateString) {
+  const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+  const selectedMonth = getMonthStart(selectedDateString);
+  const startMonth = new Date(endMonth);
+  startMonth.setMonth(startMonth.getMonth() - 17);
+
+  if (selectedMonth < startMonth) {
+    startMonth.setFullYear(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
+  }
+
+  const months = [];
+  const cursor = new Date(startMonth);
+
+  while (cursor <= endMonth) {
+    months.push(new Date(cursor));
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+
+  return months;
 }
 
 function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
@@ -460,9 +490,14 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
     const isToday = dateString === dietTodayString;
     const isFuture = date > dietToday;
 
+    if (isOutsideMonth) {
+      cells.push('<span class="calendar-day calendar-day-placeholder" aria-hidden="true"></span>');
+      continue;
+    }
+
     cells.push(`
       <button
-        class="calendar-day ${isOutsideMonth ? "outside" : ""} ${isSelected ? "selected" : ""} ${isToday ? "today" : ""}"
+        class="calendar-day ${isSelected ? "selected" : ""} ${isToday ? "today" : ""}"
         type="button"
         data-date="${dateString}"
         ${isFuture ? "disabled" : ""}
@@ -473,7 +508,7 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
   }
 
   return `
-    <section class="calendar-month" data-month="${monthTitle}" aria-label="${monthTitle}">
+    <section class="calendar-month" data-month="${formatDate(monthDate).slice(0, 7)}" aria-label="${monthTitle}">
       <div class="calendar-grid">${cells.join("")}</div>
     </section>
   `;
