@@ -511,9 +511,9 @@ function getCalorieResult(calories, tdee = TDEE) {
     deficit,
     gap: Math.max(gap, 0),
     progress: getProgressPercent(deficit, DEFICIT_TARGET),
-    tone: isHit ? "deficit" : "surplus",
+    tone: "deficit",
     status: "Deficit",
-    detail: isHit ? "Target hit" : `${formatInt(Math.abs(gap))} kcal short`
+    detail: `${formatInt(deficit)} kcal deficit`
   };
 }
 
@@ -523,10 +523,10 @@ function getProteinResult(protein) {
   const isHit = gap === 0;
 
   return {
-    status: isHit ? "Protein target hit" : gap <= 10 ? "Almost there" : "Protein short",
+    status: "Protein",
     gap,
     progress: getProgressPercent(roundedProtein, PROTEIN_TARGET),
-    detail: isHit ? "Target hit" : `${formatInt(gap)}g short`
+    detail: `${formatInt(roundedProtein)}g logged`
   };
 }
 
@@ -626,7 +626,6 @@ function renderSummary(summary) {
             <div class="settlement-track" aria-hidden="true">
               <span style="width:${calorieResult.progress}%"></span>
             </div>
-            <small>${calorieResult.detail}</small>
           </div>
           <div class="settlement-line ${proteinResult.gap === 0 ? "complete" : "short"}">
             <div class="settlement-line-top">
@@ -636,7 +635,6 @@ function renderSummary(summary) {
             <div class="settlement-track" aria-hidden="true">
               <span style="width:${proteinResult.progress}%"></span>
             </div>
-            <small>${proteinResult.detail}</small>
           </div>
         </div>
       </section>

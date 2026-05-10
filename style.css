@@ -772,7 +772,7 @@ button:focus-visible {
 }
 
 .settlement-line.short small {
-  color: var(--danger);
+  color: var(--accent);
 }
 
 .settlement-track {
@@ -789,7 +789,9 @@ button:focus-visible {
   min-width: 8px;
   border-radius: inherit;
   background: var(--accent);
-  transition: width 180ms ease;
+  transition:
+    width 180ms ease,
+    background 180ms ease;
 }
 
 .settlement-line.complete .settlement-track span {
@@ -797,7 +799,7 @@ button:focus-visible {
 }
 
 .settlement-line.short .settlement-track span {
-  background: color-mix(in srgb, var(--danger) 72%, var(--accent));
+  background: linear-gradient(180deg, #5ac8fa, var(--accent));
 }
 
 .card-header {
