@@ -567,7 +567,7 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString, includeTrail
   const currentMonth = monthDate.getMonth();
   const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
   const lastDayOffset = (lastDay.getDay() + 6) % 7;
-  const trailingDayCount = includeTrailingNextMonth ? 6 - lastDayOffset : 0;
+  const trailingDayCount = includeTrailingNextMonth ? Math.max(6 - lastDayOffset, 7) : 0;
   const dayCount = lastDay.getDate() + trailingDayCount;
   const cells = Array.from({ length: firstDayOffset }, () => `
     <span class="calendar-day calendar-day-placeholder" aria-hidden="true"></span>
