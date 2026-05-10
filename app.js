@@ -527,18 +527,25 @@ function getProgressPercent(value, target) {
 }
 
 function getCalorieResult(calories, tdee = TDEE) {
-  const deficit = roundInt(tdee - calories);
+  const rawDelta = roundInt(tdee - calories);
+  const isSurplus = rawDelta < 0;
+  const deficit = Math.max(rawDelta, 0);
+  const surplus = Math.max(-rawDelta, 0);
   const gap = roundInt(DEFICIT_TARGET - deficit);
-  const exceeded = deficit >= DEFICIT_TARGET;
+  const exceeded = !isSurplus && deficit >= DEFICIT_TARGET;
 
   return {
     deficit,
+    surplus,
+    isSurplus,
     gap: Math.max(gap, 0),
-    progress: exceeded ? 100 : getProgressPercent(deficit, DEFICIT_TARGET),
+    progress: isSurplus ? 100 : exceeded ? 100 : getProgressPercent(deficit, DEFICIT_TARGET),
     celebrated: exceeded,
-    tone: "logged",
-    status: "Deficit",
-    detail: `${formatInt(deficit)} kcal deficit`
+    tone: isSurplus ? "surplus" : "logged",
+    status: isSurplus ? "Surplus" : "Deficit",
+    detail: isSurplus
+      ? `${formatInt(surplus)} kcal surplus`
+      : `${formatInt(deficit)} kcal deficit`
   };
 }
 
@@ -550,6 +557,7 @@ function getProteinResult(protein) {
     status: "Protein",
     gap,
     progress: getProgressPercent(roundedProtein, PROTEIN_TARGET),
+    celebrated: gap === 0,
     detail: `${formatInt(roundedProtein)}g logged`
   };
 }
@@ -580,7 +588,6 @@ function renderTrendBars(entries) {
           const isFuture = isFutureDate(dateString);
           const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
           const shortDate = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-          const dayOfMonth = date.getDate();
 
           return `
             <button
@@ -636,9 +643,11 @@ function renderSummary(summary) {
     const roundedProtein = roundInt(today.protein);
     const calorieIntakeTarget = Math.max(0, entryTdee - DEFICIT_TARGET);
     const deficitOverTarget = Math.max(roundInt(calorieResult.deficit - DEFICIT_TARGET), 0);
-    const deficitSummary = deficitOverTarget > 0
-      ? `+${formatInt(deficitOverTarget)} over goal`
-      : `Goal ${formatInt(DEFICIT_TARGET)}`;
+    const deficitSummary = calorieResult.isSurplus
+      ? `${formatInt(calorieResult.surplus)} kcal surplus`
+      : deficitOverTarget > 0
+        ? `+${formatInt(deficitOverTarget)} over goal`
+        : `Goal ${formatInt(DEFICIT_TARGET)}`;
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone}">
@@ -659,26 +668,28 @@ function renderSummary(summary) {
             <span>g · Target ${formatInt(PROTEIN_TARGET)}</span>
           </div>
           <div class="daily-metric">
-            <span class="metric-label">Deficit</span>
-            <strong>${formatInt(calorieResult.deficit)}</strong>
+            <span class="metric-label">${calorieResult.isSurplus ? "Surplus" : "Deficit"}</span>
+            <strong>${formatInt(calorieResult.isSurplus ? calorieResult.surplus : calorieResult.deficit)}</strong>
             <span>kcal · ${deficitSummary}</span>
           </div>
         </div>
 
         <div class="settlement-lines">
-          <div class="settlement-line ${calorieResult.celebrated ? "celebrated" : "neutral"}">
+          <div class="settlement-line ${calorieResult.isSurplus ? "surplus" : calorieResult.celebrated ? "celebrated" : "neutral"}">
             <div class="settlement-line-top">
               <strong>${calorieResult.status}</strong>
-              <span>${formatInt(calorieResult.deficit)} / ${formatInt(DEFICIT_TARGET)} kcal</span>
+              <span>${calorieResult.isSurplus
+                ? `${formatInt(calorieResult.surplus)} kcal`
+                : `${formatInt(calorieResult.deficit)} / ${formatInt(DEFICIT_TARGET)} kcal${calorieResult.celebrated ? " ✓" : ""}`}</span>
             </div>
             <div class="settlement-track" aria-hidden="true">
               <span style="width:${calorieResult.progress}%"></span>
             </div>
           </div>
-          <div class="settlement-line neutral">
+          <div class="settlement-line ${proteinResult.celebrated ? "celebrated" : "neutral"}">
             <div class="settlement-line-top">
               <strong>${proteinResult.status}</strong>
-              <span>${formatInt(roundedProtein)} / ${formatInt(PROTEIN_TARGET)}g</span>
+              <span>${formatInt(roundedProtein)} / ${formatInt(PROTEIN_TARGET)}g${proteinResult.celebrated ? " ✓" : ""}</span>
             </div>
             <div class="settlement-track" aria-hidden="true">
               <span style="width:${proteinResult.progress}%"></span>
@@ -737,7 +748,7 @@ function renderSummary(summary) {
         </div>
       </div>
       ${renderTrendBars(summary.entries || [])}
-      <p class="subtle-text trend-summary" style="margin-top:10px;"><strong>Weekly Trend</strong><span>${consistency}</span></p>
+      <p class="subtle-text trend-summary"><strong>Weekly Trend</strong><span>${consistency}</span></p>
     </section>
   `;
 
