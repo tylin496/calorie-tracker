@@ -405,12 +405,16 @@ function openCalendar() {
   // modal-in CSS transform skewing getBoundingClientRect values)
   const grid = document.getElementById("calendarGrid");
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    const monthSection = grid?.querySelector(`[data-month="${currentDate.slice(0, 7)}"]`);
-    if (monthSection) {
-      monthSection.scrollIntoView({ block: "start" });
+    const todayButton = grid?.querySelector(".calendar-day.today");
+    const selectedButton = grid?.querySelector(".calendar-day.selected");
+    const scrollTarget = todayButton || selectedButton;
+
+    if (scrollTarget) {
+      scrollTarget.scrollIntoView({ block: "center" });
     } else {
-      grid?.querySelector(".calendar-day.selected")?.scrollIntoView({ block: "center" });
+      grid?.querySelector(`[data-month="${getDietDate().slice(0, 7)}"]`)?.scrollIntoView({ block: "center" });
     }
+
     updateCalendarMonthLabel(grid);
   }));
 }
@@ -547,6 +551,7 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
     month: "long",
     year: "numeric"
   });
+  const isDietCurrentMonth = monthDate.getFullYear() === dietToday.getFullYear() && monthDate.getMonth() === dietToday.getMonth();
   const firstDayOffset = (monthDate.getDay() + 6) % 7;
   const firstCell = new Date(monthDate);
   firstCell.setDate(monthDate.getDate() - firstDayOffset);
@@ -582,7 +587,7 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
   }
 
   return `
-    <section class="calendar-month" data-month="${formatDate(monthDate).slice(0, 7)}" aria-label="${monthTitle}">
+    <section class="calendar-month ${isDietCurrentMonth ? "current-calendar-month" : "past-calendar-month"}" data-month="${formatDate(monthDate).slice(0, 7)}" aria-label="${monthTitle}">
       <div class="calendar-grid">${cells.join("")}</div>
     </section>
   `;
