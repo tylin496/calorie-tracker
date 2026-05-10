@@ -413,16 +413,6 @@ async function deleteEntry() {
   }
 }
 
-function calculateRecovery(today, summary) {
-  if (!today) return 0;
-
-  const calorieScore = Math.max(0, 1 - Math.abs(TDEE - today.calories) / TDEE) * 40;
-  const proteinScore = Math.min(today.protein / PROTEIN_TARGET, 1) * 30;
-  const consistencyScore = summary.consistency === "Stable" ? 30 : summary.consistency === "Moderate" ? 20 : 10;
-
-  return Math.round(calorieScore + proteinScore + consistencyScore);
-}
-
 function getConsistency(entries) {
   if (entries.length < 3) return "Building";
 
@@ -525,8 +515,6 @@ function renderSummary(summary) {
   if (today) {
     const calorieResult = getCalorieResult(today.calories);
     const proteinResult = getProteinResult(today.protein);
-    const recovery = calculateRecovery(today, { ...summary, consistency });
-    const recoveryLabel = recovery >= 80 ? "High recovery" : recovery >= 50 ? "Moderate recovery" : "Low recovery";
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone}">
@@ -561,10 +549,6 @@ function renderSummary(summary) {
           <div>
             <strong>${proteinResult.status}</strong>
             <span>${proteinResult.detail}</span>
-          </div>
-          <div>
-            <strong>${recoveryLabel}</strong>
-            <span>Recovery ${recovery} / 100</span>
           </div>
         </div>
       </section>
@@ -619,7 +603,7 @@ function renderSummary(summary) {
         </div>
       </div>
       ${renderTrendBars(summary.entries || [])}
-      <p class="subtle-text" style="margin-top:10px;">Weekly pattern: ${consistency}</p>
+      <p class="subtle-text" style="margin-top:10px;">Consistency: ${consistency}</p>
     </section>
   `;
 
