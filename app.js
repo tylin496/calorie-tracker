@@ -793,11 +793,11 @@ function renderSummary(summary) {
     const deficitSummary = calorieResult.isSurplus
       ? `<span class="metric-note negative">${formatInt(calorieResult.surplus)} kcal surplus</span>`
       : deficitOverTarget > 0
-        ? `<span style="color: var(--accent); font-weight: 800;">+${formatInt(deficitOverTarget)} over goal</span>`
-        : `<span>Goal ${formatInt(DEFICIT_TARGET)} kcal</span>`;
+        ? `<span class="metric-note reward">+${formatInt(deficitOverTarget)} over goal</span>`
+        : `<span class="metric-note">Goal ${formatInt(DEFICIT_TARGET)} kcal</span>`;
     const proteinSummary = proteinOverTarget > 0
-      ? `<span style="color: var(--accent); font-weight: 800;">+${formatInt(proteinOverTarget)} over goal</span>`
-      : `<span>Target ${formatInt(PROTEIN_TARGET)} g</span>`;
+      ? `<span class="metric-note reward">+${formatInt(proteinOverTarget)} over goal</span>`
+      : `<span class="metric-note">Target ${formatInt(PROTEIN_TARGET)} g</span>`;
     const proteinMetricTone = proteinOverTarget > 0 ? "rewarded" : proteinResult.celebrated ? "on-track" : "";
     const deficitMetricTone = calorieResult.isSurplus ? "caution" : deficitOverTarget > 0 ? "rewarded" : calorieResult.celebrated ? "on-track" : "";
 
@@ -817,12 +817,12 @@ function renderSummary(summary) {
           <div class="daily-metric ${proteinMetricTone}">
             <span class="metric-label">Protein</span>
             <strong>${formatInt(roundedProtein)}</strong>
-            <span>${proteinSummary}</span>
+            ${proteinSummary}
           </div>
           <div class="daily-metric ${deficitMetricTone}">
             <span class="metric-label">Deficit</span>
             <strong>${calorieResult.isSurplus ? `+${formatInt(calorieResult.surplus)}` : formatInt(calorieResult.deficit)}</strong>
-            <span>${calorieResult.isSurplus ? `Surplus ${formatInt(calorieResult.surplus)} kcal` : deficitSummary}</span>
+            ${calorieResult.isSurplus ? `<span class="metric-note negative">Surplus ${formatInt(calorieResult.surplus)} kcal</span>` : deficitSummary}
           </div>
         </div>
 

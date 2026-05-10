@@ -899,6 +899,14 @@ input[type="number"] {
   font-weight: 800;
 }
 
+.daily-metric > .metric-note.reward {
+  color: var(--accent);
+}
+
+.daily-metric > .metric-note.negative {
+  color: var(--danger-deep);
+}
+
 
 .settlement-lines {
   display: grid;
