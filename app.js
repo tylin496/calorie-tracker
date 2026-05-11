@@ -7,10 +7,7 @@ const LAST_LOGGED_DATE_STORAGE_KEY = "calorieTrackerLastLoggedDate";
 const CALENDAR_INITIAL_HISTORY_MONTHS = 6;
 const CALENDAR_HISTORY_CHUNK_MONTHS = 3;
 
-// Cut phase tracking (localStorage only — server stores the active deficit)
-const CUT_START_DATE_KEY = "calorieTrackerCutStartDate";
-const ACTIVE_CUT_PHASE_KEY = "calorieTrackerActiveCutPhase";
-const CUT_PHASE_DEFICITS_KEY = "calorieTrackerCutPhaseDeficits";
+// Cut phase tracking (Notion/server is source of truth)
 const CUT_PHASE_NAMES = ["Aggressive Cut", "Moderate Cut", "Cruise"];
 const CUT_PHASE_DEFAULT_DEFICITS = [805, 655, 455];
 let cutStartDate = null;       // YYYY-MM-DD string or null
@@ -188,27 +185,6 @@ function updateTargetForm() {
 
 // ── Cut phases ────────────────────────────────────────────────────────────────
 
-function loadCutPhaseSettings() {
-  cutStartDate = localStorage.getItem(CUT_START_DATE_KEY) || null;
-  const storedPhase = localStorage.getItem(ACTIVE_CUT_PHASE_KEY);
-  activeCutPhase = storedPhase !== null ? Number(storedPhase) : null;
-  const storedDeficits = localStorage.getItem(CUT_PHASE_DEFICITS_KEY);
-  cutPhaseDeficits = storedDeficits ? JSON.parse(storedDeficits) : [...CUT_PHASE_DEFAULT_DEFICITS];
-}
-
-function saveCutPhaseSettings() {
-  if (cutStartDate) {
-    localStorage.setItem(CUT_START_DATE_KEY, cutStartDate);
-  } else {
-    localStorage.removeItem(CUT_START_DATE_KEY);
-  }
-  if (activeCutPhase !== null) {
-    localStorage.setItem(ACTIVE_CUT_PHASE_KEY, String(activeCutPhase));
-  } else {
-    localStorage.removeItem(ACTIVE_CUT_PHASE_KEY);
-  }
-  localStorage.setItem(CUT_PHASE_DEFICITS_KEY, JSON.stringify(cutPhaseDeficits));
-}
 
 function getConfigPayload(overrides = {}) {
   return {
@@ -244,7 +220,6 @@ function applyCutPhaseConfig(config) {
     });
   }
 
-  saveCutPhaseSettings();
   updateCutPhaseUI();
 }
 
@@ -313,7 +288,6 @@ function handlePhaseActivate(index) {
 
   activeCutPhase = index;
   DEFICIT_TARGET = cutPhaseDeficits[index];
-  saveCutPhaseSettings();
   updateCutPhaseUI();
   updateTargetForm();
   updateEntryForm();
@@ -325,7 +299,6 @@ function handlePhaseActivate(index) {
 
 function handleCutStartDateChange(event) {
   cutStartDate = event.target.value || null;
-  saveCutPhaseSettings();
   updateCutPhaseUI();
   // Re-render week card so label updates
   saveConfigToServer()
@@ -339,7 +312,6 @@ function handlePhaseDeficitBlur(index, value) {
   const val = Number(value);
   if (!Number.isFinite(val) || val < 0) return;
   cutPhaseDeficits[index] = Math.round(val);
-  saveCutPhaseSettings();
   if (activeCutPhase === index) {
     DEFICIT_TARGET = cutPhaseDeficits[index];
     updateTargetForm();
@@ -1853,8 +1825,10 @@ function initApp() {
       loadWeekSummary();
     }
   });
-  // Cut phases
-  loadCutPhaseSettings();
+  // Cut phases — clear legacy localStorage keys (migrated to Notion)
+  ["calorieTrackerCutStartDate", "calorieTrackerActiveCutPhase", "calorieTrackerCutPhaseDeficits"]
+    .forEach(key => localStorage.removeItem(key));
+
   updateCutPhaseUI();
   document.getElementById("cutStartDateInput")?.addEventListener("change", handleCutStartDateChange);
   document.getElementById("cutPhasesPanel")?.addEventListener("click", handleCutPhasePanelClick);
