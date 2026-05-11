@@ -24,6 +24,7 @@ let calendarVisibleMonth = null;
 let calendarHistoryMonths = CALENDAR_INITIAL_HISTORY_MONTHS;
 let calendarIsExtending = false;
 let latestWeekSummary = null;
+let viewportResizeHandler = null;
 
 function getDietDate() {
   return formatDate(new Date());
@@ -322,6 +323,17 @@ function isCalendarOpen() {
   return document.body.classList.contains("calendar-open");
 }
 
+// iOS Safari doesn't shrink the layout viewport when the keyboard opens.
+// visualViewport.height gives the actual visible height (above the keyboard).
+function adjustQuickEntryForKeyboard() {
+  const form = document.getElementById("today-form");
+  if (!form || !isQuickEntryOpen()) return;
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const keyboardHeight = window.innerHeight - vv.height - vv.offsetTop;
+  form.style.bottom = keyboardHeight > 0 ? `${keyboardHeight + 8}px` : "";
+}
+
 function openQuickEntry(focusField = "calories") {
   const form = document.getElementById("today-form");
   if (form) form.hidden = false;
@@ -349,10 +361,25 @@ function openQuickEntry(focusField = "calories") {
   const focusTarget = focusField === "protein" ? protein : calories;
   focusTarget.focus();
   focusTarget.select();
+
+  // Lift form above keyboard as it appears (iOS Safari layout viewport doesn't shrink)
+  if (window.visualViewport) {
+    viewportResizeHandler = adjustQuickEntryForKeyboard;
+    window.visualViewport.addEventListener("resize", viewportResizeHandler);
+    window.visualViewport.addEventListener("scroll", viewportResizeHandler);
+  }
 }
 
 function closeQuickEntry() {
   const form = document.getElementById("today-form");
+
+  // Remove keyboard-lift listener and reset inline bottom
+  if (window.visualViewport && viewportResizeHandler) {
+    window.visualViewport.removeEventListener("resize", viewportResizeHandler);
+    window.visualViewport.removeEventListener("scroll", viewportResizeHandler);
+    viewportResizeHandler = null;
+  }
+  if (form) form.style.bottom = "";
 
   if (form && todayEntry) {
     const editToggle = document.getElementById("entryEditToggle");
