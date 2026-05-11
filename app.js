@@ -156,7 +156,7 @@ function updateTargetForm() {
   if (tdeeInput) tdeeInput.value = roundInt(TDEE);
   if (proteinInput) proteinInput.value = roundInt(PROTEIN_TARGET);
   if (deficitInput) deficitInput.value = roundInt(DEFICIT_TARGET);
-  if (summary) summary.textContent = `TDEE ${formatInt(TDEE)} kcal · Protein ${formatInt(PROTEIN_TARGET)}g · Deficit ${formatInt(DEFICIT_TARGET)} kcal`;
+  if (summary) summary.textContent = `TDEE ${formatInt(TDEE)} kcal · Protein ${formatInt(PROTEIN_TARGET)} g · Deficit ${formatInt(DEFICIT_TARGET)} kcal`;
 }
 
 function applyConfig(config) {
@@ -864,6 +864,7 @@ function renderInitialLoadingState() {
     daily.innerHTML = `
       <section class="daily-card loading-card">
         <div class="daily-card-top">
+          <h2 class="daily-card-heading">${currentDate === getDietDate() ? "Today" : "This Day"}</h2>
           <span class="status-pill logged">Loading</span>
         </div>
         <div class="loading-state">
@@ -908,10 +909,10 @@ function getCopySummaryButtonHtml(disabled = false) {
     >
       <span class="copy-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" focusable="false">
-          <path d="M8 7.5V6a2 2 0 0 1 2-2h5.4L20 8.6V16a2 2 0 0 1-2 2h-1.5" />
-          <path d="M15 4.5V9h4.5" />
-          <path d="M5 9.5h7.4l3.1 3.1V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8.5a2 2 0 0 1 2-2Z" />
-          <path d="M12 9.8V13h3.2" />
+          <path d="M9 3h6.2L20 7.8V16a2 2 0 0 1-2 2h-2V9.5L9 3Z" />
+          <path d="M15.2 3.4V8H19.8" />
+          <path d="M5 7h6.2L16 11.8V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" />
+          <path d="M11.2 7.4V12H15.8" />
         </svg>
       </span>
       <span class="check-icon" aria-hidden="true">✓</span>
@@ -1245,6 +1246,7 @@ function renderSummary(summary) {
   const loggedDays = summary.count || 0;
   const weeklyPillText = loggedDays >= 7 ? "Full week" : `${loggedDays} days`;
   const weekRangeText = formatDateRange(summary.weekStart, summary.weekEnd).replace(/, \d{4}/g, "");
+  const dailyHeadingText = currentDate === getDietDate() ? "Today" : "This Day";
   latestWeekSummary = summary;
   let dailyHtml = "";
 
@@ -1290,7 +1292,7 @@ function renderSummary(summary) {
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone} ${doubleHit ? "double-hit" : ""}">
         <div class="daily-card-top">
-          <span class="daily-card-title">Today overview</span>
+          <h2 class="daily-card-heading">${dailyHeadingText}</h2>
           <span class="status-pill ${doubleHit ? "double-hit" : "logged"}">${statusPillText}</span>
         </div>
 
@@ -1344,7 +1346,7 @@ function renderSummary(summary) {
     dailyHtml = `
       <section class="daily-card empty">
         <div class="daily-card-top">
-          <span class="daily-card-title">Today overview</span>
+          <h2 class="daily-card-heading">${dailyHeadingText}</h2>
           <span class="status-pill missing">No entry</span>
         </div>
         <div class="daily-metrics">
@@ -1379,16 +1381,16 @@ function renderSummary(summary) {
       </div>
       <div class="week-snapshot">
         <div class="metric">
-          <span class="metric-label">Avg calories <small>kcal</small></span>
-          <span class="metric-value">${formatInt(summary.averageCalories || 0)}</span>
+          <span class="metric-label">Avg calories</span>
+          <span class="metric-value">${formatInt(summary.averageCalories || 0)} <small>kcal</small></span>
         </div>
         <div class="metric">
-          <span class="metric-label">Avg protein <small>g</small></span>
-          <span class="metric-value">${formatInt(summary.averageProtein || 0)}</span>
+          <span class="metric-label">Avg protein</span>
+          <span class="metric-value">${formatInt(summary.averageProtein || 0)} <small>g</small></span>
         </div>
         <div class="metric">
-          <span class="metric-label">Fat loss <small>g</small></span>
-          <span class="metric-value">${formatInt(Number(summary.fatLossKg || 0) * 1000)}</span>
+          <span class="metric-label">Fat loss</span>
+          <span class="metric-value">${formatInt(Number(summary.fatLossKg || 0) * 1000)} <small>g</small></span>
         </div>
       </div>
       <div class="week-trend-panel">
