@@ -1301,16 +1301,16 @@ function renderSummary(summary) {
       </div>
       <div class="week-snapshot">
         <div class="metric">
-          <span class="metric-label">Avg Calories</span>
+          <span class="metric-label">Avg Calories <small>kcal</small></span>
           <span class="metric-value">${formatInt(summary.averageCalories || 0)}</span>
         </div>
         <div class="metric">
-          <span class="metric-label">Avg Protein</span>
-          <span class="metric-value">${formatInt(summary.averageProtein || 0)}g</span>
+          <span class="metric-label">Avg Protein <small>g</small></span>
+          <span class="metric-value">${formatInt(summary.averageProtein || 0)}</span>
         </div>
         <div class="metric">
-          <span class="metric-label">Fat Loss</span>
-          <span class="metric-value">${formatInt(Number(summary.fatLossKg || 0) * 1000)}g</span>
+          <span class="metric-label">Fat Loss <small>g</small></span>
+          <span class="metric-value">${formatInt(Number(summary.fatLossKg || 0) * 1000)}</span>
         </div>
       </div>
       <div class="week-trend-panel">
