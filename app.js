@@ -618,13 +618,9 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
   const isFutureMonth = monthDate > new Date(dietToday.getFullYear(), dietToday.getMonth(), 1);
   const firstDayOffset = (monthDate.getDay() + 6) % 7;
   const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
-  const cells = [];
-
-  for (let i = firstDayOffset; i > 0; i -= 1) {
-    const date = new Date(monthDate);
-    date.setDate(1 - i);
-    cells.push(renderCalendarDay(date, dietToday, dietTodayString, "outside-month"));
-  }
+  const cells = Array.from({ length: firstDayOffset }, () => `
+    <span class="calendar-day calendar-day-placeholder" aria-hidden="true"></span>
+  `);
 
   for (let i = 0; i < lastDay.getDate(); i += 1) {
     const date = new Date(monthDate);
@@ -1299,17 +1295,17 @@ function renderSummary(summary) {
         <div class="daily-metrics">
           <button class="daily-metric metric-button" type="button" data-edit-field="calories" aria-label="Edit calories">
             <span class="metric-label">Calories</span>
-            <strong>${formatInt(roundedCalories)}</strong>
+            <strong>${formatInt(roundedCalories)} <small>kcal</small></strong>
             <span>${calorieMetricText}</span>
           </button>
           <button class="daily-metric metric-button ${proteinMetricTone}" type="button" data-edit-field="protein" aria-label="Edit protein">
             <span class="metric-label">Protein</span>
-            <strong>${formatInt(roundedProtein)}</strong>
+            <strong>${formatInt(roundedProtein)} <small>g</small></strong>
             <span class="metric-note ${proteinOverTarget > 0 || proteinAlmostThere ? "reward" : ""}">${proteinMetricText}</span>
           </button>
           <div class="daily-metric ${deficitMetricTone}" aria-label="Deficit is calculated from calories and TDEE">
             <span class="metric-label">Deficit</span>
-            <strong>${calorieResult.isSurplus ? `+${formatInt(calorieResult.surplus)}` : formatInt(calorieResult.deficit)}</strong>
+            <strong>${calorieResult.isSurplus ? `+${formatInt(calorieResult.surplus)}` : formatInt(calorieResult.deficit)} <small>kcal</small></strong>
             <span class="metric-note ${calorieResult.isSurplus ? "negative" : deficitOverTarget > 0 || deficitAlmostThere ? "reward" : ""}">${deficitMetricText}</span>
           </div>
         </div>

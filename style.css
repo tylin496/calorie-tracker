@@ -303,9 +303,14 @@ h1 {
   overflow-y: auto;
   overscroll-behavior: contain;
   display: grid;
-  gap: 10px;
+  gap: 0;
   padding: 8px 0 24px;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.calendar-months::-webkit-scrollbar {
+  display: none;
 }
 
 .calendar-month {
@@ -324,6 +329,11 @@ h1 {
 .calendar-grid {
   grid-auto-rows: 38px;
   align-items: start;
+}
+
+.calendar-day-placeholder {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .calendar-week-row {
@@ -1203,17 +1213,29 @@ input[type="number"] {
 }
 
 .daily-metric strong {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
   width: 100%;
   margin-top: 8px;
   color: var(--text);
   -webkit-text-fill-color: var(--text);
-  font-size: clamp(26px, 6vw, 34px);
+  font-size: clamp(24px, 5.4vw, 31px);
   line-height: 1;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
   text-align: left;
+  white-space: nowrap;
+}
+
+.daily-metric strong small {
+  color: color-mix(in srgb, var(--muted) 76%, transparent);
+  -webkit-text-fill-color: color-mix(in srgb, var(--muted) 76%, transparent);
+  font-size: 0.42em;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1;
 }
 
 .daily-card.empty .daily-metric .metric-placeholder {
@@ -1605,22 +1627,24 @@ input[type="number"] {
 }
 
 .metric-value {
-  display: block;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
   margin-top: 8px;
-  font-size: 26px;
+  font-size: clamp(22px, 5vw, 26px);
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.025em;
   text-align: left;
+  white-space: nowrap;
 }
 
 .metric-value small {
-  margin-left: 3px;
   color: color-mix(in srgb, var(--muted) 78%, transparent);
   font-size: 0.48em;
+  flex: 0 0 auto;
   font-weight: 800;
   letter-spacing: 0;
-  text-transform: uppercase;
   vertical-align: baseline;
 }
 
@@ -2253,7 +2277,7 @@ input[type="number"] {
   }
 
   .calendar-months {
-    gap: 10px;
+    gap: 0;
     padding-bottom: 22px;
   }
 
@@ -2300,8 +2324,8 @@ input[type="number"] {
 
   .daily-metric strong {
     margin-top: 10px;
-    font-size: clamp(28px, 8vw, 34px);
-    letter-spacing: -0.04em;
+    font-size: clamp(24px, 7vw, 30px);
+    letter-spacing: -0.025em;
     text-align: left;
   }
 
@@ -2354,7 +2378,7 @@ input[type="number"] {
   }
 
   .metric-value {
-    font-size: 24px;
+    font-size: clamp(21px, 6vw, 24px);
   }
 
   .settlement-form {
