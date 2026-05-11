@@ -1178,6 +1178,9 @@ input[type="number"] {
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--danger-bg) 28%, transparent), transparent),
     color-mix(in srgb, var(--surface-muted) 76%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--danger) 4%, transparent),
+    0 10px 28px color-mix(in srgb, var(--danger) 7%, transparent);
 }
 
 .daily-metric strong {
@@ -1326,7 +1329,7 @@ input[type="number"] {
   background: linear-gradient(90deg, color-mix(in srgb, var(--danger) 48%, var(--muted)), color-mix(in srgb, var(--danger) 82%, #ffb0a6));
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--danger) 8%, transparent),
-    0 0 8px color-mix(in srgb, var(--danger) 10%, transparent);
+    0 0 12px color-mix(in srgb, var(--danger) 16%, transparent);
 }
 
 .daily-card.saved-pulse .settlement-line.celebrated .settlement-track span::after,
@@ -1442,7 +1445,9 @@ input[type="number"] {
 }
 
 .status-pill.logged {
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success-text) 8%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--success-text) 8%, transparent),
+    0 0 18px color-mix(in srgb, var(--success-text) 12%, transparent);
 }
 
 .status-pill.double-hit {
@@ -1456,6 +1461,9 @@ input[type="number"] {
   background: var(--danger-bg);
   color: var(--danger);
   border-color: color-mix(in srgb, var(--danger) 28%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--danger) 7%, transparent),
+    0 0 18px color-mix(in srgb, var(--danger) 10%, transparent);
 }
 
 .status-pill.missing {
