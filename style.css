@@ -1272,7 +1272,7 @@ input[type="number"] {
 
 .settlement-track-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) 96px;
   align-items: center;
   gap: 10px;
 }
@@ -2223,6 +2223,7 @@ input[type="number"] {
   }
 
   .settlement-track-row {
+    grid-template-columns: minmax(0, 1fr) 82px;
     gap: 8px;
   }
 

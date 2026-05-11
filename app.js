@@ -174,14 +174,14 @@ function updateEntryForm() {
     calories.value = todayEntry ? roundInt(todayEntry.calories) : "";
     calories.inputMode = "numeric";
     calories.autocomplete = "off";
-    calories.placeholder = "kcal";
+    calories.placeholder = "";
   }
 
   if (protein) {
     protein.value = todayEntry ? roundInt(todayEntry.protein) : "";
     protein.inputMode = "numeric";
     protein.autocomplete = "off";
-    protein.placeholder = "g";
+    protein.placeholder = "";
   }
 
   if (caloriesCard) {
