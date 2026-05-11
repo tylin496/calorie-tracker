@@ -1213,11 +1213,10 @@ input[type="number"] {
 }
 
 .daily-metric strong {
-  display: grid;
-  grid-template-columns: minmax(0, auto) 1fr;
+  display: inline-flex;
   align-items: baseline;
-  gap: 4px;
-  width: 100%;
+  gap: 6px;
+  width: auto;
   margin-top: 8px;
   color: var(--text);
   -webkit-text-fill-color: var(--text);
@@ -1225,16 +1224,21 @@ input[type="number"] {
   line-height: 1;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
-  letter-spacing: -0.025em;
+  letter-spacing: 0;
   text-align: left;
   white-space: nowrap;
 }
 
 .daily-metric strong small {
-  justify-self: end;
-  color: color-mix(in srgb, var(--muted) 76%, transparent);
-  -webkit-text-fill-color: color-mix(in srgb, var(--muted) 76%, transparent);
-  font-size: 0.42em;
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.4em;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+  color: color-mix(in srgb, var(--muted) 84%, transparent);
+  -webkit-text-fill-color: color-mix(in srgb, var(--muted) 84%, transparent);
+  font-size: 0.34em;
   font-weight: 800;
   letter-spacing: 0;
   line-height: 1;
@@ -1621,27 +1625,30 @@ input[type="number"] {
 }
 
 .metric-value {
-  display: grid;
-  grid-template-columns: minmax(0, auto) 1fr;
+  display: inline-flex;
   align-items: baseline;
-  gap: 4px;
+  gap: 6px;
   margin-top: 8px;
   font-size: clamp(22px, 5vw, 26px);
   font-weight: 700;
   line-height: 1.15;
-  letter-spacing: -0.025em;
+  letter-spacing: 0;
   text-align: left;
   white-space: nowrap;
 }
 
 .metric-value small {
-  justify-self: end;
-  color: color-mix(in srgb, var(--muted) 78%, transparent);
-  font-size: 0.48em;
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.4em;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+  color: color-mix(in srgb, var(--muted) 84%, transparent);
+  font-size: 0.38em;
   flex: 0 0 auto;
   font-weight: 800;
   letter-spacing: 0;
-  vertical-align: baseline;
 }
 
 .week-snapshot .metric {
@@ -2319,15 +2326,15 @@ input[type="number"] {
   }
 
   .daily-metric strong {
-    gap: 3px;
+    gap: 5px;
     margin-top: 9px;
     font-size: clamp(21px, 6.2vw, 27px);
-    letter-spacing: -0.015em;
+    letter-spacing: 0;
     text-align: left;
   }
 
   .daily-metric strong small {
-    font-size: 0.36em;
+    font-size: 0.32em;
   }
 
   .daily-metric > span:last-child {
@@ -2372,12 +2379,12 @@ input[type="number"] {
   }
 
   .metric-value {
-    gap: 3px;
+    gap: 5px;
     font-size: clamp(20px, 5.6vw, 23px);
   }
 
   .metric-value small {
-    font-size: 0.42em;
+    font-size: 0.36em;
   }
 
   .settlement-form {
