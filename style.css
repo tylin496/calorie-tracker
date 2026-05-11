@@ -12,16 +12,16 @@
   --accent: #007aff;
   --accent-dark: #005ecb;
   --accent-soft: rgba(0, 122, 255, 0.12);
-  --danger: #c44936;
-  --danger-deep: #8a2f25;
+  --danger: #ff453a;
+  --danger-deep: #c92f28;
   --warning: #ff9f0a;
-  --success-bg: rgba(47, 125, 75, 0.12);
-  --success-text: #2f7d4b;
-  --gold: #9a7200;
-  --gold-soft: rgba(154, 114, 0, 0.12);
-  --danger-bg: rgba(196, 73, 54, 0.1);
-  --pending: #a85a4a;
-  --pending-bg: rgba(168, 90, 74, 0.1);
+  --success-bg: rgba(52, 199, 89, 0.12);
+  --success-text: #2ca64f;
+  --gold: #d28a00;
+  --gold-soft: rgba(255, 179, 32, 0.15);
+  --danger-bg: rgba(255, 69, 58, 0.12);
+  --pending: #ff6b5f;
+  --pending-bg: rgba(255, 107, 95, 0.12);
   --shadow: 0 18px 40px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
   --shadow-strong: 0 30px 90px rgba(0, 0, 0, 0.22);
 
@@ -40,16 +40,16 @@
     --accent: #0a84ff;
     --accent-dark: #409cff;
     --accent-soft: rgba(10, 132, 255, 0.18);
-    --danger: #ff7b6b;
-    --danger-deep: #ffaaa0;
-    --warning: #ffd60a;
-    --success-bg: rgba(91, 184, 120, 0.16);
-    --success-text: #7bd995;
-    --gold: #ffd60a;
-    --gold-soft: rgba(255, 214, 10, 0.16);
-    --danger-bg: rgba(255, 123, 107, 0.14);
-    --pending: #d28a7e;
-    --pending-bg: rgba(210, 138, 126, 0.14);
+    --danger: #ff6961;
+    --danger-deep: #ff9a92;
+    --warning: #ffb340;
+    --success-bg: rgba(48, 209, 88, 0.15);
+    --success-text: #5ee27f;
+    --gold: #ffbf3f;
+    --gold-soft: rgba(255, 191, 63, 0.18);
+    --danger-bg: rgba(255, 105, 97, 0.15);
+    --pending: #ff8f84;
+    --pending-bg: rgba(255, 143, 132, 0.16);
     --shadow: 0 18px 42px rgba(0, 0, 0, 0.34), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
     --shadow-strong: 0 28px 90px rgba(0, 0, 0, 0.58);
   }
@@ -1471,10 +1471,12 @@ input[type="number"] {
 }
 
 .status-pill.missing {
-  background: color-mix(in srgb, var(--pending) 12%, var(--surface));
-  color: color-mix(in srgb, var(--pending) 78%, var(--text));
-  border-color: color-mix(in srgb, var(--pending) 26%, transparent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--pending) 7%, transparent);
+  background: color-mix(in srgb, var(--pending) 11%, var(--surface));
+  color: color-mix(in srgb, var(--pending) 88%, var(--text));
+  border-color: color-mix(in srgb, var(--pending) 30%, transparent);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--pending) 8%, transparent),
+    0 0 16px color-mix(in srgb, var(--pending) 10%, transparent);
   opacity: 1;
 }
 
@@ -1657,17 +1659,17 @@ input[type="number"] {
 }
 
 .trend-day.selected.missing .trend-bar {
-  background: color-mix(in srgb, var(--pending) 10%, var(--surface-muted));
-  border: 1.5px dashed color-mix(in srgb, var(--pending) 48%, var(--border));
+  background: color-mix(in srgb, var(--pending) 11%, var(--surface-muted));
+  border: 1.5px dashed color-mix(in srgb, var(--pending) 58%, var(--border));
   box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--pending) 13%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--pending) 15%, transparent),
     inset 0 1px 0 color-mix(in srgb, #ffffff 18%, transparent),
-    0 0 8px color-mix(in srgb, var(--pending) 9%, transparent);
+    0 0 10px color-mix(in srgb, var(--pending) 12%, transparent);
 }
 
 .trend-day.selected.missing .trend-weekday,
 .trend-day.selected.missing .trend-value {
-  color: color-mix(in srgb, var(--pending) 82%, var(--text));
+  color: color-mix(in srgb, var(--pending) 92%, var(--text));
 }
 
 
