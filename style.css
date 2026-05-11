@@ -1403,15 +1403,26 @@ input[type="number"] {
 }
 
 .copy-summary-btn {
+  appearance: none;
+  -webkit-appearance: none;
   align-self: center;
-  min-height: 30px;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 800;
-  line-height: 1;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--border-strong) 76%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-muted) 82%, transparent);
+  color: var(--text);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 42%, transparent),
+    0 8px 20px color-mix(in srgb, #000000 7%, transparent);
   cursor: pointer;
   transition:
-    transform 160ms ease,
+    transform 180ms cubic-bezier(0.2, 0.9, 0.2, 1.2),
     box-shadow 180ms ease,
     border-color 180ms ease,
     background 180ms ease,
@@ -1426,19 +1437,84 @@ input[type="number"] {
 
 .copy-summary-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
-  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 36%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
   color: var(--text);
 }
 
-.copy-summary-btn:active:not(:disabled) {
+.copy-summary-btn:active:not(:disabled),
+.copy-summary-btn.copying {
   transform: scale(0.96);
+}
+
+.copy-summary-btn.copied {
+  transform: scale(1.04);
+  border-color: color-mix(in srgb, var(--success-text) 36%, var(--border));
+  background: var(--success-bg);
+  color: var(--success-text);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--success-text) 10%, transparent),
+    0 0 22px color-mix(in srgb, var(--success-text) 12%, transparent);
 }
 
 .copy-summary-btn:focus-visible {
   outline: none;
   border-color: color-mix(in srgb, var(--accent) 62%, var(--border));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.copy-icon,
+.check-icon {
+  grid-area: 1 / 1;
+  transition:
+    opacity 150ms ease,
+    transform 180ms cubic-bezier(0.2, 0.9, 0.2, 1.2);
+}
+
+.copy-icon {
+  position: relative;
+  width: 16px;
+  height: 18px;
+}
+
+.copy-icon::before,
+.copy-icon::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 13px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--surface-solid) 44%, transparent);
+}
+
+.copy-icon::before {
+  top: 0;
+  right: 0;
+}
+
+.copy-icon::after {
+  left: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--surface-muted) 54%, transparent);
+}
+
+.check-icon {
+  opacity: 0;
+  transform: scale(0.55);
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.copy-summary-btn.copied .copy-icon {
+  opacity: 0;
+  transform: scale(0.55) rotate(-8deg);
+}
+
+.copy-summary-btn.copied .check-icon {
+  opacity: 1;
+  transform: scale(1);
 }
 
 
@@ -1781,10 +1857,10 @@ input[type="number"] {
 
 .toast {
   position: fixed;
-  right: 18px;
-  bottom: 18px;
+  left: 50%;
+  top: 50%;
   z-index: 90;
-  max-width: calc(100vw - 36px);
+  max-width: min(320px, calc(100vw - 40px));
   border: 1px solid color-mix(in srgb, var(--border-strong) 72%, transparent);
   border-radius: 8px;
   background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
@@ -1793,7 +1869,8 @@ input[type="number"] {
   padding: 10px 14px;
   box-shadow: var(--shadow-strong);
   backdrop-filter: blur(22px);
-  transform: translateY(18px);
+  text-align: center;
+  transform: translate(-50%, calc(-50% + 18px)) scale(0.97);
   opacity: 0;
   transition: opacity 180ms ease, transform 180ms ease;
 }
@@ -1840,7 +1917,7 @@ input[type="number"] {
 }
 
 .toast.visible {
-  transform: translateY(0);
+  transform: translate(-50%, -50%) scale(1);
   opacity: 1;
 }
 
@@ -1901,11 +1978,16 @@ input[type="number"] {
     0 0 34px color-mix(in srgb, var(--gold) 16%, transparent);
 }
 
+.save-celebration.visible.double-hit .celebration-card {
+  animation: gold-celebration-pop 720ms cubic-bezier(0.16, 1.25, 0.22, 1) both;
+}
+
 .save-celebration.visible .celebration-card {
   transform: scale(1) translateY(0);
 }
 
 .celebration-icon {
+  position: relative;
   display: grid;
   place-items: center;
   width: 58px;
@@ -1924,6 +2006,15 @@ input[type="number"] {
   box-shadow:
     0 10px 28px color-mix(in srgb, var(--gold) 30%, transparent),
     0 0 0 5px color-mix(in srgb, var(--gold) 12%, transparent);
+}
+
+.save-celebration.double-hit .celebration-icon::after {
+  content: "";
+  position: absolute;
+  inset: -9px;
+  border-radius: inherit;
+  border: 2px solid color-mix(in srgb, var(--gold) 32%, transparent);
+  animation: gold-ring 900ms ease-out both;
 }
 
 .celebration-card strong {
@@ -2083,6 +2174,32 @@ input[type="number"] {
   }
 }
 
+@keyframes gold-celebration-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.78) translateY(16px) rotate(-1.5deg);
+  }
+  44% {
+    opacity: 1;
+    transform: scale(1.06) translateY(-2px) rotate(1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotate(0deg);
+  }
+}
+
+@keyframes gold-ring {
+  0% {
+    opacity: 0.72;
+    transform: scale(0.72);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.42);
+  }
+}
+
 @keyframes settings-reveal {
   from {
     opacity: 0;
@@ -2204,9 +2321,10 @@ input[type="number"] {
   }
 
   .week-card h2 .copy-summary-btn {
-    min-height: 28px;
-    padding: 4px 8px;
-    font-size: 11px;
+    width: 34px;
+    height: 34px;
+    min-height: 34px;
+    padding: 0;
   }
 
   .settlement-lines {

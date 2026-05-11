@@ -66,6 +66,8 @@ function showToast(message) {
   }
 
   toast.textContent = message;
+  toast.classList.remove("visible");
+  void toast.offsetWidth;
   toast.classList.add("visible");
 
   clearTimeout(toastTimer);
@@ -397,10 +399,15 @@ function showCelebration(options = {}) {
   }
 
   celebration.classList.toggle("double-hit", isDoubleHit);
+  const confetti = celebration.querySelector(".celebration-confetti");
   const icon = celebration.querySelector(".celebration-icon");
   const title = celebration.querySelector(".celebration-card strong");
   const text = celebration.querySelector(".celebration-card span:last-child");
 
+  if (confetti) {
+    const confettiCount = isDoubleHit ? 34 : 18;
+    confetti.innerHTML = Array.from({ length: confettiCount }, (_, index) => `<span style="--i:${index}"></span>`).join("");
+  }
   if (icon) icon.textContent = isDoubleHit ? "★" : "✓";
   if (title) title.textContent = isDoubleHit ? "Double hit!" : "Logged for today";
   if (text) text.textContent = isDoubleHit ? "Deficit and protein goals cleared." : "Nice work. Entry saved.";
@@ -869,7 +876,7 @@ function renderInitialLoadingState() {
     weekly.innerHTML = `
       <section class="card week-card loading-card">
         <div class="card-header">
-          <h2>This Week${weekRangeText ? ` <span>${weekRangeText}</span>` : ""}<button class="secondary-btn copy-summary-btn" type="button" data-copy-week-summary>Copy</button></h2>
+          <h2>This Week${weekRangeText ? ` <span>${weekRangeText}</span>` : ""}${getCopySummaryButtonHtml(true)}</h2>
           <div class="card-actions">
             <span class="status-pill logged">Loading</span>
           </div>
@@ -881,6 +888,22 @@ function renderInitialLoadingState() {
       </section>
     `;
   }
+}
+
+function getCopySummaryButtonHtml(disabled = false) {
+  return `
+    <button
+      class="copy-summary-btn"
+      type="button"
+      data-copy-week-summary
+      aria-label="Copy weekly summary"
+      title="Copy weekly summary"
+      ${disabled ? "disabled" : ""}
+    >
+      <span class="copy-icon" aria-hidden="true"></span>
+      <span class="check-icon" aria-hidden="true">✓</span>
+    </button>
+  `;
 }
 
 function deleteEntry() {
@@ -1027,32 +1050,29 @@ function getProteinResult(protein, proteinTarget = PROTEIN_TARGET) {
 
 function buildWeeklyPlainTextSummary(summary) {
   const entries = summary.entries || [];
-  const range = formatDateRange(summary.weekStart, summary.weekEnd);
+  const range = formatDateRange(summary.weekStart, summary.weekEnd).replace(/, \d{4}/g, "");
   const lines = [
-    `This Week${range ? ` (${range})` : ""}`,
-    `Logged days: ${summary.count || 0}/7`,
-    `Avg calories: ${formatInt(summary.averageCalories || 0)} kcal`,
-    `Avg protein: ${formatInt(summary.averageProtein || 0)}g`,
-    `Total deficit: ${formatInt(summary.totalDeficit || 0)} kcal`,
-    `Estimated fat loss: ${formatInt(Number(summary.fatLossKg || 0) * 1000)}g`,
-    `Consistency: ${summary.consistency || getConsistency(entries)}`,
+    `Week ${range}`,
+    `${summary.count || 0}/7 days · ${summary.consistency || getConsistency(entries)}`,
+    `Avg ${formatInt(summary.averageCalories || 0)} kcal · ${formatInt(summary.averageProtein || 0)}g protein`,
+    `Deficit ${formatInt(summary.totalDeficit || 0)} kcal · Fat ${formatInt(Number(summary.fatLossKg || 0) * 1000)}g`,
     "",
-    "Daily entries:"
+    "Daily"
   ];
 
   if (!entries.length) {
-    lines.push("No entries logged.");
+    lines.push("No entries");
     return lines.join("\n");
   }
 
   entries.forEach((entry) => {
     const deficit = roundInt((entry.tdee || TDEE) - entry.calories);
     const deficitText = deficit < 0
-      ? `+${formatInt(Math.abs(deficit))} kcal surplus`
-      : `${formatInt(deficit)} kcal deficit`;
+      ? `+${formatInt(Math.abs(deficit))}`
+      : `-${formatInt(deficit)}`;
 
     lines.push(
-      `${formatPlainDateLabel(entry.date)}: ${formatInt(entry.calories)} kcal, ${formatInt(entry.protein)}g protein, ${deficitText}`
+      `${formatPlainDateLabel(entry.date)}: ${formatInt(entry.calories)} kcal · ${formatInt(entry.protein)}g · ${deficitText} kcal`
     );
   });
 
@@ -1153,12 +1173,23 @@ async function handleCopyWeeklySummaryClick(event) {
 
   try {
     button.disabled = true;
+    button.classList.remove("copied");
+    button.classList.add("copying");
     await copyTextToClipboard(buildWeeklyPlainTextSummary(latestWeekSummary));
-    showToast("Weekly summary copied");
+    button.classList.remove("copying");
+    button.classList.add("copied");
+    button.setAttribute("aria-label", "Weekly summary copied");
+    showToast("Copied");
+    setTimeout(() => {
+      button.classList.remove("copied");
+      button.disabled = false;
+      button.setAttribute("aria-label", "Copy weekly summary");
+    }, 1400);
   } catch (error) {
-    showToast("Copy failed");
-  } finally {
+    button.classList.remove("copying", "copied");
     button.disabled = false;
+    button.setAttribute("aria-label", "Copy weekly summary");
+    showToast("Copy failed");
   }
 }
 
@@ -1313,7 +1344,7 @@ function renderSummary(summary) {
   const weekHtml = `
     <section class="card week-card">
       <div class="card-header">
-        <h2>This Week${weekRangeText ? ` <span>${weekRangeText}</span>` : ""}<button class="secondary-btn copy-summary-btn" type="button" data-copy-week-summary>Copy</button></h2>
+        <h2>This Week${weekRangeText ? ` <span>${weekRangeText}</span>` : ""}${getCopySummaryButtonHtml()}</h2>
         <div class="card-actions">
           <span class="status-pill logged">${weeklyPillText}</span>
         </div>
