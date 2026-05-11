@@ -452,13 +452,25 @@ function isCalendarOpen() {
 
 // iOS Safari doesn't shrink the layout viewport when the keyboard opens.
 // visualViewport.height gives the actual visible height (above the keyboard).
+// When keyboard appears we switch from centered to bottom-anchored so the
+// form stays visible above the keyboard.
 function adjustQuickEntryForKeyboard() {
   const form = document.getElementById("today-form");
   if (!form || !isQuickEntryOpen()) return;
   const vv = window.visualViewport;
   if (!vv) return;
   const keyboardHeight = window.innerHeight - vv.height - vv.offsetTop;
-  form.style.bottom = keyboardHeight > 0 ? `${keyboardHeight + 8}px` : "";
+  if (keyboardHeight > 50) {
+    // Keyboard visible — anchor above keyboard
+    form.style.top = "auto";
+    form.style.bottom = `${keyboardHeight + 8}px`;
+    form.style.transform = "translateX(-50%)";
+  } else {
+    // No keyboard — restore centered
+    form.style.top = "";
+    form.style.bottom = "";
+    form.style.transform = "";
+  }
 }
 
 function openQuickEntry(focusField = "calories") {
@@ -510,7 +522,7 @@ function closeQuickEntry(options = {}) {
     window.visualViewport.removeEventListener("scroll", viewportResizeHandler);
     viewportResizeHandler = null;
   }
-  if (form) form.style.bottom = "";
+  if (form) { form.style.top = ""; form.style.bottom = ""; form.style.transform = ""; }
 
   if (form && todayEntry) {
     setEntryFormVisible(false);

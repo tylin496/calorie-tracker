@@ -355,7 +355,7 @@ h1 {
 }
 
 .calendar-months {
-  height: calc(8 * 38px + 7 * 2px); /* 8 week rows + 7 gaps */
+  height: calc(8 * 38px + 7 * 6px); /* 8 week rows + 7 gaps */
   overflow-y: auto;
   overscroll-behavior: contain;
   scroll-snap-type: y proximity;
@@ -380,13 +380,13 @@ h1 {
 .calendar-grid {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 6px;
 }
 
 .calendar-week {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
+  column-gap: 2px;
   scroll-snap-align: start;
 }
 
@@ -429,8 +429,8 @@ h1 {
 }
 
 .calendar-day.past-calendar-month {
-  color: color-mix(in srgb, var(--muted) 58%, transparent);
-  -webkit-text-fill-color: color-mix(in srgb, var(--muted) 58%, transparent);
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
 }
 
 .calendar-day.future-calendar-month {
@@ -495,7 +495,11 @@ h1 {
     -webkit-text-fill-color: #f5f5f7;
   }
 
-  .calendar-day.past-calendar-month,
+  .calendar-day.past-calendar-month {
+    color: #f5f5f7;
+    -webkit-text-fill-color: #f5f5f7;
+  }
+
   .calendar-day.future-calendar-month {
     color: rgba(245, 245, 247, 0.34);
     -webkit-text-fill-color: rgba(245, 245, 247, 0.34);
@@ -544,19 +548,20 @@ h1 {
 .delete-confirm-panel {
   position: fixed;
   left: 50%;
-  bottom: max(18px, env(safe-area-inset-bottom));
+  top: 50%;
   z-index: 21;
   width: min(390px, calc(100% - 32px));
   display: grid;
   gap: 16px;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   border: 1px solid var(--border);
   border-radius: 8px;
   background: color-mix(in srgb, var(--surface-solid) 94%, transparent);
   backdrop-filter: blur(28px);
   box-shadow: var(--shadow-strong);
   padding: 18px;
-  animation: quick-entry-in 220ms ease both;
+  text-align: center;
+  animation: center-modal-in 220ms ease both;
 }
 
 .delete-confirm-panel strong {
@@ -690,12 +695,13 @@ h1 {
 .settlement-form.quick-entry {
   position: fixed;
   left: 50%;
-  bottom: max(16px, env(safe-area-inset-bottom));
+  top: 50%;
+  bottom: auto;
   z-index: 11;
   width: min(760px, calc(100% - 24px));
   max-height: calc(100dvh - 32px);
   overflow: auto;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
   border: 1px solid var(--border);
@@ -705,28 +711,29 @@ h1 {
   box-shadow: var(--shadow-strong);
   padding: 12px;
   margin: 0;
-  animation: quick-entry-in 240ms ease both;
+  animation: center-modal-in 240ms ease both;
 }
 
 .settlement-form.quick-entry.entry-form-collapsed {
   max-height: calc(100dvh - 32px);
   opacity: 1;
   pointer-events: auto;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
 }
 
 .settlement-form.quick-entry .quick-entry-header {
+  position: relative;
   grid-column: 1 / -1;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 12px;
 }
 
 .quick-entry-header strong,
 .quick-entry-header span {
   display: block;
-  text-align: left;
+  text-align: center;
 }
 
 .quick-entry-header strong {
@@ -739,6 +746,10 @@ h1 {
 }
 
 .quick-entry-header .icon-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
   width: 40px;
   min-height: 40px;
   font-size: 24px;
@@ -2270,6 +2281,17 @@ input[type="number"] {
   to {
     opacity: 1;
     transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@keyframes center-modal-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 14px)) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
