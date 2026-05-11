@@ -75,9 +75,11 @@ function isFutureDate(dateString) {
   return new Date(`${dateString}T12:00:00`) > new Date(`${getDietDate()}T12:00:00`);
 }
 
-function setStatus(msg) {
+function setStatus(msg, variant = null) {
   const el = document.getElementById("status");
-  if (el) el.textContent = msg;
+  if (!el) return;
+  el.textContent = msg;
+  el.dataset.variant = variant || "";
 }
 
 function showToast(message) {
@@ -754,8 +756,14 @@ function updateCalendarMonthLabel(grid) {
   }
 
   if (current?.dataset.month) {
-    calendarVisibleMonth = current.dataset.month;
-    label.innerHTML = getCalendarMonthLabel(new Date(`${calendarVisibleMonth}-01T12:00:00`));
+    const newMonth = current.dataset.month;
+    label.innerHTML = getCalendarMonthLabel(new Date(`${newMonth}-01T12:00:00`));
+    if (newMonth !== calendarVisibleMonth) {
+      calendarVisibleMonth = newMonth;
+      grid.querySelectorAll(".calendar-day[data-day-month]").forEach(btn => {
+        btn.classList.toggle("viewed-calendar-month", btn.dataset.dayMonth === calendarVisibleMonth);
+      });
+    }
   }
 }
 
@@ -780,25 +788,29 @@ function extendCalendarIfNeeded(grid) {
 
 function renderCalendarDay(date, dietToday, dietTodayString, extraClass = "") {
   const dateString = formatDate(date);
+  const dayMonth = dateString.slice(0, 7);
   const isSelected = dateString === currentDate;
   const isToday = dateString === dietTodayString;
   const isFuture = date > dietToday;
   const isMonthStart = extraClass === "month-start";
+  const isFutureMonth = dayMonth > dietTodayString.slice(0, 7);
 
-  const isCurrentMonth = date.getFullYear() === dietToday.getFullYear() && date.getMonth() === dietToday.getMonth();
-  const isFutureMonth = date.getFullYear() > dietToday.getFullYear() ||
-    (date.getFullYear() === dietToday.getFullYear() && date.getMonth() > dietToday.getMonth());
-  const monthClass = isCurrentMonth ? "current-calendar-month" : isFutureMonth ? "future-calendar-month" : "past-calendar-month";
-
-  const classes = ["calendar-day", monthClass, extraClass, isSelected ? "selected" : "", isToday ? "today" : ""]
-    .filter(Boolean).join(" ");
+  const classes = [
+    "calendar-day",
+    dayMonth === calendarVisibleMonth ? "viewed-calendar-month" : "",
+    isFutureMonth ? "future-calendar-month" : "",
+    extraClass,
+    isSelected ? "selected" : "",
+    isToday ? "today" : ""
+  ].filter(Boolean).join(" ");
 
   return `
     <button
       class="${classes}"
       type="button"
       data-date="${dateString}"
-      ${isMonthStart ? `data-month="${dateString.slice(0, 7)}"` : ""}
+      data-day-month="${dayMonth}"
+      ${isMonthStart ? `data-month="${dayMonth}"` : ""}
       ${isFuture ? "disabled" : ""}
     >
       ${date.getDate()}
@@ -979,13 +991,13 @@ async function saveEntry(calories, protein) {
 
     todayLogged = true;
     rememberLoggedDate(currentDate);
-    setStatus("Saved");
+    const savedDeficitTarget = Math.max(0, roundInt(TDEE - calorieTarget));
+    const didDoubleHit = savedDeficit >= savedDeficitTarget && roundedProtein >= PROTEIN_TARGET;
+    setStatus(didDoubleHit ? "Double hit!" : "Saved", didDoubleHit ? "gold" : null);
     closeQuickEntry({ haptic: false });
-    await loadWeekSummary("Saved");
+    await loadWeekSummary(didDoubleHit ? "Double hit!" : "Saved");
     triggerHaptic("success");
     triggerSaveReward();
-    const savedDeficitTarget = Math.max(0, roundInt(TDEE - calorieTarget));
-    const didDoubleHit = savedDeficit > savedDeficitTarget && roundedProtein > PROTEIN_TARGET;
     if (didDoubleHit || shouldCelebrateTodayCommit) {
       showCelebration({ variant: didDoubleHit ? "double-hit" : "logged" });
     }
@@ -1476,8 +1488,6 @@ function renderSummary(summary) {
         : proteinAlmostThere
           ? "Almost there!"
           : (isCompactLayout ? `Target ${formatInt(entryProteinTarget)} g` : `Target ${formatInt(entryProteinTarget)} g`);
-    // Deficit card: always shows fixed target, no reward styling
-    const deficitMetricText = isCompactLayout ? `Target ${formatInt(entryDeficitTarget)}` : `Target ${formatInt(entryDeficitTarget)} kcal`;
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone} ${doubleHit ? "double-hit" : ""}">
@@ -1497,11 +1507,6 @@ function renderSummary(summary) {
             <strong>${formatInt(roundedProtein)} <small>g</small></strong>
             <span class="metric-note ${proteinOverTarget > 0 || proteinPerfect || proteinAlmostThere ? "reward" : ""}">${proteinMetricText}</span>
           </button>
-          <div class="daily-metric" aria-label="Deficit is calculated from calories and TDEE">
-            <span class="metric-label">Deficit</span>
-            <strong>${calorieResult.isSurplus ? `+${formatInt(calorieResult.surplus)}` : formatInt(calorieResult.deficit)} <small>kcal</small></strong>
-            <span>${deficitMetricText}</span>
-          </div>
         </div>
 
         <div class="settlement-lines">
