@@ -558,10 +558,12 @@ function renderCalendarMonths(grid, dietToday, dietTodayString) {
     startDate.setDate(selectedAnchor.getDate() - selOffset);
   }
 
-  // End at Sunday of the current week — hard bottom, no future dates at all
+  // End at Sunday of current week + 4 more weeks.
+  // These disabled future rows fill the 8-row window so today sits centred
+  // and there's nothing past row 8 to scroll into.
   const todayOffset = (dietToday.getDay() + 6) % 7; // Mon=0
   const endDate = new Date(dietToday);
-  endDate.setDate(dietToday.getDate() + (6 - todayOffset));
+  endDate.setDate(dietToday.getDate() + (6 - todayOffset) + 28);
 
   const cursor = new Date(startDate);
   let isFirst = true;
