@@ -886,44 +886,6 @@ button:focus-visible {
   margin-bottom: 0;
 }
 
-.entry-edit-toggle {
-  position: relative;
-  z-index: 20;
-  pointer-events: auto;
-  min-height: 34px;
-  margin: 8px 0 4px;
-  padding: 0 11px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--surface-solid) 48%, transparent);
-  box-shadow: none;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 650;
-  backdrop-filter: blur(16px);
-  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
-}
-
-.entry-edit-toggle[aria-expanded="true"] {
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
-  background: color-mix(in srgb, var(--accent-soft) 30%, var(--surface));
-  color: var(--text);
-}
-
-.entry-edit-toggle[aria-expanded="true"] + .settlement-form {
-  margin-top: 6px;
-}
-
-.entry-edit-toggle:hover {
-  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
-  background: color-mix(in srgb, var(--accent-soft) 34%, var(--surface));
-  color: var(--text);
-  transform: translateY(-1px);
-}
-
-.entry-edit-toggle:active {
-  transform: scale(0.98);
-}
 
 #deleteBtn {
   width: auto;

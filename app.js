@@ -381,13 +381,6 @@ function updateEntryForm() {
   }
   if (form) {
     form.classList.toggle("compact-entry-fields", window.matchMedia?.("(max-width: 620px)")?.matches ?? false);
-    const editToggle = document.getElementById("entryEditToggle");
-    if (editToggle) {
-      editToggle.hidden = !todayEntry || isQuickEntryOpen();
-      editToggle.setAttribute("aria-expanded", "false");
-      editToggle.textContent = "Edit entry";
-    }
-
     setEntryFormVisible(!todayEntry || isQuickEntryOpen());
   }
 }
@@ -418,7 +411,6 @@ function setEntryFormVisible(isVisible) {
 
 function hideEntryFormWhileLoading() {
   const form = document.getElementById("today-form");
-  const editToggle = document.getElementById("entryEditToggle");
 
   if (form) {
     form.classList.remove("entry-form-collapsed");
@@ -426,38 +418,8 @@ function hideEntryFormWhileLoading() {
     form.inert = false;
     form.hidden = true;
   }
-
-  if (editToggle) {
-    editToggle.hidden = true;
-    editToggle.setAttribute("aria-expanded", "false");
-    editToggle.textContent = "Edit entry";
-  }
 }
 
-function toggleEntryEditForm(editToggle) {
-  triggerHaptic("tap");
-
-  const form = document.getElementById("today-form");
-  const isExpanded = editToggle.getAttribute("aria-expanded") === "true";
-  const nextExpanded = !isExpanded;
-
-  editToggle.setAttribute("aria-expanded", String(nextExpanded));
-  editToggle.textContent = nextExpanded ? "Done" : "Edit entry";
-  if (form) {
-    setEntryFormVisible(nextExpanded);
-    if (nextExpanded) {
-      form.scrollIntoView?.({ behavior: "smooth", block: "nearest" });
-    }
-  }
-}
-
-function handleEntryEditToggleClick(event) {
-  const editToggle = event.target?.closest?.("#entryEditToggle");
-  if (!editToggle) return;
-
-  event.preventDefault();
-  toggleEntryEditForm(editToggle);
-}
 
 function setLoading(isLoading) {
   const saveBtn = document.getElementById("saveBtn");
@@ -551,13 +513,6 @@ function closeQuickEntry(options = {}) {
   if (form) form.style.bottom = "";
 
   if (form && todayEntry) {
-    const editToggle = document.getElementById("entryEditToggle");
-
-    if (editToggle) {
-      editToggle.setAttribute("aria-expanded", "false");
-      editToggle.textContent = "Edit entry";
-    }
-
     setEntryFormVisible(false);
   }
   const backdrop = document.getElementById("quickEntryBackdrop");
@@ -623,7 +578,6 @@ function openCalendar() {
 
   const panel = document.getElementById("calendarPanel");
   const backdrop = document.getElementById("calendarBackdrop");
-  const editToggle = document.getElementById("entryEditToggle");
   const dietTodayString = getDietDate();
 
   renderCalendar();
@@ -631,7 +585,6 @@ function openCalendar() {
   if (panel) panel.hidden = false;
   if (backdrop) backdrop.hidden = false;
   document.body.classList.add("calendar-open");
-  if (editToggle) editToggle.hidden = true;
 
   // Double-RAF: first frame shows panel, second frame has stable layout (avoids
   // modal-in CSS transform skewing getBoundingClientRect values)
@@ -665,14 +618,10 @@ function closeCalendar(options = {}) {
 
   const panel = document.getElementById("calendarPanel");
   const backdrop = document.getElementById("calendarBackdrop");
-  const editToggle = document.getElementById("entryEditToggle");
 
   if (panel) panel.hidden = true;
   if (backdrop) backdrop.hidden = true;
   document.body.classList.remove("calendar-open");
-  if (editToggle) {
-    editToggle.hidden = !(todayEntry && !isQuickEntryOpen());
-  }
 }
 
 function openDeleteConfirm() {
@@ -1828,7 +1777,6 @@ function initApp() {
   document.getElementById("quickEntryBackdrop")?.addEventListener("click", closeQuickEntry);
   document.getElementById("calories")?.addEventListener("input", handleCaloriesInput);
   document.getElementById("protein")?.addEventListener("input", handleProteinInput);
-  document.addEventListener("click", handleEntryEditToggleClick);
   document.addEventListener("keydown", handleGlobalKeydown);
 
   window.matchMedia?.("(max-width: 620px)")?.addEventListener?.("change", (event) => {
