@@ -569,7 +569,11 @@ function renderCalendarAdjacentWeek(monthDate, direction, dietToday, dietTodaySt
   return `
     <section class="calendar-month adjacent-calendar-month" data-month="${monthKey}" aria-label="${monthTitle}">
       <div class="calendar-grid calendar-week-row">
-        ${days.map((date) => renderCalendarDay(date, dietToday, dietTodayString, date.getMonth() === monthDate.getMonth() ? "" : "outside-month")).join("")}
+        ${days.map((date) => (
+          date.getMonth() === monthDate.getMonth()
+            ? renderCalendarDay(date, dietToday, dietTodayString)
+            : `<span class="calendar-day calendar-day-placeholder" aria-hidden="true"></span>`
+        )).join("")}
       </div>
     </section>
   `;
@@ -1254,17 +1258,17 @@ function renderSummary(summary) {
         <div class="daily-metrics">
           <button class="daily-metric metric-button" type="button" data-edit-field="calories" aria-label="Add calories">
             <span class="metric-label">Calories</span>
-            <strong>--</strong>
+            <strong class="metric-placeholder">--</strong>
             <span>${isCompactLayout ? `Target ${formatInt(Math.max(0, TDEE - DEFICIT_TARGET))}` : `Target ${formatInt(Math.max(0, TDEE - DEFICIT_TARGET))} kcal`}</span>
           </button>
           <button class="daily-metric metric-button" type="button" data-edit-field="protein" aria-label="Add protein">
             <span class="metric-label">Protein</span>
-            <strong>--</strong>
+            <strong class="metric-placeholder">--</strong>
             <span>${isCompactLayout ? `Target ${formatInt(PROTEIN_TARGET)}g` : `Target ${formatInt(PROTEIN_TARGET)} g`}</span>
           </button>
           <div class="daily-metric">
             <span class="metric-label">Deficit</span>
-            <strong>--</strong>
+            <strong class="metric-placeholder">--</strong>
             <span>${isCompactLayout ? `Target ${formatInt(DEFICIT_TARGET)}` : `Target ${formatInt(DEFICIT_TARGET)} kcal`}</span>
           </div>
         </div>
