@@ -515,25 +515,36 @@ function renderCalendar() {
 }
 
 function renderCalendarMonths(grid, dietToday, dietTodayString) {
-  const months = getCalendarMonths(dietToday, currentDate, calendarHistoryMonths);
   const cells = [];
 
-  for (let m = 0; m < months.length; m++) {
-    const monthDate = months[m];
-    const firstDayOffset = (monthDate.getDay() + 6) % 7;
-    const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+  // Start from Monday of the week containing (calendarHistoryMonths ago)
+  const historyAnchor = new Date(dietToday.getFullYear(), dietToday.getMonth() - calendarHistoryMonths, 1);
+  const anchorOffset = (historyAnchor.getDay() + 6) % 7; // Mon=0
+  const startDate = new Date(historyAnchor);
+  startDate.setDate(historyAnchor.getDate() - anchorOffset);
 
-    // Only the first month needs leading placeholders
-    if (m === 0) {
-      for (let i = 0; i < firstDayOffset; i++) {
-        cells.push(`<span class="calendar-day calendar-day-placeholder" aria-hidden="true"></span>`);
-      }
-    }
+  // If the selected date is before our start, extend back to include it
+  const selectedAnchor = new Date(`${currentDate}T12:00:00`);
+  if (selectedAnchor < startDate) {
+    const selOffset = (selectedAnchor.getDay() + 6) % 7;
+    startDate.setTime(selectedAnchor.getTime());
+    startDate.setDate(selectedAnchor.getDate() - selOffset);
+  }
 
-    for (let i = 1; i <= lastDay.getDate(); i++) {
-      const date = new Date(monthDate.getFullYear(), monthDate.getMonth(), i);
-      cells.push(renderCalendarDay(date, dietToday, dietTodayString, i === 1 ? "month-start" : ""));
-    }
+  // End at Sunday of (current week + 4 more weeks) — hard bottom, nothing to scroll into
+  const todayOffset = (dietToday.getDay() + 6) % 7; // Mon=0
+  const endDate = new Date(dietToday);
+  endDate.setDate(dietToday.getDate() + (6 - todayOffset) + 28);
+
+  const cursor = new Date(startDate);
+  let isFirst = true;
+
+  while (cursor <= endDate) {
+    // Mark first cell and every calendar month's 1st for label tracking
+    const isMonthMarker = isFirst || cursor.getDate() === 1;
+    isFirst = false;
+    cells.push(renderCalendarDay(cursor, dietToday, dietTodayString, isMonthMarker ? "month-start" : ""));
+    cursor.setDate(cursor.getDate() + 1);
   }
 
   grid.innerHTML = `<div class="calendar-grid">${cells.join("")}</div>`;
@@ -586,28 +597,6 @@ function extendCalendarIfNeeded(grid) {
   });
 }
 
-function getCalendarMonths(endDate, selectedDateString, historyMonths = CALENDAR_INITIAL_HISTORY_MONTHS) {
-  const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
-  const displayEndMonth = new Date(endMonth);
-  displayEndMonth.setMonth(displayEndMonth.getMonth() + 1);
-  const selectedMonth = getMonthStart(selectedDateString);
-  const startMonth = new Date(endMonth);
-  startMonth.setMonth(startMonth.getMonth() - historyMonths);
-
-  if (selectedMonth < startMonth) {
-    startMonth.setFullYear(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
-  }
-
-  const months = [];
-  const cursor = new Date(startMonth);
-
-  while (cursor <= displayEndMonth) {
-    months.push(new Date(cursor));
-    cursor.setMonth(cursor.getMonth() + 1);
-  }
-
-  return months;
-}
 
 function renderCalendarDay(date, dietToday, dietTodayString, extraClass = "") {
   const dateString = formatDate(date);

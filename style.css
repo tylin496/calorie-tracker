@@ -245,7 +245,7 @@ h1 {
   width: min(390px, calc(100% - 32px));
   max-height: min(620px, calc(100dvh - 32px));
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
   transform: translate(-50%, -50%);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -299,12 +299,9 @@ h1 {
 }
 
 .calendar-months {
-  min-height: 0;
+  height: calc(8 * 38px + 7 * 4px); /* exactly 8 rows */
   overflow-y: auto;
   overscroll-behavior: contain;
-  display: grid;
-  gap: 0;
-  padding: 8px 0 24px;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
