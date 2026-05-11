@@ -316,6 +316,10 @@ function isQuickEntryOpen() {
   return document.body.classList.contains("quick-entry-open");
 }
 
+function isCalendarOpen() {
+  return document.body.classList.contains("calendar-open");
+}
+
 function openQuickEntry(focusField = "calories") {
   const form = document.getElementById("today-form");
   if (form) form.hidden = false;
@@ -987,7 +991,7 @@ function getCalorieResult(calories, tdee = TDEE, deficitTarget = DEFICIT_TARGET)
     surplus,
     isSurplus,
     isPerfect,
-    progress: isSurplus ? 100 : exceeded ? 100 : getProgressPercent(deficit, roundedDeficitTarget),
+    progress: isSurplus ? getProgressPercent(surplus, roundedDeficitTarget) : exceeded ? 100 : getProgressPercent(deficit, roundedDeficitTarget),
     celebrated: exceeded,
     tone: isSurplus ? "surplus" : "logged",
     status: isSurplus ? "Surplus" : "Deficit"
@@ -1353,7 +1357,7 @@ async function loadWeekSummary(successMessage) {
     setSummaryRefreshing(false);
     setStatus(successMessage || "");
 
-    if (!didAutoOpenQuickEntry && currentDate === DIET_INITIAL_DATE && !todayEntry) {
+    if (!didAutoOpenQuickEntry && currentDate === DIET_INITIAL_DATE && !todayEntry && !isCalendarOpen()) {
       didAutoOpenQuickEntry = true;
       openQuickEntry();
     }
