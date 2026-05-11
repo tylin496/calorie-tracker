@@ -324,6 +324,37 @@ h1 {
   line-height: 1;
 }
 
+.calendar-jump-today-btn {
+  position: absolute;
+  top: 2px;
+  right: 44px;
+  padding: 4px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 130ms ease, color 130ms ease;
+}
+
+.calendar-jump-today-btn:hover {
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  color: var(--text);
+}
+
+.calendar-jump-today-btn:active {
+  transform: scale(0.95);
+}
+
+.week-snap {
+  grid-column: 1 / -1;
+  height: 0;
+  scroll-snap-align: start;
+  pointer-events: none;
+}
+
 .calendar-month-label {
   justify-self: start;
   color: var(--text);
@@ -342,6 +373,7 @@ h1 {
   height: calc(8 * 38px + 7 * 4px); /* exactly 8 rows */
   overflow-y: auto;
   overscroll-behavior: contain;
+  scroll-snap-type: y proximity;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }

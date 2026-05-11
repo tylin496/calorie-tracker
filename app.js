@@ -743,13 +743,19 @@ function renderCalendarMonths(grid, dietToday, dietTodayString) {
 
   const cursor = new Date(startDate);
   let isFirst = true;
+  let cellIndex = 0;
 
   while (cursor <= endDate) {
+    // Insert an invisible full-row snap anchor at the start of each week
+    if (cellIndex % 7 === 0) {
+      cells.push('<div class="week-snap" aria-hidden="true"></div>');
+    }
     // Mark first cell and every calendar month's 1st for label tracking
     const isMonthMarker = isFirst || cursor.getDate() === 1;
     isFirst = false;
     cells.push(renderCalendarDay(cursor, dietToday, dietTodayString, isMonthMarker ? "month-start" : ""));
     cursor.setDate(cursor.getDate() + 1);
+    cellIndex++;
   }
 
   grid.innerHTML = `<div class="calendar-grid">${cells.join("")}</div>`;
@@ -1806,6 +1812,11 @@ function initApp() {
   document.getElementById("diet-day")?.addEventListener("click", openCalendar);
   document.getElementById("closeCalendarBtn")?.addEventListener("click", closeCalendar);
   document.getElementById("calendarBackdrop")?.addEventListener("click", closeCalendar);
+  document.getElementById("jumpTodayBtn")?.addEventListener("click", () => {
+    const grid = document.getElementById("calendarGrid");
+    const todayBtn = grid?.querySelector(".calendar-day.today");
+    if (grid && todayBtn) scrollCalendarToSelectedDate(grid, todayBtn);
+  });
   document.getElementById("calendarGrid")?.addEventListener("click", handleCalendarDayClick);
   document.getElementById("prevDayBtn")?.addEventListener("click", () => shiftDietDay(-1));
   document.getElementById("nextDayBtn")?.addEventListener("click", () => shiftDietDay(1));
