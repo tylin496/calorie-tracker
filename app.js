@@ -905,11 +905,9 @@ function getCopySummaryButtonHtml(disabled = false) {
       ${disabled ? "disabled" : ""}
     >
       <span class="copy-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" focusable="false">
-          <path d="M9 3h6.2L20 7.8V16a2 2 0 0 1-2 2h-2V9.5L9 3Z" />
-          <path d="M15.2 3.4V8H19.8" />
-          <path d="M5 7h6.2L16 11.8V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" />
-          <path d="M11.2 7.4V12H15.8" />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+          <rect x="9" y="3.5" width="9.5" height="12.5" rx="2.4"/>
+          <rect x="5.5" y="8" width="9.5" height="12.5" rx="2.4"/>
         </svg>
       </span>
       <span class="check-icon" aria-hidden="true">✓</span>
