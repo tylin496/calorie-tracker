@@ -298,26 +298,16 @@ h1 {
 
 .calendar-header {
   position: relative;
-  display: grid;
-  gap: 8px;
-  margin-bottom: 18px;
-}
-
-.calendar-header strong {
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: 0;
-}
-
-#calendarTitle {
-  justify-self: center;
-  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 14px;
 }
 
 .calendar-close-btn {
   position: absolute;
-  top: 0;
+  top: 50%;
   right: 0;
+  transform: translateY(-50%);
   width: 38px;
   min-height: 38px;
   font-size: 24px;
@@ -325,23 +315,21 @@ h1 {
 }
 
 .calendar-jump-today-btn {
-  position: absolute;
-  top: 2px;
-  right: 44px;
-  padding: 4px 11px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 13px;
+  margin-left: auto;
+  margin-right: 44px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 7px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 130ms ease, color 130ms ease;
+  transition: background 130ms ease, opacity 130ms ease;
 }
 
 .calendar-jump-today-btn:hover {
-  background: color-mix(in srgb, var(--text) 7%, transparent);
-  color: var(--text);
+  opacity: 0.8;
 }
 
 .calendar-jump-today-btn:active {
@@ -349,19 +337,16 @@ h1 {
 }
 
 .week-snap {
-  grid-column: 1 / -1;
-  height: 0;
-  scroll-snap-align: start;
-  pointer-events: none;
+  display: none;
 }
 
 .calendar-month-label {
-  justify-self: start;
   color: var(--text);
   font-size: 18px;
   font-weight: 500;
   letter-spacing: 0;
   line-height: 1.15;
+  flex: 1;
 }
 
 .calendar-month-label strong {
@@ -370,7 +355,7 @@ h1 {
 }
 
 .calendar-months {
-  height: calc(8 * 38px + 7 * 4px); /* exactly 8 rows */
+  height: calc(8 * 38px + 7 * 2px); /* 8 week rows + 7 gaps */
   overflow-y: auto;
   overscroll-behavior: contain;
   scroll-snap-type: y proximity;
@@ -386,16 +371,23 @@ h1 {
   scroll-margin-block: 10px;
 }
 
-.calendar-weekdays-fixed,
-.calendar-grid {
+.calendar-weekdays-fixed {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
 }
 
 .calendar-grid {
-  grid-auto-rows: 38px;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.calendar-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  scroll-snap-align: start;
 }
 
 .calendar-day-placeholder {
@@ -403,9 +395,6 @@ h1 {
   pointer-events: none;
 }
 
-.calendar-week-row {
-  grid-auto-rows: 38px;
-}
 
 .calendar-weekdays-fixed {
   padding: 0;
@@ -421,6 +410,7 @@ h1 {
 }
 
 .calendar-day {
+  position: relative;
   display: grid;
   place-items: center;
   min-width: 0;
@@ -473,10 +463,12 @@ h1 {
 
 .calendar-day.today:not(.selected)::after {
   content: "";
-  display: block;
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
   width: 4px;
   height: 4px;
-  margin: 2px auto 0;
   border-radius: 999px;
   background: var(--accent);
 }

@@ -650,14 +650,16 @@ function closeDeleteConfirm(options = {}) {
 }
 
 function renderCalendar() {
-  const title = document.getElementById("calendarTitle");
   const grid = document.getElementById("calendarGrid");
   const dietTodayString = getDietDate();
   const dietToday = new Date(`${dietTodayString}T12:00:00`);
 
-  if (!title || !grid) return;
+  if (!grid) return;
 
-  title.textContent = "Select date";
+  // Set initial month label to the currently selected date
+  const label = document.getElementById("calendarMonthLabel");
+  if (label) label.innerHTML = getCalendarMonthLabel(new Date(`${currentDate}T12:00:00`));
+
   renderCalendarMonths(grid, dietToday, dietTodayString);
 
   grid.onscroll = () => {
@@ -667,7 +669,8 @@ function renderCalendar() {
 }
 
 function renderCalendarMonths(grid, dietToday, dietTodayString) {
-  const cells = [];
+  const weeks = [];
+  let weekCells = [];
 
   // Start from Monday of the week containing (calendarHistoryMonths ago)
   const historyAnchor = new Date(dietToday.getFullYear(), dietToday.getMonth() - calendarHistoryMonths, 1);
@@ -695,19 +698,24 @@ function renderCalendarMonths(grid, dietToday, dietTodayString) {
   let cellIndex = 0;
 
   while (cursor <= endDate) {
-    // Insert an invisible full-row snap anchor at the start of each week
-    if (cellIndex % 7 === 0) {
-      cells.push('<div class="week-snap" aria-hidden="true"></div>');
-    }
     // Mark first cell and every calendar month's 1st for label tracking
     const isMonthMarker = isFirst || cursor.getDate() === 1;
     isFirst = false;
-    cells.push(renderCalendarDay(cursor, dietToday, dietTodayString, isMonthMarker ? "month-start" : ""));
+    weekCells.push(renderCalendarDay(cursor, dietToday, dietTodayString, isMonthMarker ? "month-start" : ""));
     cursor.setDate(cursor.getDate() + 1);
     cellIndex++;
+
+    // Flush completed week row
+    if (cellIndex % 7 === 0) {
+      weeks.push(`<div class="calendar-week">${weekCells.join("")}</div>`);
+      weekCells = [];
+    }
+  }
+  if (weekCells.length > 0) {
+    weeks.push(`<div class="calendar-week">${weekCells.join("")}</div>`);
   }
 
-  grid.innerHTML = `<div class="calendar-grid">${cells.join("")}</div>`;
+  grid.innerHTML = `<div class="calendar-grid">${weeks.join("")}</div>`;
 }
 
 function getCalendarMonthLabel(monthDate) {
@@ -1429,8 +1437,7 @@ function renderSummary(summary) {
     const calorieIntakeTarget = Math.max(0, entryCalorieTarget);
     const deficitOverTarget = Math.max(roundInt(calorieResult.deficit - entryDeficitTarget), 0);
     const proteinOverTarget = Math.max(roundInt(roundedProtein - entryProteinTarget), 0);
-    const calorieOnTarget = deficitOverTarget > 0 || calorieResult.celebrated;
-    const doubleHit = calorieOnTarget && (proteinOverTarget > 0 || proteinResult.celebrated);
+    const doubleHit = deficitOverTarget > 0 && proteinOverTarget > 0;
     const statusPillText = doubleHit ? "Double hit" : "Logged";
     // Reward tone: calories and protein cards — deficit card is always plain
     const calorieMetricTone = calorieResult.isSurplus ? "caution" : deficitOverTarget > 0 ? "rewarded" : calorieResult.celebrated ? "on-track" : "";
@@ -1759,9 +1766,9 @@ function initApp() {
   document.getElementById("closeCalendarBtn")?.addEventListener("click", closeCalendar);
   document.getElementById("calendarBackdrop")?.addEventListener("click", closeCalendar);
   document.getElementById("jumpTodayBtn")?.addEventListener("click", () => {
-    const grid = document.getElementById("calendarGrid");
-    const todayBtn = grid?.querySelector(".calendar-day.today");
-    if (grid && todayBtn) scrollCalendarToSelectedDate(grid, todayBtn);
+    const todayString = getDietDate();
+    if (currentDate !== todayString) setDietDay(todayString);
+    closeCalendar({ haptic: false });
   });
   document.getElementById("calendarGrid")?.addEventListener("click", handleCalendarDayClick);
   document.getElementById("prevDayBtn")?.addEventListener("click", () => shiftDietDay(-1));
