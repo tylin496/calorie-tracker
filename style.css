@@ -304,7 +304,7 @@ h1 {
   overscroll-behavior: contain;
   display: grid;
   gap: 10px;
-  padding: 8px 0 220px;
+  padding: 8px 0 24px;
   scrollbar-width: thin;
 }
 
@@ -371,6 +371,11 @@ h1 {
   -webkit-text-fill-color: color-mix(in srgb, var(--muted) 58%, transparent);
 }
 
+.future-calendar-month .calendar-day {
+  color: color-mix(in srgb, var(--muted) 36%, transparent);
+  -webkit-text-fill-color: color-mix(in srgb, var(--muted) 36%, transparent);
+}
+
 .current-calendar-month .calendar-day:disabled {
   color: color-mix(in srgb, var(--muted) 70%, transparent);
   -webkit-text-fill-color: color-mix(in srgb, var(--muted) 70%, transparent);
@@ -419,7 +424,8 @@ h1 {
 }
 .calendar-day.outside-month:disabled,
 .current-calendar-month .calendar-day.outside-month:disabled,
-.past-calendar-month .calendar-day.outside-month:disabled {
+.past-calendar-month .calendar-day.outside-month:disabled,
+.future-calendar-month .calendar-day:disabled {
   color: color-mix(in srgb, var(--muted) 36%, transparent);
   -webkit-text-fill-color: color-mix(in srgb, var(--muted) 36%, transparent);
   opacity: 1;
@@ -435,14 +441,16 @@ h1 {
     -webkit-text-fill-color: #f5f5f7;
   }
 
-  .past-calendar-month .calendar-day {
+  .past-calendar-month .calendar-day,
+  .future-calendar-month .calendar-day {
     color: rgba(245, 245, 247, 0.34);
     -webkit-text-fill-color: rgba(245, 245, 247, 0.34);
   }
 
   .calendar-day.outside-month,
   .current-calendar-month .calendar-day.outside-month,
-  .past-calendar-month .calendar-day.outside-month {
+  .past-calendar-month .calendar-day.outside-month,
+  .future-calendar-month .calendar-day {
     color: rgba(245, 245, 247, 0.24);
     -webkit-text-fill-color: rgba(245, 245, 247, 0.24);
   }
@@ -455,7 +463,8 @@ h1 {
   }
   .calendar-day.outside-month:disabled,
   .current-calendar-month .calendar-day.outside-month:disabled,
-  .past-calendar-month .calendar-day.outside-month:disabled {
+  .past-calendar-month .calendar-day.outside-month:disabled,
+  .future-calendar-month .calendar-day:disabled {
     color: rgba(245, 245, 247, 0.24);
     -webkit-text-fill-color: rgba(245, 245, 247, 0.24);
     opacity: 1;
@@ -2241,7 +2250,7 @@ input[type="number"] {
 
   .calendar-months {
     gap: 10px;
-    padding-bottom: 170px;
+    padding-bottom: 22px;
   }
 
   .calendar-grid {

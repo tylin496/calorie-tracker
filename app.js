@@ -196,7 +196,7 @@ function updateEntryForm() {
   }
 
   if (proteinCard) {
-    proteinCard.dataset.target = `Target ${formatInt(PROTEIN_TARGET)}g`;
+    proteinCard.dataset.target = `Target ${formatInt(PROTEIN_TARGET)} g`;
   }
   const proteinUnit = document.querySelector('[data-unit="protein"]');
   if (proteinUnit) {
@@ -205,14 +205,14 @@ function updateEntryForm() {
 
   if (deleteBtn) {
     deleteBtn.hidden = !todayEntry;
-    deleteBtn.textContent = "Delete Entry";
+    deleteBtn.textContent = "Delete entry";
     deleteBtn.setAttribute("aria-label", "Delete this entry");
   }
   if (saveBtn) {
     if (todayEntry) {
-      saveBtn.textContent = "Update Entry";
+      saveBtn.textContent = "Update entry";
     } else {
-      saveBtn.textContent = isViewingToday ? "Commit Today" : "Save Entry";
+      saveBtn.textContent = isViewingToday ? "Commit today" : "Save entry";
     }
   }
   if (form) {
@@ -221,7 +221,7 @@ function updateEntryForm() {
     if (editToggle) {
       editToggle.hidden = true;
       editToggle.setAttribute("aria-expanded", "false");
-      editToggle.textContent = "Edit Entry";
+      editToggle.textContent = "Edit entry";
     }
 
     setEntryFormVisible(!todayEntry || isQuickEntryOpen());
@@ -266,7 +266,7 @@ function hideEntryFormWhileLoading() {
   if (editToggle) {
     editToggle.hidden = true;
     editToggle.setAttribute("aria-expanded", "false");
-    editToggle.textContent = "Edit Entry";
+    editToggle.textContent = "Edit entry";
   }
 }
 
@@ -276,7 +276,7 @@ function toggleEntryEditForm(editToggle) {
   const nextExpanded = !isExpanded;
 
   editToggle.setAttribute("aria-expanded", String(nextExpanded));
-  editToggle.textContent = nextExpanded ? "Done" : "Edit Entry";
+  editToggle.textContent = nextExpanded ? "Done" : "Edit entry";
   if (form) {
     setEntryFormVisible(nextExpanded);
     if (nextExpanded) {
@@ -359,7 +359,7 @@ function closeQuickEntry() {
 
     if (editToggle) {
       editToggle.setAttribute("aria-expanded", "false");
-      editToggle.textContent = "Edit Entry";
+      editToggle.textContent = "Edit entry";
     }
 
     setEntryFormVisible(false);
@@ -391,8 +391,8 @@ function showCelebration(options = {}) {
       </div>
       <div class="celebration-card">
         <span class="celebration-icon" aria-hidden="true">✓</span>
-        <strong>Logged for today</strong>
-        <span>Nice work. Entry saved.</span>
+        <strong>Logged</strong>
+        <span>Saved.</span>
       </div>
     `;
     document.body.appendChild(celebration);
@@ -409,8 +409,8 @@ function showCelebration(options = {}) {
     confetti.innerHTML = Array.from({ length: confettiCount }, (_, index) => `<span style="--i:${index}"></span>`).join("");
   }
   if (icon) icon.textContent = isDoubleHit ? "★" : "✓";
-  if (title) title.textContent = isDoubleHit ? "Double hit!" : "Logged for today";
-  if (text) text.textContent = isDoubleHit ? "Deficit and protein goals cleared." : "Nice work. Entry saved.";
+  if (title) title.textContent = isDoubleHit ? "Double hit!" : "Logged";
+  if (text) text.textContent = isDoubleHit ? "Deficit and protein cleared." : "Saved.";
 
   clearTimeout(celebrationTimer);
   celebration.classList.remove("visible");
@@ -462,7 +462,7 @@ function scrollCalendarToSelectedDate(grid, scrollTarget) {
     parent = parent.offsetParent;
   }
 
-  const preferredOffset = Math.min(Math.max(grid.clientHeight * 0.18, 64), 92);
+  const preferredOffset = Math.max(0, (grid.clientHeight - scrollTarget.offsetHeight) / 2);
 
   grid.scrollTop = Math.max(0, targetTop - preferredOffset);
 }
@@ -575,6 +575,8 @@ function extendCalendarIfNeeded(grid) {
 
 function getCalendarMonths(endDate, selectedDateString, historyMonths = CALENDAR_INITIAL_HISTORY_MONTHS) {
   const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+  const displayEndMonth = new Date(endMonth);
+  displayEndMonth.setMonth(displayEndMonth.getMonth() + 1);
   const selectedMonth = getMonthStart(selectedDateString);
   const startMonth = new Date(endMonth);
   startMonth.setMonth(startMonth.getMonth() - historyMonths);
@@ -586,7 +588,7 @@ function getCalendarMonths(endDate, selectedDateString, historyMonths = CALENDAR
   const months = [];
   const cursor = new Date(startMonth);
 
-  while (cursor <= endMonth) {
+  while (cursor <= displayEndMonth) {
     months.push(new Date(cursor));
     cursor.setMonth(cursor.getMonth() + 1);
   }
@@ -618,6 +620,7 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
     year: "numeric"
   });
   const isDietCurrentMonth = monthDate.getFullYear() === dietToday.getFullYear() && monthDate.getMonth() === dietToday.getMonth();
+  const isFutureMonth = monthDate > new Date(dietToday.getFullYear(), dietToday.getMonth(), 1);
   const firstDayOffset = (monthDate.getDay() + 6) % 7;
   const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
   const cells = Array.from({ length: firstDayOffset }, () => `
@@ -632,7 +635,7 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
   }
 
   return `
-    <section class="calendar-month ${isDietCurrentMonth ? "current-calendar-month" : "past-calendar-month"}" data-month="${formatDate(monthDate).slice(0, 7)}" aria-label="${monthTitle}">
+    <section class="calendar-month ${isDietCurrentMonth ? "current-calendar-month" : isFutureMonth ? "future-calendar-month" : "past-calendar-month"}" data-month="${formatDate(monthDate).slice(0, 7)}" aria-label="${monthTitle}">
       <div class="calendar-grid">${cells.join("")}</div>
     </section>
   `;
@@ -796,10 +799,9 @@ async function saveEntry(calories, protein) {
 
     todayLogged = true;
     rememberLoggedDate(currentDate);
-    setStatus(`Saved · ${formatInt(savedDeficit)} kcal`);
-    showToast(`Saved · ${formatInt(savedDeficit)} kcal`);
+    setStatus("Saved");
     closeQuickEntry();
-    await loadWeekSummary("Entry saved");
+    await loadWeekSummary("Saved");
     triggerSaveReward();
     const savedDeficitTarget = Math.max(0, roundInt(TDEE - calorieTarget));
     const didDoubleHit = savedDeficit > savedDeficitTarget && roundedProtein > PROTEIN_TARGET;
@@ -807,8 +809,8 @@ async function saveEntry(calories, protein) {
       showCelebration({ variant: didDoubleHit ? "double-hit" : "logged" });
     }
   } catch (error) {
-    setStatus("Save failed");
-    alert(error.message || "Save failed");
+    setStatus("Could not save");
+    alert(error.message || "Could not save");
   } finally {
     setLoading(false);
   }
@@ -934,11 +936,10 @@ async function confirmDeleteEntry() {
     forgetLoggedDate(currentDate);
     updateEntryForm();
     setStatus("Deleted");
-    showToast("Entry deleted");
-    await loadWeekSummary("Entry deleted");
+    await loadWeekSummary("Deleted");
   } catch (error) {
-    setStatus("Delete failed");
-    alert(error.message || "Delete failed");
+    setStatus("Could not delete");
+    alert(error.message || "Could not delete");
   } finally {
     setLoading(false);
   }
@@ -1201,7 +1202,6 @@ async function handleCopyWeeklySummaryClick(event) {
     button.classList.remove("copying");
     button.classList.add("copied");
     button.setAttribute("aria-label", "Weekly summary copied");
-    showToast("Copied");
     setTimeout(() => {
       button.classList.remove("copied");
       button.disabled = false;
@@ -1257,8 +1257,8 @@ function renderSummary(summary) {
     const doubleHit = deficitOverTarget > 0 && proteinOverTarget > 0;
     const statusPillText = doubleHit ? "Double hit" : "Logged";
     const deficitAlmostThere = calorieResult.celebrated && !calorieResult.isSurplus && deficitOverTarget === 0;
-    const deficitPerfectText = isCompactLayout ? "Perfect!" : "Perfect hit!";
-    const proteinPerfectText = isCompactLayout ? "Perfect!" : "Perfect protein!";
+    const deficitPerfectText = "Perfect!";
+    const proteinPerfectText = "Perfect!";
     const proteinMetricTone = proteinOverTarget > 0 ? "rewarded" : proteinResult.celebrated ? "on-track" : "";
     const deficitMetricTone = calorieResult.isSurplus ? "caution" : deficitOverTarget > 0 ? "rewarded" : calorieResult.celebrated ? "on-track" : "";
     // Responsive metric texts
@@ -1267,16 +1267,16 @@ function renderSummary(summary) {
     const proteinMetricText = proteinResult.isPerfect
       ? proteinPerfectText
       : proteinOverTarget > 0
-        ? (isCompactLayout ? `+${formatInt(proteinOverTarget)} over` : `+${formatInt(proteinOverTarget)} over goal`)
+        ? `+${formatInt(proteinOverTarget)} over`
         : proteinAlmostThere
           ? "Almost there!"
-          : (isCompactLayout ? `Target ${formatInt(entryProteinTarget)}g` : `Target ${formatInt(entryProteinTarget)} g`);
+          : (isCompactLayout ? `Target ${formatInt(entryProteinTarget)} g` : `Target ${formatInt(entryProteinTarget)} g`);
     const deficitMetricText = calorieResult.isSurplus
       ? (isCompactLayout ? `Surplus ${formatInt(calorieResult.surplus)}` : `Surplus ${formatInt(calorieResult.surplus)} kcal`)
       : calorieResult.isPerfect
         ? deficitPerfectText
         : deficitOverTarget > 0
-          ? (isCompactLayout ? `+${formatInt(deficitOverTarget)} over` : `+${formatInt(deficitOverTarget)} over goal`)
+          ? `+${formatInt(deficitOverTarget)} over`
           : deficitAlmostThere
             ? "Almost there!"
             : (isCompactLayout ? `Target ${formatInt(entryDeficitTarget)}` : `Target ${formatInt(entryDeficitTarget)} kcal`);
@@ -1284,7 +1284,7 @@ function renderSummary(summary) {
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone} ${doubleHit ? "double-hit" : ""}">
         <div class="daily-card-top">
-          <span class="daily-card-title">Today Overview</span>
+          <span class="daily-card-title">Today overview</span>
           <span class="status-pill ${doubleHit ? "double-hit" : "logged"}">${statusPillText}</span>
         </div>
 
@@ -1328,7 +1328,7 @@ function renderSummary(summary) {
               <div class="settlement-track" aria-hidden="true">
                 <span style="width:${proteinResult.progress}%"></span>
               </div>
-              <span class="settlement-progress-value">${formatInt(roundedProtein)} / ${formatInt(entryProteinTarget)}g</span>
+              <span class="settlement-progress-value">${formatInt(roundedProtein)} / ${formatInt(entryProteinTarget)} g</span>
             </div>
           </div>
         </div>
@@ -1338,8 +1338,8 @@ function renderSummary(summary) {
     dailyHtml = `
       <section class="daily-card empty">
         <div class="daily-card-top">
-          <span class="daily-card-title">Today Overview</span>
-          <span class="status-pill missing">No Entry</span>
+          <span class="daily-card-title">Today overview</span>
+          <span class="status-pill missing">No entry</span>
         </div>
         <div class="daily-metrics">
           <button class="daily-metric metric-button" type="button" data-edit-field="calories" aria-label="Add calories">
@@ -1350,7 +1350,7 @@ function renderSummary(summary) {
           <button class="daily-metric metric-button" type="button" data-edit-field="protein" aria-label="Add protein">
             <span class="metric-label">Protein</span>
             <strong class="metric-placeholder">--</strong>
-            <span>${isCompactLayout ? `Target ${formatInt(PROTEIN_TARGET)}g` : `Target ${formatInt(PROTEIN_TARGET)} g`}</span>
+            <span>${isCompactLayout ? `Target ${formatInt(PROTEIN_TARGET)} g` : `Target ${formatInt(PROTEIN_TARGET)} g`}</span>
           </button>
           <div class="daily-metric">
             <span class="metric-label">Deficit</span>
@@ -1373,21 +1373,21 @@ function renderSummary(summary) {
       </div>
       <div class="week-snapshot">
         <div class="metric">
-          <span class="metric-label">Avg Calories <small>kcal</small></span>
+          <span class="metric-label">Avg calories <small>kcal</small></span>
           <span class="metric-value">${formatInt(summary.averageCalories || 0)}</span>
         </div>
         <div class="metric">
-          <span class="metric-label">Avg Protein <small>g</small></span>
+          <span class="metric-label">Avg protein <small>g</small></span>
           <span class="metric-value">${formatInt(summary.averageProtein || 0)}</span>
         </div>
         <div class="metric">
-          <span class="metric-label">Fat Loss <small>g</small></span>
+          <span class="metric-label">Fat loss <small>g</small></span>
           <span class="metric-value">${formatInt(Number(summary.fatLossKg || 0) * 1000)}</span>
         </div>
       </div>
       <div class="week-trend-panel">
         <div class="week-trend-header">
-          <span>Daily Intake</span>
+          <span>Daily intake</span>
           <strong class="trend-status ${consistencyTone}">${consistency}</strong>
         </div>
         ${renderTrendBars(summary.entries || [])}
@@ -1532,7 +1532,6 @@ function handleTargetsSubmit(event) {
     .then((data) => {
       applyConfig(data.config);
       setStatus("Targets saved");
-      showToast("Targets saved");
       return loadWeekSummary("Targets saved");
     })
     .catch((error) => {
@@ -1541,8 +1540,8 @@ function handleTargetsSubmit(event) {
         return;
       }
 
-      setStatus("Target save failed");
-      alert(error.message || "Target save failed");
+      setStatus("Could not save targets");
+      alert(error.message || "Could not save targets");
     })
     .finally(() => {
       setLoading(false);
