@@ -707,18 +707,6 @@ h1 {
   transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
-.input-card::after {
-  content: attr(data-target);
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  color: color-mix(in srgb, var(--muted) 78%, transparent);
-  font-size: 12px;
-  font-weight: 750;
-  letter-spacing: 0.02em;
-  text-align: right;
-  pointer-events: none;
-}
 
 .input-card:focus-within {
   border-color: rgba(0, 122, 255, 0.5);
@@ -755,9 +743,6 @@ h1 {
   min-height: 150px;
 }
 
-.settlement-form.quick-entry .input-card::after {
-  display: none;
-}
 
 .settlement-form.quick-entry .commit-btn {
   grid-column: 1 / -1;

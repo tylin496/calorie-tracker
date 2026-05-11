@@ -306,8 +306,6 @@ function updateEntryForm() {
   const protein = document.getElementById("protein");
   const deleteBtn = document.getElementById("deleteBtn");
   const saveBtn = document.getElementById("saveBtn");
-  const caloriesCard = calories?.closest(".input-card");
-  const proteinCard = protein?.closest(".input-card");
   const isViewingToday = currentDate === getDietDate();
   const form = document.getElementById("today-form");
 
@@ -325,14 +323,6 @@ function updateEntryForm() {
     protein.placeholder = "";
   }
 
-  if (caloriesCard) {
-    const calorieIntakeTarget = Math.max(0, TDEE - DEFICIT_TARGET);
-    caloriesCard.dataset.target = `Target ${formatInt(calorieIntakeTarget)} kcal`;
-  }
-
-  if (proteinCard) {
-    proteinCard.dataset.target = `Target ${formatInt(PROTEIN_TARGET)} g`;
-  }
   const proteinUnit = document.querySelector('[data-unit="protein"]');
   if (proteinUnit) {
     proteinUnit.textContent = "g";
