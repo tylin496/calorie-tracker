@@ -27,8 +27,39 @@ function toValidNumber(value) {
   return Number.isFinite(number) && number >= 0 ? number : null;
 }
 
-function buildProperties(tdee, proteinTarget, deficitTarget) {
-  return {
+const CUT_PHASE_DEFAULT_DEFICITS = [805, 655, 455];
+
+function toValidPhase(value) {
+  const number = Number(value);
+  return Number.isInteger(number) && number >= 0 && number <= 2 ? number : null;
+}
+
+function readDeficitAt(properties, name, index) {
+  return toValidNumber(properties[name]?.number) ?? CUT_PHASE_DEFAULT_DEFICITS[index];
+}
+
+async function getDatabasePropertyNames() {
+  const response = await notionFetch(`/databases/${process.env.NOTION_DATABASE_ID}`);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw {
+      status: response.status,
+      data
+    };
+  }
+
+  return new Set(Object.keys(data.properties || {}));
+}
+
+function filterKnownProperties(properties, propertyNames) {
+  return Object.fromEntries(
+    Object.entries(properties).filter(([name]) => propertyNames.has(name))
+  );
+}
+
+function buildProperties(config, propertyNames) {
+  const properties = {
     Name: {
       title: [
         {
@@ -39,15 +70,32 @@ function buildProperties(tdee, proteinTarget, deficitTarget) {
       ]
     },
     TDEE: {
-      number: tdee
+      number: config.tdee
     },
     Protein: {
-      number: proteinTarget
+      number: config.proteinTarget
     },
     Calories: {
-      number: deficitTarget
+      number: config.deficitTarget
+    },
+    "Cut Start Date": {
+      date: config.cutStartDate ? { start: config.cutStartDate } : null
+    },
+    "Cut Phase": {
+      number: config.activeCutPhase
+    },
+    "Aggressive Deficit": {
+      number: config.cutPhaseDeficits[0]
+    },
+    "Moderate Deficit": {
+      number: config.cutPhaseDeficits[1]
+    },
+    "Cruise Deficit": {
+      number: config.cutPhaseDeficits[2]
     }
   };
+
+  return filterKnownProperties(properties, propertyNames);
 }
 
 async function findSettingsPage() {
@@ -130,11 +178,26 @@ async function createSettings(properties) {
 
 function readConfig(page) {
   const properties = page?.properties || {};
+  const hasCutPhaseSettings = Boolean(
+    properties["Cut Start Date"] ||
+    properties["Cut Phase"] ||
+    properties["Aggressive Deficit"] ||
+    properties["Moderate Deficit"] ||
+    properties["Cruise Deficit"]
+  );
 
   return {
     tdee: properties.TDEE?.number || 2705,
     proteinTarget: properties.Protein?.number || 180,
-    deficitTarget: properties.Calories?.number || 500
+    deficitTarget: properties.Calories?.number || 500,
+    hasCutPhaseSettings,
+    cutStartDate: properties["Cut Start Date"]?.date?.start || null,
+    activeCutPhase: toValidPhase(properties["Cut Phase"]?.number),
+    cutPhaseDeficits: [
+      readDeficitAt(properties, "Aggressive Deficit", 0),
+      readDeficitAt(properties, "Moderate Deficit", 1),
+      readDeficitAt(properties, "Cruise Deficit", 2)
+    ]
   };
 }
 
@@ -167,9 +230,27 @@ export default async function handler(req, res) {
       });
     }
 
-    const tdee = toValidNumber(req.body.tdee);
-    const proteinTarget = toValidNumber(req.body.proteinTarget);
-    const deficitTarget = toValidNumber(req.body.deficitTarget);
+    const settingsPage = await findSettingsPage();
+    const currentConfig = readConfig(settingsPage);
+    const tdee = toValidNumber(req.body.tdee) ?? currentConfig.tdee;
+    const proteinTarget = toValidNumber(req.body.proteinTarget) ?? currentConfig.proteinTarget;
+    const deficitTarget = toValidNumber(req.body.deficitTarget) ?? currentConfig.deficitTarget;
+    const cutStartDate = typeof req.body.cutStartDate === "string" && req.body.cutStartDate
+      ? req.body.cutStartDate
+      : req.body.cutStartDate === null
+        ? null
+        : currentConfig.cutStartDate;
+    const activeCutPhase = req.body.activeCutPhase === null
+      ? null
+      : toValidPhase(req.body.activeCutPhase) ?? currentConfig.activeCutPhase;
+    const requestedDeficits = Array.isArray(req.body.cutPhaseDeficits)
+      ? req.body.cutPhaseDeficits.map(toValidNumber)
+      : [];
+    const cutPhaseDeficits = currentConfig.cutPhaseDeficits.map((value, index) => (
+      requestedDeficits[index] === null || requestedDeficits[index] === undefined
+        ? value
+        : Math.round(requestedDeficits[index])
+    ));
 
     if (!tdee || !proteinTarget || deficitTarget === null) {
       return res.status(400).json({
@@ -177,12 +258,15 @@ export default async function handler(req, res) {
       });
     }
 
-    const properties = buildProperties(
-      Math.round(tdee),
-      Math.round(proteinTarget),
-      Math.round(deficitTarget)
-    );
-    const settingsPage = await findSettingsPage();
+    const propertyNames = await getDatabasePropertyNames();
+    const properties = buildProperties({
+      tdee: Math.round(tdee),
+      proteinTarget: Math.round(proteinTarget),
+      deficitTarget: Math.round(deficitTarget),
+      cutStartDate,
+      activeCutPhase,
+      cutPhaseDeficits
+    }, propertyNames);
     const data = settingsPage
       ? await updateSettings(settingsPage.id, properties)
       : await createSettings(properties);

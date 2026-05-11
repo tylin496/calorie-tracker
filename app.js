@@ -210,21 +210,70 @@ function saveCutPhaseSettings() {
   localStorage.setItem(CUT_PHASE_DEFICITS_KEY, JSON.stringify(cutPhaseDeficits));
 }
 
-function getCutWeek() {
+function getConfigPayload(overrides = {}) {
+  return {
+    tdee: Math.round(overrides.tdee ?? TDEE),
+    proteinTarget: Math.round(overrides.proteinTarget ?? PROTEIN_TARGET),
+    deficitTarget: Math.round(overrides.deficitTarget ?? DEFICIT_TARGET),
+    cutStartDate,
+    activeCutPhase,
+    cutPhaseDeficits: cutPhaseDeficits.map((value) => Math.round(value))
+  };
+}
+
+function saveConfigToServer(overrides = {}) {
+  return fetchJson(`${API_BASE}/api/config`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(getConfigPayload(overrides))
+  });
+}
+
+function applyCutPhaseConfig(config) {
+  if (!config?.hasCutPhaseSettings) return;
+
+  cutStartDate = config.cutStartDate || null;
+  activeCutPhase = Number.isInteger(config.activeCutPhase) ? config.activeCutPhase : null;
+
+  if (Array.isArray(config.cutPhaseDeficits) && config.cutPhaseDeficits.length === 3) {
+    cutPhaseDeficits = config.cutPhaseDeficits.map((value, index) => {
+      const number = Number(value);
+      return Number.isFinite(number) && number >= 0
+        ? Math.round(number)
+        : CUT_PHASE_DEFAULT_DEFICITS[index];
+    });
+  }
+
+  saveCutPhaseSettings();
+  updateCutPhaseUI();
+}
+
+function getCutWeek(dateString = getDietDate()) {
   if (!cutStartDate) return null;
   const start = new Date(cutStartDate + "T00:00:00");
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const diffDays = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+  const viewedDate = new Date(`${dateString}T00:00:00`);
+  const diffDays = Math.floor((viewedDate - start) / (1000 * 60 * 60 * 24));
   if (diffDays < 0) return null;
   return Math.floor(diffDays / 7) + 1;
 }
 
-function getCutPhaseLabel() {
+function getCutPhaseLabel(dateString = getDietDate()) {
   if (activeCutPhase === null) return null;
   const name = CUT_PHASE_NAMES[activeCutPhase];
-  const week = getCutWeek();
+  const week = getCutWeek(dateString);
   return week ? `${name} · Week ${week}` : name;
+}
+
+function getCutPhaseSnapshot(dateString) {
+  const cutWeek = activeCutPhase === null ? null : getCutWeek(dateString);
+
+  return {
+    cutStartDate,
+    cutPhaseIndex: activeCutPhase,
+    cutPhaseName: activeCutPhase === null ? null : CUT_PHASE_NAMES[activeCutPhase],
+    cutWeek,
+    deficitTarget: DEFICIT_TARGET
+  };
 }
 
 function updateCutPhaseUI() {
@@ -269,16 +318,7 @@ function handlePhaseActivate(index) {
   updateTargetForm();
   updateEntryForm();
 
-  // Push to server so deficit persists across reloads
-  fetchJson(`${API_BASE}/api/config`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      tdee: Math.round(TDEE),
-      proteinTarget: Math.round(PROTEIN_TARGET),
-      deficitTarget: Math.round(DEFICIT_TARGET)
-    })
-  })
+  saveConfigToServer()
     .then(data => { applyConfig(data.config); loadWeekSummary(); })
     .catch(() => { loadWeekSummary(); });
 }
@@ -288,7 +328,11 @@ function handleCutStartDateChange(event) {
   saveCutPhaseSettings();
   updateCutPhaseUI();
   // Re-render week card so label updates
-  if (document.getElementById("weekly-summary")?.innerHTML) loadWeekSummary();
+  saveConfigToServer()
+    .then(data => { applyConfig(data.config); loadWeekSummary(); })
+    .catch(() => {
+      if (document.getElementById("weekly-summary")?.innerHTML) loadWeekSummary();
+    });
 }
 
 function handlePhaseDeficitBlur(index, value) {
@@ -301,6 +345,11 @@ function handlePhaseDeficitBlur(index, value) {
     updateTargetForm();
     updateEntryForm();
   }
+  saveConfigToServer()
+    .then(data => { applyConfig(data.config); loadWeekSummary(); })
+    .catch(() => {
+      if (document.getElementById("weekly-summary")?.innerHTML) loadWeekSummary();
+    });
 }
 
 function handleCutPhasePanelClick(event) {
@@ -316,6 +365,7 @@ function applyConfig(config) {
   TDEE = roundInt(config?.tdee) || 2705;
   PROTEIN_TARGET = roundInt(config?.proteinTarget) || 180;
   DEFICIT_TARGET = roundInt(config?.deficitTarget) || 500;
+  applyCutPhaseConfig(config);
   updateTargetForm();
 }
 
@@ -971,7 +1021,8 @@ async function saveEntry(calories, protein) {
         protein: roundedProtein,
         tdee: TDEE,
         calorieTarget,
-        proteinTarget: PROTEIN_TARGET
+        proteinTarget: PROTEIN_TARGET,
+        ...getCutPhaseSnapshot(currentDate)
       })
     });
 
@@ -1056,7 +1107,7 @@ function renderInitialLoadingState() {
   }
 
   if (weekly) {
-    const loadingCutLabel = getCutPhaseLabel();
+    const loadingCutLabel = getCutPhaseLabel(currentDate);
     weekly.innerHTML = `
       <section class="card week-card loading-card">
         <div class="card-header">
@@ -1556,7 +1607,7 @@ function renderSummary(summary) {
     `;
   }
 
-  const cutLabel = getCutPhaseLabel();
+  const cutLabel = getCutPhaseLabel(currentDate);
   const weekHtml = `
     <section class="card week-card">
       <div class="card-header">
@@ -1723,7 +1774,10 @@ function handleTargetsSubmit(event) {
     body: JSON.stringify({
       tdee: Math.round(nextTdee),
       proteinTarget: Math.round(nextProteinTarget),
-      deficitTarget: Math.round(nextDeficitTarget)
+      deficitTarget: Math.round(nextDeficitTarget),
+      cutStartDate,
+      activeCutPhase,
+      cutPhaseDeficits: cutPhaseDeficits.map((value) => Math.round(value))
     })
   })
     .then((data) => {

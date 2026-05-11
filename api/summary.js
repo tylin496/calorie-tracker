@@ -64,6 +64,12 @@ function toValidNumber(value) {
   return Number.isFinite(number) && number >= 0 ? number : null;
 }
 
+function readTextProperty(property) {
+  if (!property) return null;
+  if (property.type === "select") return property.select?.name || null;
+  return property.rich_text?.map((part) => part.plain_text || "").join("") || null;
+}
+
 async function getWeekEntries(today) {
   const { start, end } = getWeekBounds(today);
 
@@ -118,7 +124,12 @@ async function getWeekEntries(today) {
       protein: properties.Protein?.number || 0,
       tdee: properties.TDEE?.number || 2705,
       calorieTarget: properties["Calorie Target"]?.number || null,
-      proteinTarget: properties["Protein Target"]?.number || null
+      proteinTarget: properties["Protein Target"]?.number || null,
+      cutStartDate: properties["Cut Start Date"]?.date?.start || null,
+      cutPhaseIndex: properties["Cut Phase"]?.number ?? null,
+      cutPhaseName: readTextProperty(properties["Cut Phase Name"]),
+      cutWeek: properties["Cut Week"]?.number ?? null,
+      deficitTarget: properties["Deficit Target"]?.number ?? null
     };
   });
 
