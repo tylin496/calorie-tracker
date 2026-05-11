@@ -7,6 +7,16 @@ const LAST_LOGGED_DATE_STORAGE_KEY = "calorieTrackerLastLoggedDate";
 const CALENDAR_INITIAL_HISTORY_MONTHS = 6;
 const CALENDAR_HISTORY_CHUNK_MONTHS = 3;
 
+// Cut phase tracking (localStorage only — server stores the active deficit)
+const CUT_START_DATE_KEY = "calorieTrackerCutStartDate";
+const ACTIVE_CUT_PHASE_KEY = "calorieTrackerActiveCutPhase";
+const CUT_PHASE_DEFICITS_KEY = "calorieTrackerCutPhaseDeficits";
+const CUT_PHASE_NAMES = ["Aggressive Cut", "Moderate Cut", "Cruise"];
+const CUT_PHASE_DEFAULT_DEFICITS = [805, 655, 455];
+let cutStartDate = null;       // YYYY-MM-DD string or null
+let activeCutPhase = null;     // 0 | 1 | 2 | null
+let cutPhaseDeficits = [...CUT_PHASE_DEFAULT_DEFICITS];
+
 // The date the app defaults to on launch: yesterday if before 6am, today otherwise
 const DIET_INITIAL_DATE = (() => {
   const now = new Date();
@@ -159,6 +169,130 @@ function updateTargetForm() {
   if (deficitInput) deficitInput.value = roundInt(DEFICIT_TARGET);
   if (summary) summary.textContent = `TDEE ${formatInt(TDEE)} kcal · Protein ${formatInt(PROTEIN_TARGET)} g · Deficit ${formatInt(DEFICIT_TARGET)} kcal`;
 }
+
+// ── Cut phases ────────────────────────────────────────────────────────────────
+
+function loadCutPhaseSettings() {
+  cutStartDate = localStorage.getItem(CUT_START_DATE_KEY) || null;
+  const storedPhase = localStorage.getItem(ACTIVE_CUT_PHASE_KEY);
+  activeCutPhase = storedPhase !== null ? Number(storedPhase) : null;
+  const storedDeficits = localStorage.getItem(CUT_PHASE_DEFICITS_KEY);
+  cutPhaseDeficits = storedDeficits ? JSON.parse(storedDeficits) : [...CUT_PHASE_DEFAULT_DEFICITS];
+}
+
+function saveCutPhaseSettings() {
+  if (cutStartDate) {
+    localStorage.setItem(CUT_START_DATE_KEY, cutStartDate);
+  } else {
+    localStorage.removeItem(CUT_START_DATE_KEY);
+  }
+  if (activeCutPhase !== null) {
+    localStorage.setItem(ACTIVE_CUT_PHASE_KEY, String(activeCutPhase));
+  } else {
+    localStorage.removeItem(ACTIVE_CUT_PHASE_KEY);
+  }
+  localStorage.setItem(CUT_PHASE_DEFICITS_KEY, JSON.stringify(cutPhaseDeficits));
+}
+
+function getCutWeek() {
+  if (!cutStartDate) return null;
+  const start = new Date(cutStartDate + "T00:00:00");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffDays = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return null;
+  return Math.floor(diffDays / 7) + 1;
+}
+
+function getCutPhaseLabel() {
+  if (activeCutPhase === null) return null;
+  const name = CUT_PHASE_NAMES[activeCutPhase];
+  const week = getCutWeek();
+  return week ? `${name} · Week ${week}` : name;
+}
+
+function updateCutPhaseUI() {
+  const startInput = document.getElementById("cutStartDateInput");
+  if (startInput) startInput.value = cutStartDate || "";
+
+  CUT_PHASE_NAMES.forEach((_, i) => {
+    const deficitInput = document.getElementById(`cutPhaseDeficit${i}`);
+    if (deficitInput) deficitInput.value = cutPhaseDeficits[i];
+
+    const btn = document.getElementById(`cutPhaseActivateBtn${i}`);
+    const row = document.getElementById(`cutPhaseRow${i}`);
+    const isActive = activeCutPhase === i;
+
+    if (btn) {
+      btn.textContent = isActive ? "Active" : "Activate";
+      btn.classList.toggle("is-active", isActive);
+      btn.disabled = isActive;
+    }
+    if (row) row.classList.toggle("is-active", isActive);
+  });
+
+  const summary = document.getElementById("cutPhaseSummary");
+  const label = getCutPhaseLabel();
+  if (summary) summary.textContent = label || "";
+}
+
+function handlePhaseActivate(index) {
+  // Capture the deficit input value first
+  const deficitInput = document.getElementById(`cutPhaseDeficit${index}`);
+  if (deficitInput) {
+    const val = Number(deficitInput.value);
+    if (Number.isFinite(val) && val >= 0) cutPhaseDeficits[index] = Math.round(val);
+  }
+
+  activeCutPhase = index;
+  DEFICIT_TARGET = cutPhaseDeficits[index];
+  saveCutPhaseSettings();
+  updateCutPhaseUI();
+  updateTargetForm();
+  updateEntryForm();
+
+  // Push to server so deficit persists across reloads
+  fetchJson(`${API_BASE}/api/config`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      tdee: Math.round(TDEE),
+      proteinTarget: Math.round(PROTEIN_TARGET),
+      deficitTarget: Math.round(DEFICIT_TARGET)
+    })
+  })
+    .then(data => { applyConfig(data.config); loadWeekSummary(); })
+    .catch(() => { loadWeekSummary(); });
+}
+
+function handleCutStartDateChange(event) {
+  cutStartDate = event.target.value || null;
+  saveCutPhaseSettings();
+  updateCutPhaseUI();
+  // Re-render week card so label updates
+  if (document.getElementById("weekly-summary")?.innerHTML) loadWeekSummary();
+}
+
+function handlePhaseDeficitBlur(index, value) {
+  const val = Number(value);
+  if (!Number.isFinite(val) || val < 0) return;
+  cutPhaseDeficits[index] = Math.round(val);
+  saveCutPhaseSettings();
+  if (activeCutPhase === index) {
+    DEFICIT_TARGET = cutPhaseDeficits[index];
+    updateTargetForm();
+    updateEntryForm();
+  }
+}
+
+function handleCutPhasePanelClick(event) {
+  const btn = event.target.closest("[data-phase-activate]");
+  if (!btn) return;
+  const index = Number(btn.dataset.phaseActivate);
+  if (!Number.isNaN(index)) handlePhaseActivate(index);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function applyConfig(config) {
   TDEE = roundInt(config?.tdee) || 2705;
@@ -892,10 +1026,14 @@ function renderInitialLoadingState() {
   }
 
   if (weekly) {
+    const loadingCutLabel = getCutPhaseLabel();
     weekly.innerHTML = `
       <section class="card week-card loading-card">
         <div class="card-header">
-          <h2>This Week</h2>
+          <div class="card-header-left">
+            <h2>This Week</h2>
+            ${loadingCutLabel ? `<p class="cut-phase-label">${loadingCutLabel}</p>` : ""}
+          </div>
           <div class="card-actions">
             ${getCopySummaryButtonHtml(true)}
             <span class="status-pill logged">Loading</span>
@@ -1386,10 +1524,14 @@ function renderSummary(summary) {
     `;
   }
 
+  const cutLabel = getCutPhaseLabel();
   const weekHtml = `
     <section class="card week-card">
       <div class="card-header">
-        <h2>This Week</h2>
+        <div class="card-header-left">
+          <h2>This Week</h2>
+          ${cutLabel ? `<p class="cut-phase-label">${cutLabel}</p>` : ""}
+        </div>
         <div class="card-actions">
           ${getCopySummaryButtonHtml()}
           <span class="status-pill logged">${weeklyPillText}</span>
@@ -1624,6 +1766,15 @@ function initApp() {
       loadWeekSummary();
     }
   });
+  // Cut phases
+  loadCutPhaseSettings();
+  updateCutPhaseUI();
+  document.getElementById("cutStartDateInput")?.addEventListener("change", handleCutStartDateChange);
+  document.getElementById("cutPhasesPanel")?.addEventListener("click", handleCutPhasePanelClick);
+  CUT_PHASE_NAMES.forEach((_, i) => {
+    document.getElementById(`cutPhaseDeficit${i}`)?.addEventListener("blur", (e) => handlePhaseDeficitBlur(i, e.target.value));
+  });
+
   updateDietDayDisplay();
   updateTargetForm();
   renderInitialLoadingState();

@@ -999,6 +999,147 @@ input[type="number"] {
   color: var(--text);
 }
 
+/* ── Cut phases panel ───────────────────────────────────────────────────── */
+
+.settings-panel[open] .cut-phases-form {
+  animation: settings-reveal 220ms ease both;
+}
+
+.cut-phases-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  backdrop-filter: blur(22px);
+}
+
+.cut-start-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cut-start-row input[type="date"] {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  background: var(--surface-solid);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 34px;
+}
+
+.phase-rows {
+  display: grid;
+  gap: 6px;
+}
+
+.phase-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface-muted) 60%, transparent);
+  transition: border-color 180ms ease, background 180ms ease;
+}
+
+.phase-row.is-active {
+  border-color: color-mix(in srgb, var(--accent) 36%, var(--border));
+  background: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+}
+
+.phase-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.phase-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.phase-deficit-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.phase-deficit-label input {
+  width: 52px;
+  min-height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0 6px;
+  background: var(--surface-solid);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.phase-activate-btn {
+  flex: 0 0 auto;
+  padding: 6px 13px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 130ms ease, border-color 130ms ease, color 130ms ease;
+}
+
+.phase-activate-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  border-color: color-mix(in srgb, var(--text) 22%, transparent);
+  color: var(--text);
+}
+
+.phase-activate-btn.is-active {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 34%, transparent);
+  color: var(--accent);
+  cursor: default;
+}
+
+/* ── Week card header with phase label ──────────────────────────────────── */
+
+.card-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cut-phase-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────── */
+
 #status {
   min-height: 22px;
   color: var(--muted);

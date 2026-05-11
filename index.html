@@ -11,7 +11,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Calorie Tracker">
-  <link rel="stylesheet" href="style.css?v=20260512-0008">
+  <link rel="stylesheet" href="style.css?v=20260512-0009">
 </head>
 <body class="auth-locked">
   <section id="accessGate" class="access-gate" aria-label="Access gate">
@@ -119,6 +119,42 @@
 
     <div id="weekly-summary"></div>
 
+    <details class="settings-panel" id="cutPhasesPanel">
+      <summary>
+        <span>Cut phases</span>
+        <small id="cutPhaseSummary"></small>
+      </summary>
+      <div class="cut-phases-form">
+        <label class="cut-start-row">
+          <span>Cut start date</span>
+          <input id="cutStartDateInput" type="date" />
+        </label>
+        <div class="phase-rows">
+          <div class="phase-row" id="cutPhaseRow0">
+            <div class="phase-row-info">
+              <span class="phase-name">Aggressive Cut</span>
+              <label class="phase-deficit-label">Deficit <input id="cutPhaseDeficit0" type="number" inputmode="numeric" min="0" step="1" /> kcal</label>
+            </div>
+            <button class="phase-activate-btn" id="cutPhaseActivateBtn0" type="button" data-phase-activate="0">Activate</button>
+          </div>
+          <div class="phase-row" id="cutPhaseRow1">
+            <div class="phase-row-info">
+              <span class="phase-name">Moderate Cut</span>
+              <label class="phase-deficit-label">Deficit <input id="cutPhaseDeficit1" type="number" inputmode="numeric" min="0" step="1" /> kcal</label>
+            </div>
+            <button class="phase-activate-btn" id="cutPhaseActivateBtn1" type="button" data-phase-activate="1">Activate</button>
+          </div>
+          <div class="phase-row" id="cutPhaseRow2">
+            <div class="phase-row-info">
+              <span class="phase-name">Cruise</span>
+              <label class="phase-deficit-label">Deficit <input id="cutPhaseDeficit2" type="number" inputmode="numeric" min="0" step="1" /> kcal</label>
+            </div>
+            <button class="phase-activate-btn" id="cutPhaseActivateBtn2" type="button" data-phase-activate="2">Activate</button>
+          </div>
+        </div>
+      </div>
+    </details>
+
     <details class="settings-panel">
       <summary>
         <span>Target settings</span>
@@ -142,6 +178,6 @@
     </details>
   </main>
 
-  <script src="app.js?v=20260512-0004"></script>
+  <script src="app.js?v=20260512-0005"></script>
 </body>
 </html>
