@@ -372,8 +372,10 @@ function closeQuickEntry() {
   if (backdrop) backdrop.hidden = true;
 }
 
-function showCelebration() {
+function showCelebration(options = {}) {
+  const { variant = "logged" } = options;
   let celebration = document.getElementById("saveCelebration");
+  const isDoubleHit = variant === "double-hit";
 
   if (!celebration) {
     celebration = document.createElement("div");
@@ -393,6 +395,15 @@ function showCelebration() {
     `;
     document.body.appendChild(celebration);
   }
+
+  celebration.classList.toggle("double-hit", isDoubleHit);
+  const icon = celebration.querySelector(".celebration-icon");
+  const title = celebration.querySelector(".celebration-card strong");
+  const text = celebration.querySelector(".celebration-card span:last-child");
+
+  if (icon) icon.textContent = isDoubleHit ? "★" : "✓";
+  if (title) title.textContent = isDoubleHit ? "Double hit!" : "Logged for today";
+  if (text) text.textContent = isDoubleHit ? "Deficit and protein goals cleared." : "Nice work. Entry saved.";
 
   clearTimeout(celebrationTimer);
   celebration.classList.remove("visible");
@@ -778,8 +789,10 @@ async function saveEntry(calories, protein) {
     closeQuickEntry();
     await loadWeekSummary("Entry saved");
     triggerSaveReward();
-    if (shouldCelebrateTodayCommit) {
-      showCelebration();
+    const savedDeficitTarget = Math.max(0, roundInt(TDEE - calorieTarget));
+    const didDoubleHit = savedDeficit > savedDeficitTarget && roundedProtein > PROTEIN_TARGET;
+    if (didDoubleHit || shouldCelebrateTodayCommit) {
+      showCelebration({ variant: didDoubleHit ? "double-hit" : "logged" });
     }
   } catch (error) {
     setStatus("Save failed");
@@ -1218,6 +1231,7 @@ function renderSummary(summary) {
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone} ${doubleHit ? "double-hit" : ""}">
         <div class="daily-card-top">
+          <span class="daily-card-title">Today Overview</span>
           <span class="status-pill ${doubleHit ? "double-hit" : "logged"}">${statusPillText}</span>
         </div>
 
@@ -1271,6 +1285,7 @@ function renderSummary(summary) {
     dailyHtml = `
       <section class="daily-card empty">
         <div class="daily-card-top">
+          <span class="daily-card-title">Today Overview</span>
           <span class="status-pill missing">No Entry</span>
         </div>
         <div class="daily-metrics">
