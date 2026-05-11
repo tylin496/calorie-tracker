@@ -439,8 +439,8 @@ function openCalendar() {
   // modal-in CSS transform skewing getBoundingClientRect values)
   const grid = document.getElementById("calendarGrid");
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    const todayButton = grid?.querySelector(`.calendar-month[data-month="${dietTodayString.slice(0, 7)}"] .calendar-day.today`);
-    const selectedButton = grid?.querySelector(`.calendar-month[data-month="${currentDate.slice(0, 7)}"] .calendar-day.selected`);
+    const todayButton = grid?.querySelector(`.calendar-day.today`);
+    const selectedButton = grid?.querySelector(`.calendar-day.selected`);
     const scrollTarget = todayButton || selectedButton;
 
     scrollCalendarToSelectedDate(grid, scrollTarget);
@@ -515,9 +515,28 @@ function renderCalendar() {
 }
 
 function renderCalendarMonths(grid, dietToday, dietTodayString) {
-  grid.innerHTML = getCalendarMonths(dietToday, currentDate, calendarHistoryMonths)
-    .map((month) => renderCalendarMonth(month, dietToday, dietTodayString))
-    .join("");
+  const months = getCalendarMonths(dietToday, currentDate, calendarHistoryMonths);
+  const cells = [];
+
+  for (let m = 0; m < months.length; m++) {
+    const monthDate = months[m];
+    const firstDayOffset = (monthDate.getDay() + 6) % 7;
+    const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+
+    // Only the first month needs leading placeholders
+    if (m === 0) {
+      for (let i = 0; i < firstDayOffset; i++) {
+        cells.push(`<span class="calendar-day calendar-day-placeholder" aria-hidden="true"></span>`);
+      }
+    }
+
+    for (let i = 1; i <= lastDay.getDate(); i++) {
+      const date = new Date(monthDate.getFullYear(), monthDate.getMonth(), i);
+      cells.push(renderCalendarDay(date, dietToday, dietTodayString, i === 1 ? "month-start" : ""));
+    }
+  }
+
+  grid.innerHTML = `<div class="calendar-grid">${cells.join("")}</div>`;
 }
 
 function getCalendarMonthLabel(monthDate) {
@@ -529,22 +548,21 @@ function getCalendarMonthLabel(monthDate) {
 function updateCalendarMonthLabel(grid) {
   const label = document.getElementById("calendarMonthLabel");
   if (!label) return;
-  const sections = [...grid.querySelectorAll(".calendar-month")];
+  const markers = [...grid.querySelectorAll(".calendar-day[data-month]")];
   const containerRect = grid.getBoundingClientRect();
   const referenceY = containerRect.top + containerRect.height * 0.45;
-  let current = sections[0];
+  let current = markers[0];
 
-  for (const section of sections) {
-    const rect = section.getBoundingClientRect();
-    if (rect.top <= referenceY && rect.bottom >= referenceY) {
-      current = section;
+  for (const marker of markers) {
+    const rect = marker.getBoundingClientRect();
+    if (rect.top <= referenceY) {
+      current = marker;
+    } else {
       break;
     }
-
-    if (rect.top <= referenceY) current = section;
   }
 
-  if (current) {
+  if (current?.dataset.month) {
     calendarVisibleMonth = current.dataset.month;
     label.innerHTML = getCalendarMonthLabel(new Date(`${calendarVisibleMonth}-01T12:00:00`));
   }
@@ -596,12 +614,22 @@ function renderCalendarDay(date, dietToday, dietTodayString, extraClass = "") {
   const isSelected = dateString === currentDate;
   const isToday = dateString === dietTodayString;
   const isFuture = date > dietToday;
+  const isMonthStart = extraClass === "month-start";
+
+  const isCurrentMonth = date.getFullYear() === dietToday.getFullYear() && date.getMonth() === dietToday.getMonth();
+  const isFutureMonth = date.getFullYear() > dietToday.getFullYear() ||
+    (date.getFullYear() === dietToday.getFullYear() && date.getMonth() > dietToday.getMonth());
+  const monthClass = isCurrentMonth ? "current-calendar-month" : isFutureMonth ? "future-calendar-month" : "past-calendar-month";
+
+  const classes = ["calendar-day", monthClass, extraClass, isSelected ? "selected" : "", isToday ? "today" : ""]
+    .filter(Boolean).join(" ");
 
   return `
     <button
-      class="calendar-day ${extraClass} ${isSelected ? "selected" : ""} ${isToday ? "today" : ""}"
+      class="${classes}"
       type="button"
       data-date="${dateString}"
+      ${isMonthStart ? `data-month="${dateString.slice(0, 7)}"` : ""}
       ${isFuture ? "disabled" : ""}
     >
       ${date.getDate()}
@@ -609,32 +637,6 @@ function renderCalendarDay(date, dietToday, dietTodayString, extraClass = "") {
   `;
 }
 
-function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
-  const monthTitle = monthDate.toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric"
-  });
-  const isDietCurrentMonth = monthDate.getFullYear() === dietToday.getFullYear() && monthDate.getMonth() === dietToday.getMonth();
-  const isFutureMonth = monthDate > new Date(dietToday.getFullYear(), dietToday.getMonth(), 1);
-  const firstDayOffset = (monthDate.getDay() + 6) % 7;
-  const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
-  const cells = Array.from({ length: firstDayOffset }, () => `
-    <span class="calendar-day calendar-day-placeholder" aria-hidden="true"></span>
-  `);
-
-  for (let i = 0; i < lastDay.getDate(); i += 1) {
-    const date = new Date(monthDate);
-    date.setDate(i + 1);
-
-    cells.push(renderCalendarDay(date, dietToday, dietTodayString));
-  }
-
-  return `
-    <section class="calendar-month ${isDietCurrentMonth ? "current-calendar-month" : isFutureMonth ? "future-calendar-month" : "past-calendar-month"}" data-month="${formatDate(monthDate).slice(0, 7)}" aria-label="${monthTitle}">
-      <div class="calendar-grid">${cells.join("")}</div>
-    </section>
-  `;
-}
 
 
 function handleCalendarDayClick(event) {
