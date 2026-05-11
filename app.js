@@ -454,17 +454,12 @@ function scrollCalendarToSelectedDate(grid, scrollTarget) {
     return;
   }
 
-  let targetTop = scrollTarget.offsetTop;
-  let parent = scrollTarget.offsetParent;
+  const gridRect = grid.getBoundingClientRect();
+  const targetRect = scrollTarget.getBoundingClientRect();
+  const targetCenter = targetRect.top + targetRect.height / 2;
+  const gridCenter = gridRect.top + gridRect.height / 2;
 
-  while (parent && parent !== grid) {
-    targetTop += parent.offsetTop;
-    parent = parent.offsetParent;
-  }
-
-  const preferredOffset = Math.max(0, (grid.clientHeight - scrollTarget.offsetHeight) / 2);
-
-  grid.scrollTop = Math.max(0, targetTop - preferredOffset);
+  grid.scrollTop += targetCenter - gridCenter;
 }
 
 function closeCalendar() {
@@ -623,9 +618,13 @@ function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
   const isFutureMonth = monthDate > new Date(dietToday.getFullYear(), dietToday.getMonth(), 1);
   const firstDayOffset = (monthDate.getDay() + 6) % 7;
   const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
-  const cells = Array.from({ length: firstDayOffset }, () => `
-    <span class="calendar-day calendar-day-placeholder" aria-hidden="true"></span>
-  `);
+  const cells = [];
+
+  for (let i = firstDayOffset; i > 0; i -= 1) {
+    const date = new Date(monthDate);
+    date.setDate(1 - i);
+    cells.push(renderCalendarDay(date, dietToday, dietTodayString, "outside-month"));
+  }
 
   for (let i = 0; i < lastDay.getDate(); i += 1) {
     const date = new Date(monthDate);
@@ -907,7 +906,14 @@ function getCopySummaryButtonHtml(disabled = false) {
       title="Copy weekly summary"
       ${disabled ? "disabled" : ""}
     >
-      <span class="copy-icon" aria-hidden="true"></span>
+      <span class="copy-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M8 7.5V6a2 2 0 0 1 2-2h5.4L20 8.6V16a2 2 0 0 1-2 2h-1.5" />
+          <path d="M15 4.5V9h4.5" />
+          <path d="M5 9.5h7.4l3.1 3.1V20a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8.5a2 2 0 0 1 2-2Z" />
+          <path d="M12 9.8V13h3.2" />
+        </svg>
+      </span>
       <span class="check-icon" aria-hidden="true">✓</span>
     </button>
   `;
