@@ -4,8 +4,6 @@ let DEFICIT_TARGET = 500;
 const API_BASE = "https://calorie-tracker-omega-ten.vercel.app";
 const ACCESS_KEY_STORAGE_KEY = "calorieTrackerAccessKey";
 const LAST_LOGGED_DATE_STORAGE_KEY = "calorieTrackerLastLoggedDate";
-const CALENDAR_INITIAL_HISTORY_MONTHS = 6;
-const CALENDAR_HISTORY_CHUNK_MONTHS = 3;
 
 // The date the app defaults to on launch: yesterday if before 6am, today otherwise
 const DIET_INITIAL_DATE = (() => {
@@ -21,8 +19,6 @@ let toastTimer = null;
 let didAutoOpenQuickEntry = false;
 let celebrationTimer = null;
 let calendarVisibleMonth = null;
-let calendarHistoryMonths = CALENDAR_INITIAL_HISTORY_MONTHS;
-let calendarIsExtending = false;
 let latestWeekSummary = null;
 
 function getDietDate() {
@@ -404,6 +400,7 @@ function openCalendar() {
   const panel = document.getElementById("calendarPanel");
   const backdrop = document.getElementById("calendarBackdrop");
   const editToggle = document.getElementById("entryEditToggle");
+  const dietTodayString = getDietDate();
 
   renderCalendar();
 
@@ -486,15 +483,22 @@ function renderCalendar() {
   renderCalendarMonths(grid, dietToday, dietTodayString);
 
   grid.onscroll = () => {
-    extendCalendarIfNeeded(grid);
     updateCalendarMonthLabel(grid);
   };
 }
 
 function renderCalendarMonths(grid, dietToday, dietTodayString) {
-  grid.innerHTML = getCalendarMonths(dietToday, currentDate, calendarHistoryMonths)
-    .map((month) => renderCalendarMonth(month, dietToday, dietTodayString, month.getFullYear() === dietToday.getFullYear() && month.getMonth() === dietToday.getMonth()))
-    .join("");
+  const selectedMonth = getMonthStart(currentDate);
+  const previousMonth = new Date(selectedMonth);
+  previousMonth.setMonth(previousMonth.getMonth() - 1);
+  const nextMonth = new Date(selectedMonth);
+  nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+  grid.innerHTML = [
+    renderCalendarAdjacentWeek(previousMonth, "previous", dietToday, dietTodayString),
+    renderCalendarMonth(selectedMonth, dietToday, dietTodayString),
+    renderCalendarAdjacentWeek(nextMonth, "next", dietToday, dietTodayString)
+  ].join("");
 }
 
 function getCalendarMonthLabel(monthDate) {
@@ -527,80 +531,67 @@ function updateCalendarMonthLabel(grid) {
   }
 }
 
-function extendCalendarIfNeeded(grid) {
-  if (calendarIsExtending || grid.scrollTop > 96) return;
+function renderCalendarDay(date, dietToday, dietTodayString, extraClass = "") {
+  const dateString = formatDate(date);
+  const isSelected = dateString === currentDate;
+  const isToday = dateString === dietTodayString;
+  const isFuture = date > dietToday;
 
-  calendarIsExtending = true;
-  const previousHeight = grid.scrollHeight;
-  const dietTodayString = getDietDate();
-  const dietToday = new Date(`${dietTodayString}T12:00:00`);
+  return `
+    <button
+      class="calendar-day ${extraClass} ${isSelected ? "selected" : ""} ${isToday ? "today" : ""}"
+      type="button"
+      data-date="${dateString}"
+      ${isFuture ? "disabled" : ""}
+    >
+      ${date.getDate()}
+    </button>
+  `;
+}
 
-  calendarHistoryMonths += CALENDAR_HISTORY_CHUNK_MONTHS;
-  renderCalendarMonths(grid, dietToday, dietTodayString);
-
-  requestAnimationFrame(() => {
-    grid.scrollTop += grid.scrollHeight - previousHeight;
-    updateCalendarMonthLabel(grid);
-    calendarIsExtending = false;
+function renderCalendarAdjacentWeek(monthDate, direction, dietToday, dietTodayString) {
+  const monthTitle = monthDate.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric"
   });
+  const anchor = direction === "previous"
+    ? new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0)
+    : new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+  const weekStart = new Date(anchor);
+  weekStart.setDate(anchor.getDate() - ((anchor.getDay() + 6) % 7));
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(weekStart);
+    date.setDate(weekStart.getDate() + index);
+    return date;
+  });
+  const monthKey = formatDate(monthDate).slice(0, 7);
+
+  return `
+    <section class="calendar-month adjacent-calendar-month" data-month="${monthKey}" aria-label="${monthTitle}">
+      <div class="calendar-grid calendar-week-row">
+        ${days.map((date) => renderCalendarDay(date, dietToday, dietTodayString, date.getMonth() === monthDate.getMonth() ? "" : "outside-month")).join("")}
+      </div>
+    </section>
+  `;
 }
 
-function getCalendarMonths(endDate, selectedDateString, historyMonths = CALENDAR_INITIAL_HISTORY_MONTHS) {
-  const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
-  const selectedMonth = getMonthStart(selectedDateString);
-  const startMonth = new Date(endMonth);
-  startMonth.setMonth(startMonth.getMonth() - historyMonths);
-
-  if (selectedMonth < startMonth) {
-    startMonth.setFullYear(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1);
-  }
-
-  const months = [];
-  const cursor = new Date(startMonth);
-
-  while (cursor <= endMonth) {
-    months.push(new Date(cursor));
-    cursor.setMonth(cursor.getMonth() + 1);
-  }
-
-  return months;
-}
-
-function renderCalendarMonth(monthDate, dietToday, dietTodayString, showTrailingNextMonth = false) {
+function renderCalendarMonth(monthDate, dietToday, dietTodayString) {
   const monthTitle = monthDate.toLocaleDateString("en-US", {
     month: "long",
     year: "numeric"
   });
   const isDietCurrentMonth = monthDate.getFullYear() === dietToday.getFullYear() && monthDate.getMonth() === dietToday.getMonth();
   const firstDayOffset = (monthDate.getDay() + 6) % 7;
-  const currentMonth = monthDate.getMonth();
   const lastDay = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
-  const trailingDayCount = showTrailingNextMonth ? Math.max(14 - ((firstDayOffset + lastDay.getDate()) % 7 || 7), 0) : 0;
-  const dayCount = lastDay.getDate() + trailingDayCount;
   const cells = Array.from({ length: firstDayOffset }, () => `
     <span class="calendar-day calendar-day-placeholder" aria-hidden="true"></span>
   `);
 
-  for (let i = 0; i < dayCount; i += 1) {
+  for (let i = 0; i < lastDay.getDate(); i += 1) {
     const date = new Date(monthDate);
     date.setDate(i + 1);
 
-    const dateString = formatDate(date);
-    const isOutsideMonth = date.getMonth() !== currentMonth;
-    const isSelected = !isOutsideMonth && dateString === currentDate;
-    const isToday = !isOutsideMonth && dateString === dietTodayString;
-    const isFuture = date > dietToday;
-
-    cells.push(`
-      <button
-        class="calendar-day ${isSelected ? "selected" : ""} ${isToday ? "today" : ""} ${isOutsideMonth ? "outside-month" : ""}"
-        type="button"
-        data-date="${dateString}"
-        ${isFuture || isOutsideMonth ? "disabled" : ""}
-      >
-        ${date.getDate()}
-      </button>
-    `);
+    cells.push(renderCalendarDay(date, dietToday, dietTodayString));
   }
 
   return `

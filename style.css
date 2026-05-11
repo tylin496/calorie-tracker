@@ -299,7 +299,7 @@ h1 {
   overflow-y: auto;
   overscroll-behavior: contain;
   display: grid;
-  gap: 6px;
+  gap: 10px;
   padding: 8px 0 28px;
   scrollbar-width: thin;
 }
@@ -307,8 +307,7 @@ h1 {
 .calendar-month {
   display: grid;
   align-content: start;
-  scroll-margin-block: 8px;
-  padding-bottom: 2px;
+  scroll-margin-block: 10px;
 }
 
 .calendar-weekdays-fixed,
@@ -321,6 +320,10 @@ h1 {
 .calendar-grid {
   grid-auto-rows: 38px;
   align-items: start;
+}
+
+.calendar-week-row {
+  grid-auto-rows: 38px;
 }
 
 .calendar-weekdays-fixed {
@@ -2055,7 +2058,7 @@ input[type="number"] {
   }
 
   .calendar-months {
-    gap: 4px;
+    gap: 10px;
     padding-bottom: 34px;
   }
 
