@@ -1156,7 +1156,7 @@ function renderTrendBars(entries) {
             >
               <span class="trend-value">${valueLabel}</span>
               <div class="trend-bar" style="height:${height}px" title="${dateString}: ${entry ? `${formatInt(entry.calories)} kcal` : "No data"}"></div>
-              <span class="trend-weekday">${weekday}</span>
+              <span class="trend-weekday">${weekday}<span class="trend-date">${date.getDate()}</span></span>
             </button>
           `;
         })
@@ -1360,7 +1360,7 @@ function renderSummary(summary) {
   const weekHtml = `
     <section class="card week-card">
       <div class="card-header">
-        <h2>This Week${weekRangeText ? ` <span>${weekRangeText}</span>` : ""}${getCopySummaryButtonHtml()}</h2>
+        <h2>This Week${getCopySummaryButtonHtml()}</h2>
         <div class="card-actions">
           <span class="status-pill logged">${weeklyPillText}</span>
         </div>

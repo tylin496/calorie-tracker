@@ -1657,7 +1657,7 @@ input[type="number"] {
   grid-template-columns: repeat(auto-fit, minmax(34px, 1fr));
   gap: 10px;
   align-items: end;
-  min-height: 118px;
+  min-height: 130px;
   margin: 0;
   padding: 18px 4px 2px;
 }
@@ -1667,7 +1667,7 @@ input[type="number"] {
   position: absolute;
   left: 4px;
   right: 4px;
-  bottom: 26px;
+  bottom: 36px;
   height: 1px;
   background: color-mix(in srgb, var(--border) 72%, transparent);
 }
@@ -1783,9 +1783,20 @@ input[type="number"] {
 }
 
 .trend-weekday {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   color: var(--muted);
   font-size: 11px;
   font-weight: 800;
+  line-height: 1;
+}
+
+.trend-date {
+  font-size: 10px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--muted) 70%, transparent);
   line-height: 1;
 }
 
@@ -2383,13 +2394,14 @@ input[type="number"] {
 
   .trend-bars {
     gap: 6px;
-    min-height: 104px;
+    min-height: 116px;
     padding-inline: 0;
   }
 
   .trend-bars::before {
     left: 0;
     right: 0;
+    bottom: 34px;
   }
 
   .trend-bar {
