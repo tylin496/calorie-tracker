@@ -879,8 +879,9 @@ function renderInitialLoadingState() {
     weekly.innerHTML = `
       <section class="card week-card loading-card">
         <div class="card-header">
-          <h2>This Week${weekRangeText ? ` <span>${weekRangeText}</span>` : ""}${getCopySummaryButtonHtml(true)}</h2>
+          <h2>This Week${weekRangeText ? ` <span>${weekRangeText}</span>` : ""}</h2>
           <div class="card-actions">
+            ${getCopySummaryButtonHtml(true)}
             <span class="status-pill logged">Loading</span>
           </div>
         </div>
@@ -1370,8 +1371,9 @@ function renderSummary(summary) {
   const weekHtml = `
     <section class="card week-card">
       <div class="card-header">
-        <h2>This Week${weekRangeText ? ` <span>${weekRangeText}</span>` : ""}${getCopySummaryButtonHtml()}</h2>
+        <h2>This Week${weekRangeText ? ` <span>${weekRangeText}</span>` : ""}</h2>
         <div class="card-actions">
+          ${getCopySummaryButtonHtml()}
           <span class="status-pill logged">${weeklyPillText}</span>
         </div>
       </div>

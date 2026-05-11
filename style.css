@@ -1444,9 +1444,9 @@ input[type="number"] {
   position: relative;
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
-  min-height: 38px;
+  width: 30px;
+  height: 28px;
+  min-height: 28px;
   padding: 0;
   border: 0;
   border-radius: 999px;
@@ -1454,7 +1454,7 @@ input[type="number"] {
   color: #ffffff;
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, #ffffff 16%, transparent),
-    0 10px 24px color-mix(in srgb, #000000 10%, transparent);
+    0 8px 18px color-mix(in srgb, #000000 9%, transparent);
   cursor: pointer;
   backdrop-filter: blur(12px) saturate(1.2);
   transition:
@@ -1471,7 +1471,7 @@ input[type="number"] {
     color: color-mix(in srgb, var(--text) 76%, #ffffff);
     box-shadow:
       inset 0 1px 0 color-mix(in srgb, #ffffff 36%, transparent),
-      0 10px 24px color-mix(in srgb, #000000 7%, transparent);
+      0 8px 18px color-mix(in srgb, #000000 6%, transparent);
   }
 
   .copy-summary-btn:hover:not(:disabled) {
@@ -1479,17 +1479,12 @@ input[type="number"] {
   }
 }
 
-.week-card h2 .copy-summary-btn {
-  margin-left: 2px;
-  flex: 0 0 auto;
-}
-
 .copy-summary-btn:hover:not(:disabled) {
   transform: translateY(-1px);
   background: color-mix(in srgb, var(--text) 14%, transparent);
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, #ffffff 18%, transparent),
-    0 12px 26px color-mix(in srgb, #000000 12%, transparent);
+    0 10px 20px color-mix(in srgb, #000000 11%, transparent);
 }
 
 .copy-summary-btn:active:not(:disabled),
@@ -1521,8 +1516,8 @@ input[type="number"] {
 
 .copy-icon {
   position: relative;
-  width: 20px;
-  height: 20px;
+  width: 15px;
+  height: 15px;
 }
 
 .copy-icon svg {
@@ -2359,13 +2354,6 @@ input[type="number"] {
 
   .week-card h2 {
     gap: 6px;
-  }
-
-  .week-card h2 .copy-summary-btn {
-    width: 34px;
-    height: 34px;
-    min-height: 34px;
-    padding: 0;
   }
 
   .settlement-lines {
