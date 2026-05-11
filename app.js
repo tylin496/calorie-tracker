@@ -1385,8 +1385,9 @@ function renderSummary(summary) {
   const weekHtml = `
     <section class="card week-card">
       <div class="card-header">
-        <h2>This Week${getCopySummaryButtonHtml()}</h2>
+        <h2>This Week</h2>
         <div class="card-actions">
+          ${getCopySummaryButtonHtml()}
           <span class="status-pill logged">${weeklyPillText}</span>
         </div>
       </div>
