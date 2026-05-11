@@ -1449,26 +1449,33 @@ function renderSummary(summary) {
     const calorieIntakeTarget = Math.max(0, entryCalorieTarget);
     const deficitOverTarget = Math.max(roundInt(calorieResult.deficit - entryDeficitTarget), 0);
     const proteinOverTarget = Math.max(roundInt(roundedProtein - entryProteinTarget), 0);
-    const doubleHit = deficitOverTarget > 0 && proteinOverTarget > 0;
+    // "Perfect" = landed exactly on the target (not a surplus, not over, but deficit/protein == target)
+    const caloriePerfect = !calorieResult.isSurplus && deficitOverTarget === 0 && roundInt(calorieResult.deficit) === roundInt(entryDeficitTarget);
+    const proteinPerfect = proteinOverTarget === 0 && roundedProtein === entryProteinTarget;
+    const doubleHit = (deficitOverTarget > 0 || caloriePerfect) && (proteinOverTarget > 0 || proteinPerfect);
     const statusPillText = doubleHit ? "Double hit" : "Logged";
     // Reward tone: calories and protein cards — deficit card is always plain
-    const calorieMetricTone = calorieResult.isSurplus ? "caution" : deficitOverTarget > 0 ? "rewarded" : calorieResult.celebrated ? "on-track" : "";
-    const proteinMetricTone = proteinOverTarget > 0 ? "rewarded" : proteinResult.celebrated ? "on-track" : "";
+    const calorieMetricTone = calorieResult.isSurplus ? "caution" : (deficitOverTarget > 0 || caloriePerfect) ? "rewarded" : calorieResult.celebrated ? "on-track" : "";
+    const proteinMetricTone = (proteinOverTarget > 0 || proteinPerfect) ? "rewarded" : proteinResult.celebrated ? "on-track" : "";
     // Sub-labels
-    const calorieAlmostThere = calorieResult.celebrated && !calorieResult.isSurplus && deficitOverTarget === 0;
+    const calorieAlmostThere = calorieResult.celebrated && !calorieResult.isSurplus && deficitOverTarget === 0 && !caloriePerfect;
     const proteinAlmostThere = proteinResult.celebrated && roundedProtein < entryProteinTarget;
     const calorieMetricText = calorieResult.isSurplus
       ? (isCompactLayout ? `Surplus ${formatInt(calorieResult.surplus)}` : `Surplus ${formatInt(calorieResult.surplus)} kcal`)
       : deficitOverTarget > 0
         ? "Under target"
-        : calorieAlmostThere
-          ? "Almost there!"
-          : (isCompactLayout ? `Target ${formatInt(calorieIntakeTarget)}` : `Target ${formatInt(calorieIntakeTarget)} kcal`);
+        : caloriePerfect
+          ? "Perfect!"
+          : calorieAlmostThere
+            ? "Almost there!"
+            : (isCompactLayout ? `Target ${formatInt(calorieIntakeTarget)}` : `Target ${formatInt(calorieIntakeTarget)} kcal`);
     const proteinMetricText = proteinOverTarget > 0
       ? `+${formatInt(proteinOverTarget)} over`
-      : proteinAlmostThere
-        ? "Almost there!"
-        : (isCompactLayout ? `Target ${formatInt(entryProteinTarget)} g` : `Target ${formatInt(entryProteinTarget)} g`);
+      : proteinPerfect
+        ? "Perfect!"
+        : proteinAlmostThere
+          ? "Almost there!"
+          : (isCompactLayout ? `Target ${formatInt(entryProteinTarget)} g` : `Target ${formatInt(entryProteinTarget)} g`);
     // Deficit card: always shows fixed target, no reward styling
     const deficitMetricText = isCompactLayout ? `Target ${formatInt(entryDeficitTarget)}` : `Target ${formatInt(entryDeficitTarget)} kcal`;
 
@@ -1483,12 +1490,12 @@ function renderSummary(summary) {
           <button class="daily-metric metric-button ${calorieMetricTone}" type="button" data-edit-field="calories" aria-label="Edit calories">
             <span class="metric-label">Calories</span>
             <strong>${formatInt(roundedCalories)} <small>kcal</small></strong>
-            <span class="metric-note ${deficitOverTarget > 0 || calorieAlmostThere ? "reward" : calorieResult.isSurplus ? "negative" : ""}">${calorieMetricText}</span>
+            <span class="metric-note ${deficitOverTarget > 0 || caloriePerfect || calorieAlmostThere ? "reward" : calorieResult.isSurplus ? "negative" : ""}">${calorieMetricText}</span>
           </button>
           <button class="daily-metric metric-button ${proteinMetricTone}" type="button" data-edit-field="protein" aria-label="Edit protein">
             <span class="metric-label">Protein</span>
             <strong>${formatInt(roundedProtein)} <small>g</small></strong>
-            <span class="metric-note ${proteinOverTarget > 0 || proteinAlmostThere ? "reward" : ""}">${proteinMetricText}</span>
+            <span class="metric-note ${proteinOverTarget > 0 || proteinPerfect || proteinAlmostThere ? "reward" : ""}">${proteinMetricText}</span>
           </button>
           <div class="daily-metric" aria-label="Deficit is calculated from calories and TDEE">
             <span class="metric-label">Deficit</span>
