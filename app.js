@@ -921,12 +921,16 @@ function getCopySummaryButtonHtml(disabled = false) {
       ${disabled ? "disabled" : ""}
     >
       <span class="copy-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" focusable="false">
-          <rect x="9" y="3.5" width="9.5" height="12.5" rx="2.4"/>
-          <rect x="5.5" y="8" width="9.5" height="12.5" rx="2.4"/>
+        <svg viewBox="0 0 24 24" fill="currentColor" focusable="false">
+          <rect x="9" y="3" width="10" height="13" rx="2.5" opacity="0.5"/>
+          <rect x="5" y="8" width="10" height="13" rx="2.5"/>
         </svg>
       </span>
-      <span class="check-icon" aria-hidden="true">✓</span>
+      <span class="check-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </span>
     </button>
   `;
 }
@@ -1255,7 +1259,7 @@ function renderSummary(summary) {
   const consistencyTone = rawConsistency.toLowerCase();
   const isCompactLayout = window.matchMedia?.("(max-width: 620px)")?.matches;
   const loggedDays = summary.count || 0;
-  const weeklyPillText = loggedDays >= 7 ? "Full week" : `${loggedDays} days`;
+  const weeklyPillText = loggedDays >= 7 ? "Full week" : `${loggedDays} ${loggedDays === 1 ? "day" : "days"}`;
   const weekRangeText = formatDateRange(summary.weekStart, summary.weekEnd).replace(/, \d{4}/g, "");
   const dailyHeadingText = currentDate === getDietDate() ? "Today" : "This Day";
   latestWeekSummary = summary;
