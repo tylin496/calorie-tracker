@@ -272,8 +272,7 @@ function updateCutPhaseUI() {
   });
 
   const summary = document.getElementById("cutPhaseSummary");
-  const label = getCutPhaseLabel();
-  if (summary) summary.textContent = label || "";
+  if (summary) summary.textContent = activeCutPhase !== null ? CUT_PHASE_NAMES[activeCutPhase] : "";
 }
 
 function handlePhaseActivate(index) {
@@ -843,11 +842,16 @@ function handleCalendarDayClick(event) {
   closeCalendar({ haptic: false });
 }
 
+function foldSettingsPanels() {
+  document.querySelectorAll(".settings-panel[open]").forEach(el => el.removeAttribute("open"));
+}
+
 function setDietDay(date) {
   if (!isValidDateString(date) || isFutureDate(date)) return;
   if (date === currentDate) return;
 
   currentDate = date;
+  foldSettingsPanels();
   calendarVisibleMonth = date.slice(0, 7);
   todayLogged = false;
   todayEntry = null;
