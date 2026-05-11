@@ -344,11 +344,11 @@ function openQuickEntry(focusField = "calories") {
     protein.value = "";
   }
 
-  setTimeout(() => {
-    const focusTarget = focusField === "protein" ? protein : calories;
-    focusTarget.focus();
-    focusTarget.select();
-  }, 80);
+  // Must focus synchronously inside the tap event — any async delay (setTimeout)
+  // breaks iOS Safari's gesture chain and the keyboard never appears.
+  const focusTarget = focusField === "protein" ? protein : calories;
+  focusTarget.focus();
+  focusTarget.select();
 }
 
 function closeQuickEntry() {
@@ -1464,13 +1464,12 @@ function handleFormSubmit(event) {
 function handleCaloriesInput(event) {
   const calories = event.currentTarget;
   const protein = document.getElementById("protein");
-  const digits = calories.value.replace(/\D/g, "");
+  let digits = calories.value.replace(/\D/g, "");
 
-  if (digits !== calories.value) {
-    calories.value = digits;
-  }
+  if (digits.length > 4) digits = digits.slice(0, 4);
+  if (digits !== calories.value) calories.value = digits;
 
-  if (digits.length >= 4 && protein && document.activeElement === calories) {
+  if (digits.length === 4 && protein && document.activeElement === calories) {
     protein.focus();
     protein.select();
   }
@@ -1478,11 +1477,10 @@ function handleCaloriesInput(event) {
 
 function handleProteinInput(event) {
   const protein = event.currentTarget;
-  const digits = protein.value.replace(/\D/g, "");
+  let digits = protein.value.replace(/\D/g, "");
 
-  if (digits !== protein.value) {
-    protein.value = digits;
-  }
+  if (digits.length > 3) digits = digits.slice(0, 3);
+  if (digits !== protein.value) protein.value = digits;
 
   if (digits.length === 3) {
     document.getElementById("today-form")?.requestSubmit();
