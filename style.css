@@ -1213,7 +1213,8 @@ input[type="number"] {
 }
 
 .daily-metric strong {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, auto) 1fr;
   align-items: baseline;
   gap: 4px;
   width: 100%;
@@ -1230,6 +1231,7 @@ input[type="number"] {
 }
 
 .daily-metric strong small {
+  justify-self: end;
   color: color-mix(in srgb, var(--muted) 76%, transparent);
   -webkit-text-fill-color: color-mix(in srgb, var(--muted) 76%, transparent);
   font-size: 0.42em;
@@ -1303,7 +1305,10 @@ input[type="number"] {
 }
 
 .settlement-line-top {
-  display: block;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 10px;
 }
 
 .settlement-line strong {
@@ -1320,17 +1325,10 @@ input[type="number"] {
 }
 
 .settlement-track-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 96px;
-  align-items: center;
-  gap: 10px;
+  display: block;
 }
 
 .settlement-progress-value {
-  align-self: stretch;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
   color: var(--muted);
   font-size: 12px;
   font-weight: 800;
@@ -1623,7 +1621,8 @@ input[type="number"] {
 }
 
 .metric-value {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, auto) 1fr;
   align-items: baseline;
   gap: 4px;
   margin-top: 8px;
@@ -1636,6 +1635,7 @@ input[type="number"] {
 }
 
 .metric-value small {
+  justify-self: end;
   color: color-mix(in srgb, var(--muted) 78%, transparent);
   font-size: 0.48em;
   flex: 0 0 auto;
@@ -2314,20 +2314,25 @@ input[type="number"] {
   }
 
   .daily-metric {
-    min-height: 122px;
-    padding: 10px 8px;
+    min-height: 112px;
+    padding: 9px 7px;
   }
 
   .daily-metric strong {
-    margin-top: 10px;
-    font-size: clamp(24px, 7vw, 30px);
-    letter-spacing: -0.025em;
+    gap: 3px;
+    margin-top: 9px;
+    font-size: clamp(21px, 6.2vw, 27px);
+    letter-spacing: -0.015em;
     text-align: left;
   }
 
+  .daily-metric strong small {
+    font-size: 0.36em;
+  }
+
   .daily-metric > span:last-child {
-    margin-top: 8px;
-    font-size: 10.5px;
+    margin-top: 7px;
+    font-size: 10px;
     line-height: 1.2;
     white-space: nowrap;
   }
@@ -2337,7 +2342,7 @@ input[type="number"] {
   .input-label,
   .metric-label,
   .week-trend-header > span {
-    font-size: 11px;
+    font-size: 10.5px;
   }
 
   .daily-card-heading {
@@ -2362,12 +2367,17 @@ input[type="number"] {
   }
 
   .week-snapshot .metric {
-    min-height: 82px;
-    padding: 10px 8px;
+    min-height: 76px;
+    padding: 9px 7px;
   }
 
   .metric-value {
-    font-size: clamp(21px, 6vw, 24px);
+    gap: 3px;
+    font-size: clamp(20px, 5.6vw, 23px);
+  }
+
+  .metric-value small {
+    font-size: 0.42em;
   }
 
   .settlement-form {
@@ -2434,11 +2444,6 @@ input[type="number"] {
     width: auto;
     min-height: 18px;
     margin-top: -4px;
-  }
-
-  .settlement-track-row {
-    grid-template-columns: minmax(0, 1fr) 82px;
-    gap: 8px;
   }
 
   .celebration-card {
