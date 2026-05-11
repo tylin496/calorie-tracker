@@ -454,10 +454,15 @@ function scrollCalendarToSelectedDate(grid, scrollTarget) {
     return;
   }
 
-  const gridRect = grid.getBoundingClientRect();
-  const targetRect = scrollTarget.getBoundingClientRect();
-  const targetTop = targetRect.top - gridRect.top + grid.scrollTop;
-  const preferredOffset = Math.min(Math.max(gridRect.height * 0.22, 76), 112);
+  let targetTop = scrollTarget.offsetTop;
+  let parent = scrollTarget.offsetParent;
+
+  while (parent && parent !== grid) {
+    targetTop += parent.offsetTop;
+    parent = parent.offsetParent;
+  }
+
+  const preferredOffset = Math.min(Math.max(grid.clientHeight * 0.18, 64), 92);
 
   grid.scrollTop = Math.max(0, targetTop - preferredOffset);
 }
@@ -1051,13 +1056,24 @@ function getProteinResult(protein, proteinTarget = PROTEIN_TARGET) {
 function buildWeeklyPlainTextSummary(summary) {
   const entries = summary.entries || [];
   const range = formatDateRange(summary.weekStart, summary.weekEnd).replace(/, \d{4}/g, "");
+  const targetSnapshots = entries.map((entry) => {
+    const tdee = entry.tdee || TDEE;
+    const calorieTarget = entry.calorieTarget ?? Math.max(0, tdee - DEFICIT_TARGET);
+    const proteinTarget = entry.proteinTarget ?? PROTEIN_TARGET;
+    return `${formatInt(tdee)}/${formatInt(calorieTarget)}/${formatInt(proteinTarget)}`;
+  });
+  const uniqueTargets = [...new Set(targetSnapshots)];
+  const targetLine = uniqueTargets.length === 1
+    ? `Targets: TDEE/cal/protein ${uniqueTargets[0]}`
+    : "Targets: vary by day";
   const lines = [
-    `Week ${range}`,
-    `${summary.count || 0}/7 days · ${summary.consistency || getConsistency(entries)}`,
-    `Avg ${formatInt(summary.averageCalories || 0)} kcal · ${formatInt(summary.averageProtein || 0)}g protein`,
-    `Deficit ${formatInt(summary.totalDeficit || 0)} kcal · Fat ${formatInt(Number(summary.fatLossKg || 0) * 1000)}g`,
+    `Calorie tracker context (${range})`,
+    targetLine,
+    `Week: ${summary.count || 0}/7 days, ${summary.consistency || getConsistency(entries)}`,
+    `Avg: ${formatInt(summary.averageCalories || 0)} kcal, ${formatInt(summary.averageProtein || 0)}g protein`,
+    `Total: ${formatInt(summary.totalDeficit || 0)} kcal deficit, est fat ${formatInt(Number(summary.fatLossKg || 0) * 1000)}g`,
     "",
-    "Daily"
+    "Daily: date | kcal | protein | deficit"
   ];
 
   if (!entries.length) {
@@ -1066,13 +1082,19 @@ function buildWeeklyPlainTextSummary(summary) {
   }
 
   entries.forEach((entry) => {
-    const deficit = roundInt((entry.tdee || TDEE) - entry.calories);
+    const tdee = entry.tdee || TDEE;
+    const calorieTarget = entry.calorieTarget ?? Math.max(0, tdee - DEFICIT_TARGET);
+    const proteinTarget = entry.proteinTarget ?? PROTEIN_TARGET;
+    const deficit = roundInt(tdee - entry.calories);
     const deficitText = deficit < 0
       ? `+${formatInt(Math.abs(deficit))}`
       : `-${formatInt(deficit)}`;
+    const targetsText = uniqueTargets.length > 1
+      ? ` | target ${formatInt(calorieTarget)} kcal/${formatInt(proteinTarget)}g`
+      : "";
 
     lines.push(
-      `${formatPlainDateLabel(entry.date)}: ${formatInt(entry.calories)} kcal · ${formatInt(entry.protein)}g · ${deficitText} kcal`
+      `${formatPlainDateLabel(entry.date)} | ${formatInt(entry.calories)} | ${formatInt(entry.protein)}g | ${deficitText}${targetsText}`
     );
   });
 

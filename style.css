@@ -304,7 +304,7 @@ h1 {
   overscroll-behavior: contain;
   display: grid;
   gap: 10px;
-  padding: 8px 0 28px;
+  padding: 8px 0 220px;
   scrollbar-width: thin;
 }
 
@@ -2241,7 +2241,7 @@ input[type="number"] {
 
   .calendar-months {
     gap: 10px;
-    padding-bottom: 34px;
+    padding-bottom: 170px;
   }
 
   .calendar-grid {
