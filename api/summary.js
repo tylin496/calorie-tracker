@@ -116,7 +116,9 @@ async function getWeekEntries(today) {
       date: properties.Date?.date?.start || "",
       calories: properties.Calories?.number || 0,
       protein: properties.Protein?.number || 0,
-      tdee: properties.TDEE?.number || 2705
+      tdee: properties.TDEE?.number || 2705,
+      calorieTarget: properties["Calorie Target"]?.number || null,
+      proteinTarget: properties["Protein Target"]?.number || null
     };
   });
 

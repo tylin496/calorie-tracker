@@ -57,7 +57,7 @@ async function findEntryByDate(date) {
   return data.results[0] || null;
 }
 
-function buildProperties(date, calories, protein, tdee) {
+function buildProperties(date, calories, protein, tdee, calorieTarget, proteinTarget) {
   return {
     Name: {
       title: [
@@ -81,6 +81,12 @@ function buildProperties(date, calories, protein, tdee) {
     },
     TDEE: {
       number: tdee || 2705
+    },
+    "Calorie Target": {
+      number: calorieTarget
+    },
+    "Protein Target": {
+      number: proteinTarget
     }
   };
 }
@@ -172,10 +178,12 @@ export default async function handler(req, res) {
     const calories = toValidNumber(req.body.calories);
     const protein = toValidNumber(req.body.protein);
     const tdee = toValidNumber(req.body.tdee) || 2705;
+    const calorieTarget = toValidNumber(req.body.calorieTarget);
+    const proteinTarget = toValidNumber(req.body.proteinTarget);
 
-    if (!isValidDateString(date) || calories === null || protein === null) {
+    if (!isValidDateString(date) || calories === null || protein === null || calorieTarget === null || proteinTarget === null) {
       return res.status(400).json({
-        error: "Invalid date, calories, or protein"
+        error: "Invalid date, calories, protein, or targets"
       });
     }
 
@@ -190,7 +198,9 @@ export default async function handler(req, res) {
       date,
       Math.round(calories),
       Math.round(protein),
-      Math.round(tdee)
+      Math.round(tdee),
+      Math.round(calorieTarget),
+      Math.round(proteinTarget)
     );
     const existingEntry = await findEntryByDate(date);
 

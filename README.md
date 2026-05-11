@@ -24,6 +24,8 @@ The API expects these properties:
 - `Calories` - number
 - `Protein` - number
 - `TDEE` - number
+- `Calorie Target` - number
+- `Protein Target` - number
 
 ## Files
 

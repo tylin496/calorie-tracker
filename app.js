@@ -743,6 +743,7 @@ async function saveEntry(calories, protein) {
   setStatus("Saving...");
   const roundedCalories = roundInt(calories);
   const roundedProtein = roundInt(protein);
+  const calorieTarget = Math.max(0, roundInt(TDEE - DEFICIT_TARGET));
   const savedDeficit = roundInt(TDEE - roundedCalories);
   const shouldCelebrateTodayCommit = !todayEntry && currentDate === DIET_INITIAL_DATE;
 
@@ -754,7 +755,9 @@ async function saveEntry(calories, protein) {
         date: currentDate,
         calories: roundedCalories,
         protein: roundedProtein,
-        tdee: TDEE
+        tdee: TDEE,
+        calorieTarget,
+        proteinTarget: PROTEIN_TARGET
       })
     });
 
@@ -963,37 +966,39 @@ function getProgressPercent(value, target) {
   return Math.max(0, Math.min(100, Math.round((roundInt(value) / safeTarget) * 100)));
 }
 
-function getCalorieResult(calories, tdee = TDEE) {
+function getCalorieResult(calories, tdee = TDEE, deficitTarget = DEFICIT_TARGET) {
   const rawDelta = roundInt(tdee - calories);
   const isSurplus = rawDelta < 0;
   const deficit = Math.max(rawDelta, 0);
   const surplus = Math.max(-rawDelta, 0);
-  const deficitTolerance = DEFICIT_TARGET * 0.1;
-  const exceeded = !isSurplus && deficit >= Math.max(DEFICIT_TARGET - deficitTolerance, 0);
-  const isPerfect = !isSurplus && deficit === roundInt(DEFICIT_TARGET);
+  const roundedDeficitTarget = roundInt(deficitTarget);
+  const deficitTolerance = roundedDeficitTarget * 0.1;
+  const exceeded = !isSurplus && deficit >= Math.max(roundedDeficitTarget - deficitTolerance, 0);
+  const isPerfect = !isSurplus && deficit === roundedDeficitTarget;
 
   return {
     deficit,
     surplus,
     isSurplus,
     isPerfect,
-    progress: isSurplus ? 100 : exceeded ? 100 : getProgressPercent(deficit, DEFICIT_TARGET),
+    progress: isSurplus ? 100 : exceeded ? 100 : getProgressPercent(deficit, roundedDeficitTarget),
     celebrated: exceeded,
     tone: isSurplus ? "surplus" : "logged",
     status: isSurplus ? "Surplus" : "Deficit"
   };
 }
 
-function getProteinResult(protein) {
+function getProteinResult(protein, proteinTarget = PROTEIN_TARGET) {
   const roundedProtein = roundInt(protein);
-  const gap = Math.max(roundInt(PROTEIN_TARGET - roundedProtein), 0);
-  const isPerfect = roundedProtein === roundInt(PROTEIN_TARGET);
+  const roundedProteinTarget = roundInt(proteinTarget);
+  const gap = Math.max(roundInt(roundedProteinTarget - roundedProtein), 0);
+  const isPerfect = roundedProtein === roundedProteinTarget;
 
   return {
     status: "Protein",
     isPerfect,
-    progress: getProgressPercent(roundedProtein, PROTEIN_TARGET),
-    celebrated: gap <= (PROTEIN_TARGET * 0.1)
+    progress: getProgressPercent(roundedProtein, roundedProteinTarget),
+    celebrated: gap <= (roundedProteinTarget * 0.1)
   };
 }
 
@@ -1163,13 +1168,16 @@ function renderSummary(summary) {
 
   if (today) {
     const entryTdee = today.tdee || TDEE;
-    const calorieResult = getCalorieResult(today.calories, entryTdee);
-    const proteinResult = getProteinResult(today.protein);
+    const entryCalorieTarget = today.calorieTarget ?? Math.max(0, entryTdee - DEFICIT_TARGET);
+    const entryDeficitTarget = Math.max(0, entryTdee - entryCalorieTarget);
+    const entryProteinTarget = today.proteinTarget ?? PROTEIN_TARGET;
+    const calorieResult = getCalorieResult(today.calories, entryTdee, entryDeficitTarget);
+    const proteinResult = getProteinResult(today.protein, entryProteinTarget);
     const roundedCalories = roundInt(today.calories);
     const roundedProtein = roundInt(today.protein);
-    const calorieIntakeTarget = Math.max(0, entryTdee - DEFICIT_TARGET);
-    const deficitOverTarget = Math.max(roundInt(calorieResult.deficit - DEFICIT_TARGET), 0);
-    const proteinOverTarget = Math.max(roundInt(roundedProtein - PROTEIN_TARGET), 0);
+    const calorieIntakeTarget = Math.max(0, entryCalorieTarget);
+    const deficitOverTarget = Math.max(roundInt(calorieResult.deficit - entryDeficitTarget), 0);
+    const proteinOverTarget = Math.max(roundInt(roundedProtein - entryProteinTarget), 0);
     const doubleHit = deficitOverTarget > 0 && proteinOverTarget > 0;
     const statusPillText = doubleHit ? "Double hit" : "Logged";
     const deficitAlmostThere = calorieResult.celebrated && !calorieResult.isSurplus && deficitOverTarget === 0;
@@ -1179,14 +1187,14 @@ function renderSummary(summary) {
     const deficitMetricTone = calorieResult.isSurplus ? "caution" : deficitOverTarget > 0 ? "rewarded" : calorieResult.celebrated ? "on-track" : "";
     // Responsive metric texts
     const calorieMetricText = isCompactLayout ? `Target ${formatInt(calorieIntakeTarget)}` : `Target ${formatInt(calorieIntakeTarget)} kcal`;
-    const proteinAlmostThere = proteinResult.celebrated && roundedProtein < PROTEIN_TARGET;
+    const proteinAlmostThere = proteinResult.celebrated && roundedProtein < entryProteinTarget;
     const proteinMetricText = proteinResult.isPerfect
       ? proteinPerfectText
       : proteinOverTarget > 0
         ? (isCompactLayout ? `+${formatInt(proteinOverTarget)} over` : `+${formatInt(proteinOverTarget)} over goal`)
         : proteinAlmostThere
           ? "Almost there!"
-          : (isCompactLayout ? `Target ${formatInt(PROTEIN_TARGET)}g` : `Target ${formatInt(PROTEIN_TARGET)} g`);
+          : (isCompactLayout ? `Target ${formatInt(entryProteinTarget)}g` : `Target ${formatInt(entryProteinTarget)} g`);
     const deficitMetricText = calorieResult.isSurplus
       ? (isCompactLayout ? `Surplus ${formatInt(calorieResult.surplus)}` : `Surplus ${formatInt(calorieResult.surplus)} kcal`)
       : calorieResult.isPerfect
@@ -1195,7 +1203,7 @@ function renderSummary(summary) {
           ? (isCompactLayout ? `+${formatInt(deficitOverTarget)} over` : `+${formatInt(deficitOverTarget)} over goal`)
           : deficitAlmostThere
             ? "Almost there!"
-            : (isCompactLayout ? `Target ${formatInt(DEFICIT_TARGET)}` : `Target ${formatInt(DEFICIT_TARGET)} kcal`);
+            : (isCompactLayout ? `Target ${formatInt(entryDeficitTarget)}` : `Target ${formatInt(entryDeficitTarget)} kcal`);
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone} ${doubleHit ? "double-hit" : ""}">
@@ -1232,7 +1240,7 @@ function renderSummary(summary) {
               </div>
               <span class="settlement-progress-value">${calorieResult.isSurplus
                 ? `+${formatInt(calorieResult.surplus)} kcal`
-                : `${formatInt(calorieResult.deficit)} / ${formatInt(DEFICIT_TARGET)} kcal`}</span>
+                : `${formatInt(calorieResult.deficit)} / ${formatInt(entryDeficitTarget)} kcal`}</span>
             </div>
           </div>
           <div class="settlement-line ${proteinResult.celebrated ? "celebrated" : "neutral"}">
@@ -1243,7 +1251,7 @@ function renderSummary(summary) {
               <div class="settlement-track" aria-hidden="true">
                 <span style="width:${proteinResult.progress}%"></span>
               </div>
-              <span class="settlement-progress-value">${formatInt(roundedProtein)} / ${formatInt(PROTEIN_TARGET)}g</span>
+              <span class="settlement-progress-value">${formatInt(roundedProtein)} / ${formatInt(entryProteinTarget)}g</span>
             </div>
           </div>
         </div>
