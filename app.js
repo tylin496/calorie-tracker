@@ -344,7 +344,7 @@ function updateEntryForm() {
     form.classList.toggle("compact-entry-fields", window.matchMedia?.("(max-width: 620px)")?.matches ?? false);
     const editToggle = document.getElementById("entryEditToggle");
     if (editToggle) {
-      editToggle.hidden = true;
+      editToggle.hidden = !todayEntry || isQuickEntryOpen();
       editToggle.setAttribute("aria-expanded", "false");
       editToggle.textContent = "Edit entry";
     }
@@ -821,6 +821,12 @@ function shiftDietDay(days) {
 
 function handleGlobalKeydown(event) {
   if (event.key === "Escape") {
+    if (document.body.classList.contains("quick-entry-open")) {
+      event.preventDefault();
+      closeQuickEntry();
+      return;
+    }
+
     if (document.body.classList.contains("delete-confirm-open")) {
       event.preventDefault();
       closeDeleteConfirm();
