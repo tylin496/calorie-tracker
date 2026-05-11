@@ -1120,10 +1120,10 @@ input[type="number"] {
 
 .daily-metric {
   min-width: 0;
-  display: grid;
-  justify-items: start;
-  align-items: start;
-  align-content: start;
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
   border-radius: 8px;
   background: color-mix(in srgb, var(--surface-muted) 74%, transparent);
@@ -1136,11 +1136,6 @@ input[type="number"] {
 
 .daily-metric > * {
   width: 100%;
-  justify-self: start;
-  text-align: left;
-}
-
-.daily-metric > :not(strong) {
   text-align: left;
 }
 
@@ -1192,7 +1187,7 @@ input[type="number"] {
   align-items: baseline;
   gap: 6px;
   width: auto;
-  margin-top: 8px;
+  margin-top: auto;
   color: var(--text);
   -webkit-text-fill-color: var(--text);
   font-size: clamp(24px, 5.4vw, 31px);
@@ -2313,7 +2308,6 @@ input[type="number"] {
 
   .daily-metric strong {
     gap: 5px;
-    margin-top: 9px;
     font-size: clamp(21px, 6.2vw, 27px);
     letter-spacing: 0;
     text-align: left;
