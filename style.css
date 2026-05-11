@@ -747,6 +747,10 @@ h1 {
   min-height: 150px;
 }
 
+.settlement-form.quick-entry .input-card::after {
+  display: none;
+}
+
 .settlement-form.quick-entry .commit-btn {
   grid-column: 1 / -1;
 }
