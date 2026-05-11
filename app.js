@@ -36,6 +36,22 @@ let calendarIsExtending = false;
 let latestWeekSummary = null;
 let viewportResizeHandler = null;
 
+const HAPTIC_PATTERNS = {
+  tap: 8,
+  select: 12,
+  success: [18, 30, 18],
+  warning: [28, 40, 28],
+  error: [50, 40, 50]
+};
+
+function triggerHaptic(kind = "tap") {
+  if (!navigator.vibrate) return;
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+
+  const pattern = HAPTIC_PATTERNS[kind] || HAPTIC_PATTERNS.tap;
+  navigator.vibrate(pattern);
+}
+
 function getDietDate() {
   return formatDate(new Date());
 }
@@ -237,6 +253,8 @@ function updateCutPhaseUI() {
 }
 
 function handlePhaseActivate(index) {
+  triggerHaptic("select");
+
   // Capture the deficit input value first
   const deficitInput = document.getElementById(`cutPhaseDeficit${index}`);
   if (deficitInput) {
@@ -396,6 +414,8 @@ function hideEntryFormWhileLoading() {
 }
 
 function toggleEntryEditForm(editToggle) {
+  triggerHaptic("tap");
+
   const form = document.getElementById("today-form");
   const isExpanded = editToggle.getAttribute("aria-expanded") === "true";
   const nextExpanded = !isExpanded;
@@ -459,6 +479,8 @@ function adjustQuickEntryForKeyboard() {
 }
 
 function openQuickEntry(focusField = "calories") {
+  triggerHaptic("tap");
+
   const form = document.getElementById("today-form");
   if (form) form.hidden = false;
   const backdrop = document.getElementById("quickEntryBackdrop");
@@ -494,7 +516,9 @@ function openQuickEntry(focusField = "calories") {
   }
 }
 
-function closeQuickEntry() {
+function closeQuickEntry(options = {}) {
+  if (options.haptic !== false) triggerHaptic("tap");
+
   const form = document.getElementById("today-form");
 
   // Remove keyboard-lift listener and reset inline bottom
@@ -574,6 +598,8 @@ function showCelebration(options = {}) {
 }
 
 function openCalendar() {
+  triggerHaptic("tap");
+
   const panel = document.getElementById("calendarPanel");
   const backdrop = document.getElementById("calendarBackdrop");
   const editToggle = document.getElementById("entryEditToggle");
@@ -613,7 +639,9 @@ function scrollCalendarToSelectedDate(grid, scrollTarget) {
   grid.scrollTop += targetCenter - gridCenter;
 }
 
-function closeCalendar() {
+function closeCalendar(options = {}) {
+  if (options.haptic !== false) triggerHaptic("tap");
+
   const panel = document.getElementById("calendarPanel");
   const backdrop = document.getElementById("calendarBackdrop");
   const editToggle = document.getElementById("entryEditToggle");
@@ -628,6 +656,7 @@ function closeCalendar() {
 
 function openDeleteConfirm() {
   if (!todayEntry) return;
+  triggerHaptic("warning");
 
   const panel = document.getElementById("deleteConfirmPanel");
   const backdrop = document.getElementById("deleteConfirmBackdrop");
@@ -639,7 +668,9 @@ function openDeleteConfirm() {
   confirmBtn?.focus();
 }
 
-function closeDeleteConfirm() {
+function closeDeleteConfirm(options = {}) {
+  if (options.haptic !== false) triggerHaptic("tap");
+
   const panel = document.getElementById("deleteConfirmPanel");
   const backdrop = document.getElementById("deleteConfirmBackdrop");
 
@@ -785,8 +816,9 @@ function handleCalendarDayClick(event) {
   const btn = event.target.closest("[data-date]");
   if (!btn || btn.disabled) return;
 
+  triggerHaptic("select");
   setDietDay(btn.dataset.date);
-  closeCalendar();
+  closeCalendar({ haptic: false });
 }
 
 function setDietDay(date) {
@@ -816,6 +848,7 @@ function shiftDietDay(days) {
 
   if (d > new Date(`${getDietDate()}T12:00:00`)) return;
 
+  triggerHaptic("select");
   setDietDay(formatDate(d));
 }
 
@@ -945,8 +978,9 @@ async function saveEntry(calories, protein) {
     todayLogged = true;
     rememberLoggedDate(currentDate);
     setStatus("Saved");
-    closeQuickEntry();
+    closeQuickEntry({ haptic: false });
     await loadWeekSummary("Saved");
+    triggerHaptic("success");
     triggerSaveReward();
     const savedDeficitTarget = Math.max(0, roundInt(TDEE - calorieTarget));
     const didDoubleHit = savedDeficit > savedDeficitTarget && roundedProtein > PROTEIN_TARGET;
@@ -1078,7 +1112,7 @@ async function confirmDeleteEntry() {
 
   setLoading(true);
   setStatus("Deleting...");
-  closeDeleteConfirm();
+  closeDeleteConfirm({ haptic: false });
 
   try {
     await fetchJson(`${API_BASE}/api/delete`, {
@@ -1093,6 +1127,7 @@ async function confirmDeleteEntry() {
     updateEntryForm();
     setStatus("Deleted");
     await loadWeekSummary("Deleted");
+    triggerHaptic("warning");
   } catch (error) {
     setStatus("Could not delete");
     alert(error.message || "Could not delete");
@@ -1358,6 +1393,7 @@ async function handleCopyWeeklySummaryClick(event) {
     button.classList.remove("copying");
     button.classList.add("copied");
     button.setAttribute("aria-label", "Weekly summary copied");
+    triggerHaptic("success");
     setTimeout(() => {
       button.classList.remove("copied");
       button.disabled = false;
@@ -1625,6 +1661,7 @@ function handleFormSubmit(event) {
     const { calories, protein } = getFormValues();
     saveEntry(calories, protein);
   } catch (error) {
+    triggerHaptic("error");
     setStatus(error.message);
   }
 }
