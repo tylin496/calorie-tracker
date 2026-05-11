@@ -452,27 +452,18 @@ function isCalendarOpen() {
   return document.body.classList.contains("calendar-open");
 }
 
-// iOS Safari doesn't shrink the layout viewport when the keyboard opens.
-// visualViewport.height gives the actual visible height (above the keyboard).
-// When keyboard appears we switch from centered to bottom-anchored so the
-// form stays visible above the keyboard.
+// iOS Safari: keep the quick entry centered in the VISUAL viewport (above keyboard).
+// visualViewport fires resize/scroll as keyboard appears/disappears — we pin
+// the panel's centre to the centre of the currently visible area.
 function adjustQuickEntryForKeyboard() {
   const form = document.getElementById("today-form");
   if (!form || !isQuickEntryOpen()) return;
   const vv = window.visualViewport;
   if (!vv) return;
-  const keyboardHeight = window.innerHeight - vv.height - vv.offsetTop;
-  if (keyboardHeight > 50) {
-    // Keyboard visible — anchor above keyboard
-    form.style.top = "auto";
-    form.style.bottom = `${keyboardHeight + 8}px`;
-    form.style.transform = "translateX(-50%)";
-  } else {
-    // No keyboard — restore centered
-    form.style.top = "";
-    form.style.bottom = "";
-    form.style.transform = "";
-  }
+  const centerY = vv.offsetTop + vv.height * 0.5;
+  form.style.top = `${centerY}px`;
+  form.style.bottom = "auto";
+  form.style.transform = "translate(-50%, -50%)";
 }
 
 function openQuickEntry(focusField = "calories") {
@@ -505,11 +496,12 @@ function openQuickEntry(focusField = "calories") {
   focusTarget.focus();
   focusTarget.select();
 
-  // Lift form above keyboard as it appears (iOS Safari layout viewport doesn't shrink)
+  // Track visual viewport so the panel stays centred in the visible area as keyboard appears
   if (window.visualViewport) {
     viewportResizeHandler = adjustQuickEntryForKeyboard;
     window.visualViewport.addEventListener("resize", viewportResizeHandler);
     window.visualViewport.addEventListener("scroll", viewportResizeHandler);
+    adjustQuickEntryForKeyboard();
   }
 }
 
@@ -967,7 +959,6 @@ async function loadConfig() {
 
 async function saveEntry(calories, protein) {
   setLoading(true);
-  setStatus("Saving...");
   const roundedCalories = roundInt(calories);
   const roundedProtein = roundInt(protein);
   const calorieTarget = Math.max(0, roundInt(TDEE - DEFICIT_TARGET));
@@ -993,9 +984,8 @@ async function saveEntry(calories, protein) {
     rememberLoggedDate(currentDate);
     const savedDeficitTarget = Math.max(0, roundInt(TDEE - calorieTarget));
     const didDoubleHit = savedDeficit >= savedDeficitTarget && roundedProtein >= PROTEIN_TARGET;
-    setStatus(didDoubleHit ? "Double hit!" : "Saved", didDoubleHit ? "gold" : null);
     closeQuickEntry({ haptic: false });
-    await loadWeekSummary(didDoubleHit ? "Double hit!" : "Saved");
+    await loadWeekSummary();
     triggerHaptic("success");
     triggerSaveReward();
     if (didDoubleHit || shouldCelebrateTodayCommit) {
@@ -1125,7 +1115,6 @@ async function confirmDeleteEntry() {
   if (!todayEntry) return;
 
   setLoading(true);
-  setStatus("Deleting...");
   closeDeleteConfirm({ haptic: false });
 
   try {
@@ -1139,8 +1128,7 @@ async function confirmDeleteEntry() {
     todayEntry = null;
     forgetLoggedDate(currentDate);
     updateEntryForm();
-    setStatus("Deleted");
-    await loadWeekSummary("Deleted");
+    await loadWeekSummary();
     triggerHaptic("warning");
   } catch (error) {
     setStatus("Could not delete");
@@ -1607,11 +1595,10 @@ function renderSummary(summary) {
   weeklyEl.innerHTML = weekHtml;
 }
 
-async function loadWeekSummary(successMessage) {
+async function loadWeekSummary() {
   const requestedDate = currentDate;
 
   updateDietDayDisplay();
-  setStatus("Loading...");
   setSummaryRefreshing(true);
 
   try {
@@ -1631,7 +1618,7 @@ async function loadWeekSummary(successMessage) {
     updateEntryForm();
     renderSummary(data.summary);
     setSummaryRefreshing(false);
-    setStatus(successMessage || "");
+    setStatus("");
 
     if (!didAutoOpenQuickEntry && currentDate === DIET_INITIAL_DATE && !todayEntry && !isCalendarOpen()) {
       didAutoOpenQuickEntry = true;
@@ -1725,7 +1712,6 @@ function handleTargetsSubmit(event) {
   }
 
   setLoading(true);
-  setStatus("Saving targets...");
 
   fetchJson(`${API_BASE}/api/config`, {
     method: "POST",
@@ -1741,8 +1727,7 @@ function handleTargetsSubmit(event) {
   })
     .then((data) => {
       applyConfig(data.config);
-      setStatus("Targets saved");
-      return loadWeekSummary("Targets saved");
+      return loadWeekSummary();
     })
     .catch((error) => {
       if (error.isAuthError) {
