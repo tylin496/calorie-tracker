@@ -20,6 +20,8 @@
   --gold: #9a7200;
   --gold-soft: rgba(154, 114, 0, 0.12);
   --danger-bg: rgba(196, 73, 54, 0.1);
+  --pending: #a85a4a;
+  --pending-bg: rgba(168, 90, 74, 0.1);
   --shadow: 0 18px 40px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
   --shadow-strong: 0 30px 90px rgba(0, 0, 0, 0.22);
 
@@ -46,6 +48,8 @@
     --gold: #ffd60a;
     --gold-soft: rgba(255, 214, 10, 0.16);
     --danger-bg: rgba(255, 123, 107, 0.14);
+    --pending: #d28a7e;
+    --pending-bg: rgba(210, 138, 126, 0.14);
     --shadow: 0 18px 42px rgba(0, 0, 0, 0.34), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
     --shadow-strong: 0 28px 90px rgba(0, 0, 0, 0.58);
   }
@@ -1081,13 +1085,13 @@ input[type="number"] {
 }
 
 .daily-card.empty {
-  border-color: color-mix(in srgb, var(--warning) 16%, var(--border));
+  border-color: color-mix(in srgb, var(--pending) 16%, var(--border));
   background: var(--surface);
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--warning) 5%, var(--surface-muted)), var(--surface)),
+    linear-gradient(135deg, color-mix(in srgb, var(--pending) 5%, var(--surface-muted)), var(--surface)),
     var(--surface);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--warning) 5%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--pending) 5%, transparent),
     0 18px 40px color-mix(in srgb, #000000 6%, transparent);
 }
 
@@ -1467,10 +1471,10 @@ input[type="number"] {
 }
 
 .status-pill.missing {
-  background: color-mix(in srgb, var(--warning) 13%, var(--surface));
-  color: color-mix(in srgb, var(--warning) 76%, var(--text));
-  border-color: color-mix(in srgb, var(--warning) 28%, transparent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--warning) 8%, transparent);
+  background: color-mix(in srgb, var(--pending) 12%, var(--surface));
+  color: color-mix(in srgb, var(--pending) 78%, var(--text));
+  border-color: color-mix(in srgb, var(--pending) 26%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--pending) 7%, transparent);
   opacity: 1;
 }
 
@@ -1653,17 +1657,17 @@ input[type="number"] {
 }
 
 .trend-day.selected.missing .trend-bar {
-  background: color-mix(in srgb, var(--warning) 10%, var(--surface-muted));
-  border: 1.5px dashed color-mix(in srgb, var(--warning) 54%, var(--border));
+  background: color-mix(in srgb, var(--pending) 10%, var(--surface-muted));
+  border: 1.5px dashed color-mix(in srgb, var(--pending) 48%, var(--border));
   box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--warning) 16%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--pending) 13%, transparent),
     inset 0 1px 0 color-mix(in srgb, #ffffff 18%, transparent),
-    0 0 8px color-mix(in srgb, var(--warning) 10%, transparent);
+    0 0 8px color-mix(in srgb, var(--pending) 9%, transparent);
 }
 
 .trend-day.selected.missing .trend-weekday,
 .trend-day.selected.missing .trend-value {
-  color: color-mix(in srgb, var(--warning) 86%, var(--text));
+  color: color-mix(in srgb, var(--pending) 82%, var(--text));
 }
 
 
