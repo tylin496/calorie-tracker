@@ -639,7 +639,7 @@ function openCalendar() {
   requestAnimationFrame(() => requestAnimationFrame(() => {
     const todayButton = grid?.querySelector(`.calendar-day.today`);
     const selectedButton = grid?.querySelector(`.calendar-day.selected`);
-    const scrollTarget = todayButton || selectedButton;
+    const scrollTarget = selectedButton || todayButton;
 
     scrollCalendarToSelectedDate(grid, scrollTarget);
     updateCalendarMonthLabel(grid);
