@@ -863,14 +863,10 @@ function renderInitialLoadingState() {
   }
 
   if (weekly) {
-    const weekStart = formatDate(getWeekStart(currentDate));
-    const weekEnd = new Date(`${weekStart}T12:00:00`);
-    weekEnd.setDate(weekEnd.getDate() + 6);
-    const weekRangeText = formatDateRange(weekStart, formatDate(weekEnd)).replace(/, \d{4}/g, "");
     weekly.innerHTML = `
       <section class="card week-card loading-card">
         <div class="card-header">
-          <h2>This Week${weekRangeText ? ` <span>${weekRangeText}</span>` : ""}</h2>
+          <h2>This Week</h2>
           <div class="card-actions">
             ${getCopySummaryButtonHtml(true)}
             <span class="status-pill logged">Loading</span>
