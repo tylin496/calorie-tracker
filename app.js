@@ -1026,7 +1026,7 @@ function setSummaryRefreshing(isRefreshing) {
         <section class="daily-card loading-card">
           <div class="loading-state">
             <span class="loading-spinner" aria-hidden="true"></span>
-            <span>Loading today…</span>
+            <span>Fetching from cloud…</span>
           </div>
         </section>
       `;
@@ -1037,7 +1037,7 @@ function setSummaryRefreshing(isRefreshing) {
         <section class="card week-card loading-card">
           <div class="loading-state">
             <span class="loading-spinner" aria-hidden="true"></span>
-            <span>Loading week…</span>
+            <span>Syncing from cloud…</span>
           </div>
         </section>
       `;
@@ -1058,7 +1058,7 @@ function renderInitialLoadingState() {
         </div>
         <div class="loading-state">
           <span class="loading-spinner" aria-hidden="true"></span>
-          <span>Loading your log…</span>
+          <span>Fetching from cloud…</span>
         </div>
       </section>
     `;
