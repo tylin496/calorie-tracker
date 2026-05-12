@@ -495,11 +495,30 @@ function openQuickEntry(focusField = "calories") {
     protein.value = "";
   }
 
-  // Must focus synchronously inside the tap event — any async delay (setTimeout)
-  // breaks iOS Safari's gesture chain and the keyboard never appears.
   const focusTarget = focusField === "protein" ? protein : calories;
-  focusTarget.focus();
-  focusTarget.select();
+
+  [calories, protein].forEach((input) => {
+    input.type = "number";
+    input.inputMode = "numeric";
+    input.autocomplete = "off";
+    input.removeAttribute("readonly");
+    input.removeAttribute("disabled");
+  });
+
+  const focusQuickEntryInput = () => {
+    focusTarget.focus({ preventScroll: true });
+    focusTarget.select();
+  };
+
+  // iOS Safari only opens the keyboard reliably when focus happens inside the
+  // same tap event. The RAF retry covers Chrome/Android and cases where the
+  // panel class/layout is not ready on the first focus call.
+  focusQuickEntryInput();
+  requestAnimationFrame(() => {
+    if (document.activeElement !== focusTarget && isQuickEntryOpen()) {
+      focusQuickEntryInput();
+    }
+  });
 
   // Track visual viewport so the panel stays centred in the visible area as keyboard appears
   if (window.visualViewport) {
@@ -1643,6 +1662,7 @@ async function loadWeekSummary() {
     if (!didAutoOpenQuickEntry && currentDate === DIET_INITIAL_DATE && !todayEntry && !isCalendarOpen()) {
       didAutoOpenQuickEntry = true;
       openQuickEntry();
+      showToast("Tap calories to enter");
     }
   } catch (error) {
     if (error.isAuthError) {
