@@ -1134,29 +1134,44 @@ input[type="number"] {
   animation: initial-loading-in 240ms ease both;
 }
 
-.loading-card .daily-card-top,
-.loading-card .card-header {
-  margin-bottom: 0;
+.skel {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--muted) 11%, transparent) 0%,
+    color-mix(in srgb, var(--muted) 22%, transparent) 50%,
+    color-mix(in srgb, var(--muted) 11%, transparent) 100%
+  );
+  background-size: 300% 100%;
+  border-radius: 6px;
+  flex-shrink: 0;
+  animation: skel-shimmer 1.8s ease-in-out infinite;
 }
 
-.loading-state {
+.skel-settlement {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  padding-top: 14px;
+}
+
+.skel-line {
+  display: grid;
+  gap: 6px;
+}
+
+.skel-line-top {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 56px;
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 700;
 }
 
-.loading-spinner {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid color-mix(in srgb, var(--muted) 22%, transparent);
-  border-top-color: var(--accent);
-  animation: loading-spin 760ms linear infinite;
+.skel-trend-bars {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  align-items: flex-end;
+  height: 96px;
+  padding: 0 4px;
 }
 
 .card {
@@ -2198,10 +2213,9 @@ input[type="number"] {
   }
 }
 
-@keyframes loading-spin {
-  to {
-    transform: rotate(360deg);
-  }
+@keyframes skel-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
 }
 
 @keyframes rise-in {

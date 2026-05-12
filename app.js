@@ -1022,69 +1022,84 @@ function setSummaryRefreshing(isRefreshing) {
 
   if (isRefreshing) {
     if (daily && !daily.innerHTML.trim()) {
-      daily.innerHTML = `
-        <section class="daily-card loading-card">
-          <div class="loading-state">
-            <span class="loading-spinner" aria-hidden="true"></span>
-            <span>Fetching from cloud…</span>
-          </div>
-        </section>
-      `;
+      daily.innerHTML = dailySkeletonHtml();
     }
-
     if (weekly && !weekly.innerHTML.trim()) {
-      weekly.innerHTML = `
-        <section class="card week-card loading-card">
-          <div class="loading-state">
-            <span class="loading-spinner" aria-hidden="true"></span>
-            <span>Syncing from cloud…</span>
-          </div>
-        </section>
-      `;
+      weekly.innerHTML = weekSkeletonHtml();
     }
   }
+}
+
+function dailySkeletonHtml() {
+  return `
+    <section class="daily-card loading-card">
+      <div class="daily-card-top">
+        <div class="skel" style="width:48px;height:20px;border-radius:5px"></div>
+        <div class="skel" style="width:58px;height:22px;border-radius:100px"></div>
+      </div>
+      <div class="daily-metrics">
+        <div class="skel" style="height:76px;border-radius:12px"></div>
+        <div class="skel" style="height:76px;border-radius:12px"></div>
+      </div>
+      <div class="skel-settlement">
+        <div class="skel-line">
+          <div class="skel-line-top">
+            <div class="skel" style="width:64px;height:13px;border-radius:4px"></div>
+            <div class="skel" style="width:88px;height:13px;border-radius:4px"></div>
+          </div>
+          <div class="skel" style="height:9px;border-radius:999px"></div>
+        </div>
+        <div class="skel-line">
+          <div class="skel-line-top">
+            <div class="skel" style="width:52px;height:13px;border-radius:4px"></div>
+            <div class="skel" style="width:72px;height:13px;border-radius:4px"></div>
+          </div>
+          <div class="skel" style="height:9px;border-radius:999px"></div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function weekSkeletonHtml() {
+  return `
+    <section class="card week-card loading-card">
+      <div class="card-header">
+        <div class="skel" style="width:80px;height:20px;border-radius:5px"></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="skel" style="width:32px;height:28px;border-radius:8px"></div>
+          <div class="skel" style="width:52px;height:22px;border-radius:100px"></div>
+        </div>
+      </div>
+      <div class="week-snapshot">
+        <div class="skel" style="height:74px;border-radius:10px"></div>
+        <div class="skel" style="height:74px;border-radius:10px"></div>
+        <div class="skel" style="height:74px;border-radius:10px"></div>
+      </div>
+      <div class="week-trend-panel">
+        <div class="week-trend-header">
+          <div class="skel" style="width:76px;height:12px;border-radius:4px"></div>
+          <div class="skel" style="width:64px;height:12px;border-radius:4px"></div>
+        </div>
+        <div class="skel-trend-bars">
+          <div class="skel" style="height:72px;border-radius:6px 6px 3px 3px"></div>
+          <div class="skel" style="height:52px;border-radius:6px 6px 3px 3px"></div>
+          <div class="skel" style="height:86px;border-radius:6px 6px 3px 3px"></div>
+          <div class="skel" style="height:62px;border-radius:6px 6px 3px 3px"></div>
+          <div class="skel" style="height:78px;border-radius:6px 6px 3px 3px"></div>
+          <div class="skel" style="height:44px;border-radius:6px 6px 3px 3px"></div>
+          <div class="skel" style="height:94px;border-radius:6px 6px 3px 3px"></div>
+        </div>
+      </div>
+    </section>
+  `;
 }
 
 function renderInitialLoadingState() {
   const daily = document.getElementById("daily-result");
   const weekly = document.getElementById("weekly-summary");
-
-  if (daily) {
-    daily.innerHTML = `
-      <section class="daily-card loading-card">
-        <div class="daily-card-top">
-          <h2 class="daily-card-heading">${currentDate === getDietDate() ? "Today" : "This Day"}</h2>
-          <span class="status-pill logged">Loading</span>
-        </div>
-        <div class="loading-state">
-          <span class="loading-spinner" aria-hidden="true"></span>
-          <span>Fetching from cloud…</span>
-        </div>
-      </section>
-    `;
-  }
-
-  if (weekly) {
-    const loadingCutLabel = getCutPhaseLabel(currentDate);
-    weekly.innerHTML = `
-      <section class="card week-card loading-card">
-        <div class="card-header">
-          <div class="card-header-left">
-            <h2>This Week</h2>
-            ${loadingCutLabel ? `<p class="cut-phase-label">${loadingCutLabel}</p>` : ""}
-          </div>
-          <div class="card-actions">
-            ${getCopySummaryButtonHtml(true)}
-            <span class="status-pill logged">Loading</span>
-          </div>
-        </div>
-        <div class="loading-state">
-          <span class="loading-spinner" aria-hidden="true"></span>
-          <span>Syncing summary…</span>
-        </div>
-      </section>
-    `;
-  }
+  if (daily) daily.innerHTML = dailySkeletonHtml();
+  if (weekly) weekly.innerHTML = weekSkeletonHtml();
 }
 
 function getCopySummaryButtonHtml(disabled = false) {
