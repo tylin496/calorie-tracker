@@ -1,0 +1,28 @@
+{
+  "name": "Calorie Tracker",
+  "short_name": "Calories",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f5f5f7",
+  "icons": [
+    {
+      "src": "app-icon-light.png",
+      "sizes": "1471x1471",
+      "type": "image/png",
+      "media": "(prefers-color-scheme: light)"
+    },
+    {
+      "src": "app-icon-dark.png",
+      "sizes": "1471x1471",
+      "type": "image/png",
+      "media": "(prefers-color-scheme: dark)"
+    },
+    {
+      "src": "app-icon-light.png",
+      "sizes": "1471x1471",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
