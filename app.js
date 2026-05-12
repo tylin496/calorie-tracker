@@ -452,18 +452,23 @@ function isCalendarOpen() {
   return document.body.classList.contains("calendar-open");
 }
 
-// iOS Safari: keep the quick entry centered in the VISUAL viewport (above keyboard).
-// visualViewport fires resize/scroll as keyboard appears/disappears — we pin
-// the panel's centre to the centre of the currently visible area.
+// iOS Safari: when keyboard is visible, snap the panel to just above it.
+// When no keyboard, fall back to CSS-centred position.
 function adjustQuickEntryForKeyboard() {
   const form = document.getElementById("today-form");
   if (!form || !isQuickEntryOpen()) return;
   const vv = window.visualViewport;
   if (!vv) return;
-  const centerY = vv.offsetTop + vv.height * 0.5;
-  form.style.top = `${centerY}px`;
-  form.style.bottom = "auto";
-  form.style.transform = "translate(-50%, -50%)";
+  const keyboardHeight = window.innerHeight - vv.height - vv.offsetTop;
+  if (keyboardHeight > 50) {
+    form.style.top = "auto";
+    form.style.bottom = `${keyboardHeight + 8}px`;
+    form.style.transform = "translateX(-50%)";
+  } else {
+    form.style.top = "";
+    form.style.bottom = "";
+    form.style.transform = "";
+  }
 }
 
 function openQuickEntry(focusField = "calories") {
