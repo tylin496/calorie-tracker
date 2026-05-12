@@ -510,15 +510,11 @@ function openQuickEntry(focusField = "calories") {
     focusTarget.select();
   };
 
-  // iOS Safari only opens the keyboard reliably when focus happens inside the
-  // same tap event. The RAF retry covers Chrome/Android and cases where the
-  // panel class/layout is not ready on the first focus call.
+  // Mobile browsers only open the keyboard reliably from a real tap. Try once
+  // immediately for metric-card taps, then let tapping anywhere inside the
+  // quick-entry form re-focus the active number field.
   focusQuickEntryInput();
-  requestAnimationFrame(() => {
-    if (document.activeElement !== focusTarget && isQuickEntryOpen()) {
-      focusQuickEntryInput();
-    }
-  });
+  form.addEventListener("pointerdown", handleQuickEntryPointerFocus, { passive: true });
 
   // Track visual viewport so the panel stays centred in the visible area as keyboard appears
   if (window.visualViewport) {
@@ -527,6 +523,21 @@ function openQuickEntry(focusField = "calories") {
     window.visualViewport.addEventListener("scroll", viewportResizeHandler);
     adjustQuickEntryForKeyboard();
   }
+}
+
+function handleQuickEntryPointerFocus(event) {
+  if (!isQuickEntryOpen()) return;
+  if (event.target.closest("button")) return;
+  if (event.target.matches("input")) return;
+
+  const calories = document.getElementById("calories");
+  const protein = document.getElementById("protein");
+  const focusTarget = document.activeElement === protein ? protein : calories;
+
+  requestAnimationFrame(() => {
+    focusTarget?.focus({ preventScroll: true });
+    focusTarget?.select?.();
+  });
 }
 
 function closeQuickEntry(options = {}) {
@@ -540,7 +551,12 @@ function closeQuickEntry(options = {}) {
     window.visualViewport.removeEventListener("scroll", viewportResizeHandler);
     viewportResizeHandler = null;
   }
-  if (form) { form.style.top = ""; form.style.bottom = ""; form.style.transform = ""; }
+  if (form) {
+    form.style.top = "";
+    form.style.bottom = "";
+    form.style.transform = "";
+    form.removeEventListener("pointerdown", handleQuickEntryPointerFocus);
+  }
 
   if (form && todayEntry) {
     setEntryFormVisible(false);
@@ -1661,7 +1677,6 @@ async function loadWeekSummary() {
 
     if (!didAutoOpenQuickEntry && currentDate === DIET_INITIAL_DATE && !todayEntry && !isCalendarOpen()) {
       didAutoOpenQuickEntry = true;
-      openQuickEntry();
       showToast("Tap calories to enter");
     }
   } catch (error) {
