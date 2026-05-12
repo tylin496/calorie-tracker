@@ -32,6 +32,7 @@ let calendarHistoryMonths = CALENDAR_INITIAL_HISTORY_MONTHS;
 let calendarIsExtending = false;
 let latestWeekSummary = null;
 let viewportResizeHandler = null;
+let quickEntryScrollY = 0;
 
 const HAPTIC_PATTERNS = {
   tap: 8,
@@ -452,6 +453,26 @@ function isCalendarOpen() {
   return document.body.classList.contains("calendar-open");
 }
 
+function lockQuickEntryScroll() {
+  quickEntryScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+  document.body.style.position = "fixed";
+  document.body.style.top = `-${quickEntryScrollY}px`;
+  document.body.style.left = "0";
+  document.body.style.right = "0";
+  document.body.style.width = "100%";
+}
+
+function unlockQuickEntryScroll() {
+  const scrollY = quickEntryScrollY || 0;
+  document.body.style.position = "";
+  document.body.style.top = "";
+  document.body.style.left = "";
+  document.body.style.right = "";
+  document.body.style.width = "";
+  window.scrollTo(0, scrollY);
+  quickEntryScrollY = 0;
+}
+
 // iOS Safari: when keyboard is visible, snap the panel to just above it.
 // When no keyboard, fall back to CSS-centred position.
 function adjustQuickEntryForKeyboard() {
@@ -498,6 +519,10 @@ function openQuickEntry(focusField = "calories") {
 
   if (!form || !calories || !protein) return;
 
+  if (!isQuickEntryOpen()) {
+    lockQuickEntryScroll();
+  }
+
   form.classList.remove("entry-form-collapsed");
   form.setAttribute("aria-hidden", "false");
   form.inert = false;
@@ -523,7 +548,11 @@ function openQuickEntry(focusField = "calories") {
 
   form.removeEventListener("pointerdown", handleQuickEntryPointerFocus);
   form.addEventListener("pointerdown", handleQuickEntryPointerFocus, { passive: true });
-  forceQuickEntryFocus(focusTarget);
+  if (window.__quickEntryUserGesture === true) {
+    forceQuickEntryFocus(focusTarget);
+  } else {
+    adjustQuickEntryForKeyboard();
+  }
 
   // Track visual viewport so the panel stays centred in the visible area as keyboard appears
   if (window.visualViewport) {
@@ -539,9 +568,10 @@ function forceQuickEntryFocus(input) {
 
   const focus = () => {
     if (!isQuickEntryOpen()) return;
-    input.focus({ preventScroll: true });
+    input.focus();
     input.select?.();
     adjustQuickEntryForKeyboard();
+    requestAnimationFrame(() => adjustQuickEntryForKeyboard());
   };
 
   focus();
@@ -554,14 +584,16 @@ function forceQuickEntryFocus(input) {
 function handleQuickEntryPointerFocus(event) {
   if (!isQuickEntryOpen()) return;
   if (event.target.closest("button")) return;
-  if (event.target.matches("input")) return;
 
   const calories = document.getElementById("calories");
   const protein = document.getElementById("protein");
-  const focusTarget = document.activeElement === protein ? protein : calories;
+  const tappedInput = event.target.matches("input") ? event.target : null;
+  const focusTarget = tappedInput || (document.activeElement === protein ? protein : calories);
 
-  focusTarget?.focus({ preventScroll: true });
+  focusTarget?.focus();
   focusTarget?.select?.();
+  adjustQuickEntryForKeyboard();
+  requestAnimationFrame(() => adjustQuickEntryForKeyboard());
 }
 
 function closeQuickEntry(options = {}) {
@@ -594,6 +626,7 @@ function closeQuickEntry(options = {}) {
     form.classList.toggle("compact-entry-fields", window.matchMedia?.("(max-width: 620px)")?.matches ?? false);
   }
   document.body.classList.remove("quick-entry-open");
+  unlockQuickEntryScroll();
   if (backdrop) backdrop.hidden = true;
 }
 
@@ -1498,7 +1531,9 @@ function handleDailyMetricClick(event) {
   if (field !== "calories" && field !== "protein") return;
 
   event.preventDefault();
+  window.__quickEntryUserGesture = true;
   openQuickEntry(field);
+  window.__quickEntryUserGesture = false;
 }
 
 function renderSummary(summary) {
