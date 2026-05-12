@@ -462,7 +462,7 @@ function adjustQuickEntryForKeyboard() {
   const keyboardHeight = window.innerHeight - vv.height - vv.offsetTop;
   if (keyboardHeight > 50) {
     form.style.top = "auto";
-    form.style.bottom = `${keyboardHeight + 8}px`;
+    form.style.bottom = "8px";
     form.style.transform = "translateX(-50%)";
   } else {
     form.style.top = "";
