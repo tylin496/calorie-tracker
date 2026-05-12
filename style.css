@@ -1565,10 +1565,10 @@ input[type="number"] {
   width: 32px;
   height: 32px;
   padding: 0;
-  border: none;
+  border: 1.5px solid color-mix(in srgb, var(--muted) 38%, transparent);
   border-radius: 50%;
-  background: color-mix(in srgb, var(--text) 13%, transparent);
-  color: var(--text);
+  background: transparent;
+  color: var(--muted);
   cursor: pointer;
   backdrop-filter: blur(10px) saturate(1.4);
   -webkit-backdrop-filter: blur(10px) saturate(1.4);
@@ -1579,7 +1579,9 @@ input[type="number"] {
 }
 
 .copy-summary-btn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--text) 19%, transparent);
+  background: color-mix(in srgb, var(--muted) 10%, transparent);
+  border-color: color-mix(in srgb, var(--muted) 55%, transparent);
+  color: var(--text);
 }
 
 .copy-summary-btn:active:not(:disabled),
