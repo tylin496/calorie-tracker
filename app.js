@@ -1583,14 +1583,16 @@ function renderSummary(summary) {
         : caloriePerfect
           ? "Perfect!"
           : calorieAlmostThere
-            ? "Almost there!"
+            ? (isCompactLayout
+              ? `-${formatInt(roundInt(entryDeficitTarget - calorieResult.deficit))}`
+              : `-${formatInt(roundInt(entryDeficitTarget - calorieResult.deficit))} kcal`)
             : (isCompactLayout ? `Target ${formatInt(calorieIntakeTarget)}` : `Target ${formatInt(calorieIntakeTarget)} kcal`);
     const proteinMetricText = proteinOverTarget > 0
       ? `+${formatInt(proteinOverTarget)} over`
       : proteinPerfect
         ? "Perfect!"
         : proteinAlmostThere
-          ? "Almost there!"
+          ? `-${formatInt(roundInt(entryProteinTarget - roundedProtein))} g`
           : (isCompactLayout ? `Target ${formatInt(entryProteinTarget)} g` : `Target ${formatInt(entryProteinTarget)} g`);
 
     dailyHtml = `
