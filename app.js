@@ -1575,20 +1575,20 @@ function renderSummary(summary) {
     const proteinMetricTone = (proteinOverTarget > 0 || proteinPerfect) ? "rewarded" : proteinResult.celebrated ? "on-track" : "";
     const calorieAlmostThere = calorieResult.celebrated && !calorieResult.isSurplus && deficitOverTarget === 0 && !caloriePerfect;
     const proteinAlmostThere = proteinResult.celebrated && roundedProtein < entryProteinTarget;
-    const signedMetricDelta = (delta) => {
+    // Logged day: only over/under vs goal (or "perfect"); surplus still uses TDEE surplus, not intake delta.
+    const overUnder = (delta) => {
       const v = roundInt(delta);
       if (v === 0) return "0";
-      return v > 0 ? `+${formatInt(v)}` : `-${formatInt(Math.abs(v))}`;
+      return v > 0 ? `over by ${formatInt(v)}` : `under by ${formatInt(Math.abs(v))}`;
     };
-    // Logged day: only ±N vs goal (or "perfect"); surplus still uses TDEE surplus, not intake delta.
     const calorieMetricText = calorieResult.isSurplus
-      ? `+${formatInt(calorieResult.surplus)}`
+      ? `over by ${formatInt(calorieResult.surplus)}`
       : caloriePerfect
         ? "perfect"
-        : signedMetricDelta(roundedCalories - entryCalorieTarget);
+        : overUnder(roundedCalories - entryCalorieTarget);
     const proteinMetricText = proteinPerfect
       ? "perfect"
-      : signedMetricDelta(roundedProtein - entryProteinTarget);
+      : overUnder(roundedProtein - entryProteinTarget);
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone} ${doubleHit ? "double-hit" : ""}">
