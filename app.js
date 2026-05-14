@@ -1573,25 +1573,24 @@ function renderSummary(summary) {
     // Reward tone: calories and protein cards — deficit card is always plain
     const calorieMetricTone = calorieResult.isSurplus ? "caution" : (deficitOverTarget > 0 || caloriePerfect) ? "rewarded" : calorieResult.celebrated ? "on-track" : "";
     const proteinMetricTone = (proteinOverTarget > 0 || proteinPerfect) ? "rewarded" : proteinResult.celebrated ? "on-track" : "";
-    // Sub-labels
     const calorieAlmostThere = calorieResult.celebrated && !calorieResult.isSurplus && deficitOverTarget === 0 && !caloriePerfect;
     const proteinAlmostThere = proteinResult.celebrated && roundedProtein < entryProteinTarget;
-    // Note lines omit kcal/g — the headline already shows the unit next to the main value.
+    // Sub-labels: +N over / -N under / perfect (units live on the headline).
     const calorieMetricText = calorieResult.isSurplus
-      ? `Surplus ${formatInt(calorieResult.surplus)}`
+      ? `+${formatInt(calorieResult.surplus)} over`
       : deficitOverTarget > 0
-        ? "Under target"
+        ? `-${formatInt(deficitOverTarget)} under`
         : caloriePerfect
-          ? "Perfect!"
+          ? "perfect"
           : calorieAlmostThere
-            ? `+${formatInt(roundInt(entryDeficitTarget - calorieResult.deficit))}`
+            ? `+${formatInt(roundInt(entryDeficitTarget - calorieResult.deficit))} over`
             : `Target ${formatInt(calorieIntakeTarget)}`;
     const proteinMetricText = proteinOverTarget > 0
       ? `+${formatInt(proteinOverTarget)} over`
       : proteinPerfect
-        ? "Perfect!"
+        ? "perfect"
         : proteinAlmostThere
-          ? `-${formatInt(roundInt(entryProteinTarget - roundedProtein))}`
+          ? `-${formatInt(roundInt(entryProteinTarget - roundedProtein))} under`
           : `Target ${formatInt(entryProteinTarget)}`;
 
     dailyHtml = `
