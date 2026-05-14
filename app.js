@@ -1576,24 +1576,23 @@ function renderSummary(summary) {
     // Sub-labels
     const calorieAlmostThere = calorieResult.celebrated && !calorieResult.isSurplus && deficitOverTarget === 0 && !caloriePerfect;
     const proteinAlmostThere = proteinResult.celebrated && roundedProtein < entryProteinTarget;
+    // Note lines omit kcal/g — the headline already shows the unit next to the main value.
     const calorieMetricText = calorieResult.isSurplus
-      ? (isCompactLayout ? `Surplus ${formatInt(calorieResult.surplus)}` : `Surplus ${formatInt(calorieResult.surplus)} kcal`)
+      ? `Surplus ${formatInt(calorieResult.surplus)}`
       : deficitOverTarget > 0
         ? "Under target"
         : caloriePerfect
           ? "Perfect!"
           : calorieAlmostThere
-            ? (isCompactLayout
-              ? `-${formatInt(roundInt(entryDeficitTarget - calorieResult.deficit))}`
-              : `-${formatInt(roundInt(entryDeficitTarget - calorieResult.deficit))} kcal`)
-            : (isCompactLayout ? `Target ${formatInt(calorieIntakeTarget)}` : `Target ${formatInt(calorieIntakeTarget)} kcal`);
+            ? `+${formatInt(roundInt(entryDeficitTarget - calorieResult.deficit))}`
+            : `Target ${formatInt(calorieIntakeTarget)}`;
     const proteinMetricText = proteinOverTarget > 0
       ? `+${formatInt(proteinOverTarget)} over`
       : proteinPerfect
         ? "Perfect!"
         : proteinAlmostThere
-          ? `-${formatInt(roundInt(entryProteinTarget - roundedProtein))} g`
-          : (isCompactLayout ? `Target ${formatInt(entryProteinTarget)} g` : `Target ${formatInt(entryProteinTarget)} g`);
+          ? `-${formatInt(roundInt(entryProteinTarget - roundedProtein))}`
+          : `Target ${formatInt(entryProteinTarget)}`;
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone} ${doubleHit ? "double-hit" : ""}">
