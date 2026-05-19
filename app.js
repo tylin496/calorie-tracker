@@ -1341,11 +1341,17 @@ function formatFatLossKg(value) {
 }
 
 const METRIC_NOTE_PERFECT = "Perfect!";
+const METRIC_NOTE_ON_TARGET = "On target";
 
 function formatMetricOffset(delta, unit) {
   const v = roundInt(delta);
-  if (v === 0) return `0 ${unit}`;
-  return `${formatInt(Math.abs(v))} ${unit} ${v > 0 ? "Over" : "Under"}`;
+  if (v === 0) return METRIC_NOTE_ON_TARGET;
+  const direction = v > 0 ? "over" : "under";
+  return `${direction} by ${formatInt(Math.abs(v))} ${unit}`;
+}
+
+function formatCalorieSurplusNote(surplus) {
+  return `${formatInt(surplus)} kcal surplus`;
 }
 
 function renderMetricAddPrompt() {
@@ -1675,7 +1681,7 @@ function renderSummary(summary) {
     const proteinAlmostThere = proteinResult.celebrated && roundedProtein < entryProteinTarget;
     // Logged day: compact offset copy; surplus still uses TDEE surplus, not intake delta.
     const calorieMetricText = calorieResult.isSurplus
-      ? formatMetricOffset(calorieResult.surplus, "kcal")
+      ? formatCalorieSurplusNote(calorieResult.surplus)
       : caloriePerfect
         ? METRIC_NOTE_PERFECT
         : formatMetricOffset(roundedCalories - entryCalorieTarget, "kcal");
