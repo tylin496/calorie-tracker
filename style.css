@@ -690,7 +690,13 @@ h1 {
   animation: rise-in 300ms ease both;
 }
 
-.settlement-form.entry-form-collapsed {
+.settlement-form.entry-form-collapsed:not(.quick-entry) {
+  display: none;
+  margin: 0;
+  animation: none;
+}
+
+.settlement-form.entry-form-collapsed.quick-entry {
   max-height: 0;
   margin-top: 0;
   margin-bottom: 0;

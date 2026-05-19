@@ -414,15 +414,16 @@ function setEntryFormVisible(isVisible) {
   const form = document.getElementById("today-form");
   if (!form) return;
   const isQuickEntryOverlayOpen = isQuickEntryOpen();
+  const showInline = isVisible && isQuickEntryOverlayOpen;
 
   if (!isQuickEntryOverlayOpen) {
     form.classList.remove("quick-entry");
   }
 
-  form.hidden = false;
-  form.classList.toggle("entry-form-collapsed", !isVisible);
-  form.setAttribute("aria-hidden", String(!isVisible));
-  form.inert = !isVisible;
+  form.classList.toggle("entry-form-collapsed", !showInline);
+  form.setAttribute("aria-hidden", String(!showInline));
+  form.inert = !showInline;
+  form.hidden = !showInline;
 
   form.querySelectorAll(".input-card, #saveBtn").forEach((element) => {
     element.hidden = false;
@@ -435,14 +436,15 @@ function setEntryFormVisible(isVisible) {
 }
 
 function hideEntryFormWhileLoading() {
-  const form = document.getElementById("today-form");
+  if (isQuickEntryOpen()) return;
 
-  if (form) {
-    form.classList.remove("entry-form-collapsed");
-    form.removeAttribute("aria-hidden");
-    form.inert = false;
-    form.hidden = true;
-  }
+  const form = document.getElementById("today-form");
+  if (!form) return;
+
+  form.classList.add("entry-form-collapsed");
+  form.setAttribute("aria-hidden", "true");
+  form.inert = true;
+  form.hidden = true;
 }
 
 
@@ -1875,6 +1877,7 @@ async function loadWeekSummary() {
   const requestedDate = currentDate;
 
   updateDietDayDisplay();
+  hideEntryFormWhileLoading();
   setSummaryRefreshing(true);
 
   try {
@@ -2085,6 +2088,7 @@ function initApp() {
 
   updateDietDayDisplay();
   updateTargetForm();
+  setEntryFormVisible(false);
   renderInitialLoadingState();
 
   if (isLocalDevHost()) {

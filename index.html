@@ -12,7 +12,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Calorie Tracker">
-  <link rel="stylesheet" href="style.css?v=20260519-trend-value-gap">
+  <link rel="stylesheet" href="style.css?v=20260519-hide-form-loading">
 </head>
 <body class="auth-locked">
   <section id="accessGate" class="access-gate" aria-label="Access gate">
@@ -85,7 +85,7 @@
       </div>
     </section>
 
-    <form id="today-form" class="settlement-form">
+    <form id="today-form" class="settlement-form entry-form-collapsed" hidden aria-hidden="true" inert>
       <div class="quick-entry-header">
         <div>
           <strong>Quick entry</strong>
@@ -186,6 +186,6 @@
     </details>
   </main>
 
-  <script src="app.js?v=20260515-surplus-full"></script>
+  <script src="app.js?v=20260519-hide-form-loading"></script>
 </body>
 </html>
