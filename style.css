@@ -24,6 +24,8 @@
   --pending-bg: rgba(255, 98, 89, 0.09);
   --shadow: 0 18px 40px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
   --shadow-strong: 0 30px 90px rgba(0, 0, 0, 0.22);
+  --card-toolbar-height: 32px;
+  --status-chip-height: 24px;
 
 }
 @media (prefers-color-scheme: dark) {
@@ -1247,9 +1249,15 @@ input[type="number"] {
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.06);
 }
 
+.daily-card-top,
+.card-actions,
+.week-trend-header {
+  min-height: var(--card-toolbar-height);
+  align-items: center;
+}
+
 .daily-card-top {
   display: flex;
-  align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 14px;
@@ -1360,7 +1368,7 @@ input[type="number"] {
   margin-top: 2px;
   color: var(--text);
   -webkit-text-fill-color: var(--text);
-  font-size: clamp(24px, 5.4vw, 31px);
+  font-size: clamp(20px, 4.6vw, 26px);
   line-height: 1;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
@@ -1413,7 +1421,7 @@ input[type="number"] {
   justify-content: center;
   width: 100%;
   margin-top: 2px;
-  min-height: clamp(24px, 5.4vw, 31px);
+  min-height: clamp(20px, 4.6vw, 26px);
   font-size: 0;
   font-weight: 400;
   line-height: 0;
@@ -1628,7 +1636,6 @@ input[type="number"] {
 
 .card-actions {
   display: inline-flex;
-  align-items: center;
   justify-content: flex-end;
   gap: 14px;
   flex: 0 0 auto;
@@ -1651,16 +1658,35 @@ input[type="number"] {
 }
 
 
-.status-pill {
-  margin-left: 8px;
+.status-pill,
+.trend-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--status-chip-height);
+  height: var(--status-chip-height);
+  box-sizing: border-box;
+  padding: 0 10px;
   border-radius: 999px;
-  padding: 4px 10px;
+  border: 1px solid transparent;
   font-size: 11px;
   font-weight: 700;
-  text-align: center;
+  line-height: 1;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
+  text-align: center;
   white-space: nowrap;
-  border: 1px solid transparent;
+  flex-shrink: 0;
+}
+
+.status-pill {
+  margin-left: 8px;
+}
+
+.trend-status {
+  margin: 0;
+  background: var(--surface-muted);
+  color: var(--muted);
 }
 
 .card-actions .status-pill {
@@ -1769,33 +1795,22 @@ input[type="number"] {
   border-color: color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
-.status-pill.logged {
-  box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--success-text) 8%, transparent),
-    0 0 18px color-mix(in srgb, var(--success-text) 12%, transparent);
-}
-
 .status-pill.double-hit {
   background: var(--gold-soft);
   color: var(--gold);
   border-color: color-mix(in srgb, var(--gold) 36%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 10%, transparent);
 }
 
 .status-pill.surplus {
   background: var(--danger-bg);
   color: var(--danger);
   border-color: color-mix(in srgb, var(--danger) 28%, transparent);
-  box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--danger) 7%, transparent),
-    0 0 18px color-mix(in srgb, var(--danger) 10%, transparent);
 }
 
 .status-pill.missing {
   background: color-mix(in srgb, var(--pending) 9%, var(--surface));
   color: color-mix(in srgb, var(--pending) 78%, var(--muted));
   border-color: color-mix(in srgb, var(--pending) 22%, transparent);
-  box-shadow: none;
   opacity: 1;
 }
 
@@ -1872,7 +1887,6 @@ input[type="number"] {
 
 .week-trend-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 10px;
@@ -2123,18 +2137,6 @@ input[type="number"] {
   font-weight: 600;
   color: color-mix(in srgb, var(--muted) 70%, transparent);
   line-height: 1;
-}
-
-.trend-status {
-  border: 1px solid transparent;
-  border-radius: 999px;
-  padding: 4px 10px;
-  background: var(--surface-muted);
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: 0.02em;
 }
 
 .trend-status.stable {
@@ -2654,7 +2656,7 @@ input[type="number"] {
 
   .daily-metric strong {
     gap: 5px;
-    font-size: clamp(21px, 6.2vw, 27px);
+    font-size: clamp(18px, 5.4vw, 23px);
     letter-spacing: 0;
     text-align: left;
   }
@@ -2671,7 +2673,7 @@ input[type="number"] {
   }
 
   .daily-metric.metric-add .metric-add-prompt {
-    min-height: clamp(21px, 6.2vw, 27px);
+    min-height: clamp(18px, 5.4vw, 23px);
   }
 
   .metric-add-icon svg {
@@ -2707,13 +2709,11 @@ input[type="number"] {
     font-size: 18px;
   }
 
-  .status-pill {
-    padding: 3px 8px;
-    font-size: 10px;
-  }
-
+  .status-pill,
   .trend-status {
-    padding: 3px 8px;
+    min-height: 22px;
+    height: 22px;
+    padding: 0 8px;
     font-size: 10px;
   }
 

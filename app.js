@@ -1330,6 +1330,16 @@ function formatInt(value) {
   return roundInt(value).toLocaleString();
 }
 
+function formatFatLossKg(value) {
+  const kg = Number(value);
+  if (!Number.isFinite(kg) || kg <= 0) return "0";
+  if (kg >= 10) return Math.round(kg).toLocaleString();
+  if (kg >= 1) {
+    return kg.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 1 });
+  }
+  return kg.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 const METRIC_NOTE_PERFECT = "Perfect!";
 
 function formatMetricOffset(delta, unit) {
@@ -1409,7 +1419,7 @@ function buildWeeklyPlainTextSummary(summary) {
     targetLine,
     `Week: ${summary.count || 0}/7 days, ${summary.consistency || getConsistency(entries)}`,
     `Avg: ${formatInt(summary.averageCalories || 0)} kcal, ${formatInt(summary.averageProtein || 0)}g protein`,
-    `Total: ${formatInt(summary.totalDeficit || 0)} kcal deficit, est fat ${formatInt(Number(summary.fatLossKg || 0) * 1000)}g`,
+    `Total: ${formatInt(summary.totalDeficit || 0)} kcal deficit, est fat ${formatFatLossKg(summary.fatLossKg || 0)} kg`,
     "",
     "Daily: date | kcal | protein | deficit"
   ];
@@ -1464,8 +1474,8 @@ async function copyTextToClipboard(text) {
 function formatTrendDayValueHtml(entry) {
   if (!entry) return "";
   return `
-    <span class="trend-value-line trend-value-kcal">${formatInt(entry.calories)} kcal</span>
-    <span class="trend-value-line trend-value-protein">${formatInt(entry.protein)} g</span>
+    <span class="trend-value-line trend-value-kcal">${formatInt(entry.calories)}</span>
+    <span class="trend-value-line trend-value-protein">${formatInt(entry.protein)}</span>
   `;
 }
 
@@ -1769,7 +1779,7 @@ function renderSummary(summary) {
         </div>
         <div class="metric">
           <span class="metric-label">Fat loss</span>
-          <span class="metric-value">${formatInt(Number(summary.fatLossKg || 0) * 1000)} <small>g</small></span>
+          <span class="metric-value">${formatFatLossKg(summary.fatLossKg || 0)} <small>kg</small></span>
         </div>
       </div>
       <div class="week-trend-panel">
