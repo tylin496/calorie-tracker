@@ -38,6 +38,16 @@ The API expects these properties:
 - `Moderate Deficit` - number
 - `Cruise Deficit` - number
 
+## Local preview
+
+The production API only allows browser requests from the deployed site origin. For local UI work, use the dev server so `/api/*` is proxied on the same origin:
+
+```bash
+node scripts/dev-server.mjs
+```
+
+Open `http://127.0.0.1:8765/` and unlock with your usual access key.
+
 ## Files
 
 - `index.html` - app shell

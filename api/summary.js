@@ -2,12 +2,7 @@
 
 const FAT_KCAL_PER_KG = 7700;
 
-function setCorsHeaders(res) {
-  res.setHeader("Access-Control-Allow-Origin", "https://tylin496.github.io");
-  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-App-Key");
-  res.setHeader("Access-Control-Max-Age", "86400");
-}
+import { setCorsHeaders } from "./_cors.js";
 
 function isAuthorized(req) {
   const expectedKey = process.env.APP_ACCESS_KEY;
@@ -182,7 +177,7 @@ function summarizeWeek(today, fallbackTdee, entries, start, end) {
 }
 
 export default async function handler(req, res) {
-  setCorsHeaders(res);
+  setCorsHeaders(req, res, "GET, OPTIONS");
 
   if (req.method === "OPTIONS") {
     return res.status(204).end();

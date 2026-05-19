@@ -59,6 +59,10 @@
   box-sizing: border-box;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 [hidden] {
   display: none !important;
 }
@@ -264,7 +268,7 @@ h1 {
   background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
   backdrop-filter: blur(28px);
   box-shadow: var(--shadow-strong);
-  padding: 22px 20px 24px;
+  padding: 30px 20px 34px;
   animation: modal-in 220ms ease both;
 }
 
@@ -272,7 +276,7 @@ h1 {
   position: relative;
   display: flex;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 20px;
 }
 
 .calendar-close-btn {
@@ -347,6 +351,9 @@ h1 {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 4px;
+  margin-top: 6px;
+  margin-bottom: 18px;
+  padding: 8px 0;
 }
 
 .calendar-grid {
@@ -367,11 +374,6 @@ h1 {
   pointer-events: none;
 }
 
-
-.calendar-weekdays-fixed {
-  padding: 0;
-  margin-bottom: 8px;
-}
 
 .calendar-weekdays-fixed span {
   color: var(--muted);
@@ -895,18 +897,46 @@ input[type="number"] {
   cursor: pointer;
   touch-action: manipulation;
   display: flex;
-  align-items: baseline;
-  gap: 6px;
-  padding: 10px 0 0;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 2px 0 0;
   font-weight: 700;
   text-align: left;
+  list-style: none;
+}
+
+.settings-panel summary::-webkit-details-marker {
+  display: none;
 }
 
 .settings-panel summary::marker {
-  color: color-mix(in srgb, var(--muted) 76%, transparent);
+  content: "";
+}
+
+.settings-panel summary::after {
+  content: "›";
+  flex-shrink: 0;
+  margin-left: auto;
+  color: color-mix(in srgb, var(--muted) 72%, transparent);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+  transform: rotate(0deg);
+  transform-origin: center center;
+  transition: transform 180ms ease, color 180ms ease;
+}
+
+.settings-panel[open] > summary::after {
+  transform: rotate(90deg);
+  color: color-mix(in srgb, var(--muted) 88%, transparent);
 }
 
 .settings-panel summary small {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--muted);
   font-size: 12px;
   font-weight: 600;
@@ -974,6 +1004,8 @@ input[type="number"] {
   border-radius: 8px;
   background: var(--surface);
   backdrop-filter: blur(22px);
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .cut-start-row {
@@ -1251,7 +1283,7 @@ input[type="number"] {
 .daily-metric {
   position: relative;
   min-width: 0;
-  min-height: 96px;
+  min-height: 82px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -1259,7 +1291,7 @@ input[type="number"] {
   border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
   border-radius: 10px;
   background: color-mix(in srgb, var(--surface-muted) 74%, transparent);
-  padding: 12px;
+  padding: 9px 10px;
   color: var(--text);
   text-align: left;
   -webkit-text-fill-color: var(--text);
@@ -1325,7 +1357,7 @@ input[type="number"] {
   align-items: baseline;
   gap: 6px;
   width: auto;
-  margin-top: 4px;
+  margin-top: 2px;
   color: var(--text);
   -webkit-text-fill-color: var(--text);
   font-size: clamp(24px, 5.4vw, 31px);
@@ -1357,11 +1389,75 @@ input[type="number"] {
   -webkit-text-fill-color: color-mix(in srgb, var(--muted) 52%, transparent);
 }
 
-.daily-card.empty .daily-metric > span:last-child {
+.daily-card.empty .daily-metric.metric-add {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  align-items: center;
+  justify-items: stretch;
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--border) 92%, transparent);
+  background: color-mix(in srgb, var(--surface-muted) 68%, transparent);
+  box-shadow: none;
+}
+
+.daily-card.empty .daily-metric.metric-add .metric-label,
+.daily-card.empty .daily-metric.metric-add .metric-add-target {
+  justify-self: start;
+  width: 100%;
+  text-align: left;
+}
+
+.daily-card.empty .daily-metric.metric-add:hover,
+.daily-card.empty .daily-metric.metric-add:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+  background: color-mix(in srgb, var(--accent-soft) 24%, var(--surface-muted));
+  transform: translateY(-1px);
+}
+
+.daily-card.empty .daily-metric.metric-add:active {
+  transform: translateY(0);
+}
+
+.daily-card.empty .metric-add-prompt {
+  display: block;
+  width: auto;
+  margin: 0;
+  justify-self: center;
+  align-self: center;
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
+  font-size: clamp(28px, 6vw, 34px);
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: 0;
+  text-align: center;
+  opacity: 0.92;
+}
+
+.daily-card.empty .daily-metric.metric-add:hover .metric-add-prompt,
+.daily-card.empty .daily-metric.metric-add:focus-visible .metric-add-prompt {
+  color: var(--text);
+  -webkit-text-fill-color: var(--text);
+  opacity: 1;
+}
+
+.daily-card.empty .metric-add-target,
+.daily-card.empty .daily-metric.metric-readonly > span:last-child {
   font-size: 11px;
   font-weight: 600;
   color: color-mix(in srgb, var(--muted) 58%, transparent);
   -webkit-text-fill-color: color-mix(in srgb, var(--muted) 58%, transparent);
+}
+
+.daily-card.empty .daily-metric.metric-readonly {
+  opacity: 0.82;
+  cursor: default;
+}
+
+.daily-card.empty .daily-metric.metric-readonly:hover {
+  transform: none;
+  border-color: color-mix(in srgb, var(--border) 78%, transparent);
+  background: color-mix(in srgb, var(--surface-muted) 74%, transparent);
 }
 
 .daily-metric.rewarded strong,
@@ -1393,13 +1489,15 @@ input[type="number"] {
   -webkit-text-fill-color: var(--danger-deep);
 }
 
-.daily-metric > span:last-child {
+.daily-metric > span:last-child,
+.daily-metric > .metric-note {
   display: block;
-  margin-top: 6px;
+  margin-top: 4px;
   color: var(--muted);
   font-size: 12px;
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.15;
+  text-transform: none;
 }
 
 .daily-metric > .metric-note.reward {
@@ -1542,9 +1640,9 @@ input[type="number"] {
 .status-pill {
   margin-left: 8px;
   border-radius: 999px;
-  padding: 4px 9px;
-  font-size: 12px;
-  font-weight: 800;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
   text-align: center;
   text-transform: uppercase;
   white-space: nowrap;
@@ -1565,7 +1663,7 @@ input[type="number"] {
   width: 32px;
   height: 32px;
   padding: 0;
-  border: 1.5px solid color-mix(in srgb, var(--muted) 38%, transparent);
+  border: 1px solid color-mix(in srgb, var(--muted) 38%, transparent);
   border-radius: 50%;
   background: transparent;
   color: var(--muted);
@@ -1766,32 +1864,63 @@ input[type="number"] {
   margin-bottom: 10px;
 }
 
-.week-trend-header > span {
+.week-trend-header-start {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+  flex: 1;
+}
+
+.week-trend-header > span,
+.week-trend-header-start > span {
   color: var(--muted);
   font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.trend-legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.trend-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: color-mix(in srgb, var(--muted) 88%, transparent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.trend-legend-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.trend-legend-swatch-kcal {
+  background: linear-gradient(180deg, #5ac8fa, var(--accent));
+}
+
+.trend-legend-swatch-protein {
+  background: linear-gradient(180deg, #63e195, #34c759);
 }
 
 .trend-bars {
-  position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(34px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
   gap: 10px;
   align-items: end;
-  min-height: 130px;
+  min-height: 0;
   margin: 0;
-  padding: 18px 4px 2px;
-}
-
-.trend-bars::before {
-  content: "";
-  position: absolute;
-  left: 4px;
-  right: 4px;
-  bottom: 36px;
-  height: 1px;
-  background: color-mix(in srgb, var(--border) 72%, transparent);
+  padding: 0 4px 0;
 }
 
 .trend-day {
@@ -1813,29 +1942,79 @@ input[type="number"] {
 }
 
 .trend-value {
-  min-height: 16px;
-  color: color-mix(in srgb, var(--muted) 72%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 22px;
+  max-height: 32px;
+  margin-bottom: 6px;
+  overflow: visible;
+  color: color-mix(in srgb, var(--muted) 76%, transparent);
+  -webkit-text-fill-color: color-mix(in srgb, var(--muted) 76%, transparent);
   font-size: 10px;
-  font-weight: 800;
-  line-height: 1;
-  opacity: 0;
-  transform: translateY(3px);
-  transition: opacity 160ms ease, transform 160ms ease, color 160ms ease;
+  font-weight: 700;
+  line-height: 1.1;
+  opacity: 1;
+  transform: translateY(0);
+  transition: color 160ms ease;
+}
+
+.trend-value-line {
+  display: block;
   white-space: nowrap;
+}
+
+.trend-value-kcal,
+.trend-value-protein {
+  color: color-mix(in srgb, var(--muted) 76%, transparent);
+  -webkit-text-fill-color: color-mix(in srgb, var(--muted) 76%, transparent);
+}
+
+.trend-value-protein {
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.trend-bar-pair {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  max-width: 44px;
+}
+
+.trend-bar-slot {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 0;
+  max-width: 18px;
+  min-height: 96px;
 }
 
 .trend-bar {
   width: 100%;
-  max-width: 32px;
-  min-height: 18px;
-  border-radius: 8px;
+  max-width: 18px;
+  min-height: 10px;
+  border-radius: 6px;
   background: color-mix(in srgb, var(--muted) 46%, var(--surface-muted));
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--surface) 38%, transparent),
-    0 8px 16px color-mix(in srgb, #000000 10%, transparent);
+    0 6px 12px color-mix(in srgb, #000000 10%, transparent);
   transform-origin: bottom center;
   animation: bar-rise 500ms ease both;
   transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.trend-bar-kcal {
+  background: color-mix(in srgb, var(--accent) 42%, var(--surface-muted));
+}
+
+.trend-bar-protein {
+  background: color-mix(in srgb, #34c759 38%, var(--surface-muted));
 }
 
 .trend-day:hover {
@@ -1844,23 +2023,25 @@ input[type="number"] {
   transform: translateY(-2px);
 }
 
-.trend-day:hover .trend-bar {
+.trend-day:hover .trend-bar-kcal,
+.trend-day:hover .trend-bar-protein {
   transform: scaleY(1.04);
 }
 
-.trend-day:hover .trend-value,
-.trend-day.selected .trend-value {
-  opacity: 1;
-  transform: translateY(0);
+.trend-day.missing .trend-value,
+.trend-day.missing:hover .trend-value,
+.trend-day.missing.selected .trend-value {
+  min-height: 0;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(2px);
+  pointer-events: none;
 }
 
 .trend-day.selected .trend-weekday {
   color: var(--accent);
   font-weight: 900;
-}
-
-.trend-day.selected .trend-value {
-  color: var(--accent);
 }
 
 .trend-day.missing .trend-weekday {
@@ -1871,7 +2052,7 @@ input[type="number"] {
   color: var(--muted);
 }
 
-.trend-day.selected .trend-bar {
+.trend-day.selected .trend-bar-kcal {
   background: linear-gradient(180deg, #5ac8fa, var(--accent));
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, #ffffff 34%, transparent),
@@ -1879,13 +2060,23 @@ input[type="number"] {
     0 0 10px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
-.trend-day.missing .trend-bar {
+.trend-day.selected .trend-bar-protein {
+  background: linear-gradient(180deg, #63e195, #34c759);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 28%, transparent),
+    0 8px 16px color-mix(in srgb, #34c759 20%, transparent),
+    0 0 8px color-mix(in srgb, #34c759 14%, transparent);
+}
+
+.trend-day.missing .trend-bar-kcal,
+.trend-day.missing .trend-bar-protein {
   border: 1px dashed color-mix(in srgb, var(--muted) 44%, transparent);
   background: color-mix(in srgb, var(--surface-muted) 34%, transparent);
   box-shadow: none;
 }
 
-.trend-day.selected.missing .trend-bar {
+.trend-day.selected.missing .trend-bar-kcal,
+.trend-day.selected.missing .trend-bar-protein {
   background: color-mix(in srgb, var(--pending) 7%, var(--surface-muted));
   border: 1px dashed color-mix(in srgb, var(--pending) 38%, transparent);
   box-shadow: none;
@@ -1923,12 +2114,13 @@ input[type="number"] {
 .trend-status {
   border: 1px solid transparent;
   border-radius: 999px;
-  padding: 3px 8px;
+  padding: 4px 10px;
   background: var(--surface-muted);
   color: var(--muted);
-  font-size: 13px;
-  font-weight: 800;
-  line-height: 1.15;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
 }
 
 .trend-status.stable {
@@ -1997,8 +2189,9 @@ input[type="number"] {
 .empty-state {
   margin: 0;
   color: color-mix(in srgb, var(--muted) 82%, transparent);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
 }
 
 .toast {
@@ -2386,16 +2579,22 @@ input[type="number"] {
   .calendar-panel {
     width: min(360px, calc(100% - 24px));
     max-height: min(560px, calc(100dvh - 24px));
-    padding: 18px 16px 20px;
+    padding: 26px 16px 30px;
   }
 
   .calendar-header {
-    margin-bottom: 14px;
+    margin-bottom: 18px;
+  }
+
+  .calendar-weekdays-fixed {
+    margin-top: 4px;
+    margin-bottom: 16px;
+    padding: 7px 0;
   }
 
   .calendar-months {
     gap: 0;
-    padding-bottom: 22px;
+    padding-bottom: 26px;
   }
 
   .calendar-grid {
@@ -2435,8 +2634,8 @@ input[type="number"] {
   }
 
   .daily-metric {
-    min-height: 104px;
-    padding: 11px 10px;
+    min-height: 88px;
+    padding: 8px 9px;
   }
 
   .daily-metric strong {
@@ -2451,15 +2650,15 @@ input[type="number"] {
   }
 
   .daily-metric > span:last-child {
-    margin-top: 7px;
+    margin-top: 4px;
     font-size: 10px;
-    line-height: 1.2;
+    line-height: 1.15;
     white-space: nowrap;
   }
 
   .daily-metric:nth-child(3) {
     grid-column: 1 / -1;
-    min-height: 86px;
+    min-height: 74px;
   }
 
   .metric-button::after {
@@ -2480,8 +2679,13 @@ input[type="number"] {
   }
 
   .status-pill {
-    padding: 4px 8px;
-    font-size: 11px;
+    padding: 3px 8px;
+    font-size: 10px;
+  }
+
+  .trend-status {
+    padding: 3px 8px;
+    font-size: 10px;
   }
 
   .week-card .card-header {
@@ -2538,18 +2742,29 @@ input[type="number"] {
 
   .trend-bars {
     gap: 6px;
-    min-height: 116px;
     padding-inline: 0;
   }
 
-  .trend-bars::before {
-    left: 0;
-    right: 0;
-    bottom: 34px;
+  .trend-bar-pair {
+    max-width: 38px;
+    gap: 3px;
+  }
+
+  .trend-bar-slot {
+    max-width: 15px;
+    min-height: 88px;
   }
 
   .trend-bar {
-    max-width: 28px;
+    max-width: 15px;
+  }
+
+  .week-trend-header-start {
+    gap: 14px;
+  }
+
+  .trend-legend {
+    gap: 8px;
   }
 
   #deleteBtn {

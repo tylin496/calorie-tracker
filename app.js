@@ -1,7 +1,12 @@
 let TDEE = 2705;
 let PROTEIN_TARGET = 180;
 let DEFICIT_TARGET = 500;
-const API_BASE = "https://calorie-tracker-omega-ten.vercel.app";
+const API_BASE = (() => {
+  if (typeof window === "undefined") return "https://calorie-tracker-omega-ten.vercel.app";
+  const { hostname, origin } = window.location;
+  if (hostname === "localhost" || hostname === "127.0.0.1") return origin;
+  return "https://calorie-tracker-omega-ten.vercel.app";
+})();
 const ACCESS_KEY_STORAGE_KEY = "calorieTrackerAccessKey";
 const LAST_LOGGED_DATE_STORAGE_KEY = "calorieTrackerLastLoggedDate";
 const CALENDAR_INITIAL_HISTORY_MONTHS = 6;
@@ -25,7 +30,6 @@ let todayLogged = false;
 let todayEntry = null;
 let currentDate = DIET_INITIAL_DATE;
 let toastTimer = null;
-let didAutoOpenQuickEntry = false;
 let celebrationTimer = null;
 let calendarVisibleMonth = null;
 let calendarHistoryMonths = CALENDAR_INITIAL_HISTORY_MONTHS;
@@ -174,6 +178,11 @@ function updateDietDayDisplay() {
   }
 }
 
+function formatDailyIntakeTargetSummary() {
+  const calorieTarget = Math.max(0, roundInt(TDEE - DEFICIT_TARGET));
+  return `${formatInt(calorieTarget)} kcal · ${formatInt(PROTEIN_TARGET)} g`;
+}
+
 function updateTargetForm() {
   const tdeeInput = document.getElementById("tdeeInput");
   const proteinInput = document.getElementById("proteinTargetInput");
@@ -183,7 +192,10 @@ function updateTargetForm() {
   if (tdeeInput) tdeeInput.value = roundInt(TDEE);
   if (proteinInput) proteinInput.value = roundInt(PROTEIN_TARGET);
   if (deficitInput) deficitInput.value = roundInt(DEFICIT_TARGET);
-  if (summary) summary.textContent = `TDEE ${formatInt(TDEE)} kcal · Protein ${formatInt(PROTEIN_TARGET)} g · Deficit ${formatInt(DEFICIT_TARGET)} kcal`;
+  if (summary) {
+    summary.textContent = formatDailyIntakeTargetSummary();
+    summary.title = `TDEE ${formatInt(TDEE)} kcal · deficit ${formatInt(DEFICIT_TARGET)} kcal`;
+  }
 }
 
 // ── Cut phases ────────────────────────────────────────────────────────────────
@@ -384,7 +396,7 @@ function updateEntryForm() {
   }
   if (form) {
     form.classList.toggle("compact-entry-fields", window.matchMedia?.("(max-width: 620px)")?.matches ?? false);
-    setEntryFormVisible(!todayEntry || isQuickEntryOpen());
+    setEntryFormVisible(isQuickEntryOpen());
   }
 }
 
@@ -616,9 +628,7 @@ function closeQuickEntry(options = {}) {
     form.removeEventListener("pointerdown", handleQuickEntryPointerFocus);
   }
 
-  if (form && todayEntry) {
-    setEntryFormVisible(false);
-  }
+  setEntryFormVisible(false);
   const backdrop = document.getElementById("quickEntryBackdrop");
 
   if (form) {
@@ -1020,13 +1030,18 @@ async function fetchJson(url, options = {}, didRetry = false) {
     throw createAuthError("Access key required");
   }
 
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      ...(options.headers || {}),
-      "X-App-Key": accessKey
-    }
-  });
+  let res;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        "X-App-Key": accessKey
+      }
+    });
+  } catch {
+    throw new Error("Network error. Restart with: node scripts/dev-server.mjs");
+  }
   let data = null;
   let parseOk = true;
 
@@ -1320,6 +1335,14 @@ function formatInt(value) {
   return roundInt(value).toLocaleString();
 }
 
+const METRIC_NOTE_PERFECT = "Perfect!";
+
+function formatMetricOffset(delta, unit) {
+  const v = roundInt(delta);
+  if (v === 0) return `0 ${unit}`;
+  return `${formatInt(Math.abs(v))} ${unit} ${v > 0 ? "Over" : "Under"}`;
+}
+
 function getProgressPercent(value, target) {
   const safeTarget = Math.max(roundInt(target), 1);
   return Math.max(0, Math.min(100, Math.round((roundInt(value) / safeTarget) * 100)));
@@ -1431,12 +1454,60 @@ async function copyTextToClipboard(text) {
   }
 }
 
+function formatTrendDayValueHtml(entry) {
+  if (!entry) return "";
+  return `
+    <span class="trend-value-line trend-value-kcal">${formatInt(entry.calories)} kcal</span>
+    <span class="trend-value-line trend-value-protein">${formatInt(entry.protein)} g</span>
+  `;
+}
+
+function formatTrendDayValueLabel(entry) {
+  if (!entry) return "Not logged";
+  return `${formatInt(entry.calories)} kcal, ${formatInt(entry.protein)} g protein`;
+}
+
+const TREND_BAR_TRACK_HEIGHT = 96;
+const TREND_BAR_MIN_HEIGHT = 10;
+const TREND_BAR_MISSING_HEIGHT = 34;
+
+function getTrendDualBarHeights(entry, maxCalories, maxProtein) {
+  if (!entry) {
+    return { kcal: TREND_BAR_MISSING_HEIGHT, protein: TREND_BAR_MISSING_HEIGHT };
+  }
+  return {
+    kcal: Math.max(
+      TREND_BAR_MIN_HEIGHT,
+      Math.round(((entry.calories || 0) / maxCalories) * TREND_BAR_TRACK_HEIGHT)
+    ),
+    protein: Math.max(
+      TREND_BAR_MIN_HEIGHT,
+      Math.round(((entry.protein || 0) / maxProtein) * TREND_BAR_TRACK_HEIGHT)
+    )
+  };
+}
+
+function renderTrendLegend() {
+  return `
+    <div class="trend-legend" aria-hidden="true">
+      <span class="trend-legend-item"><span class="trend-legend-swatch trend-legend-swatch-kcal"></span>kcal</span>
+      <span class="trend-legend-item"><span class="trend-legend-swatch trend-legend-swatch-protein"></span>protein</span>
+    </div>
+  `;
+}
+
 function renderTrendBars(entries) {
   const weekEntries = entries || [];
   const entryByDate = new Map(weekEntries.map((entry) => [entry.date, entry]));
   const maxCalories = Math.max(
     TDEE,
-    ...weekEntries.map((entry) => Math.max(entry.calories || 0, entry.tdee || 0))
+    ...weekEntries.map((entry) => Math.max(entry.calories || 0, entry.tdee || 0)),
+    1
+  );
+  const maxProtein = Math.max(
+    PROTEIN_TARGET,
+    ...weekEntries.map((entry) => entry.protein || 0),
+    1
   );
   const start = getWeekStart(currentDate);
   const days = Array.from({ length: 7 }, (_, index) => {
@@ -1446,18 +1517,21 @@ function renderTrendBars(entries) {
   });
 
   return `
-    <div class="trend-bars" aria-label="Weekly calorie trend">
+    <div class="trend-bars" aria-label="Weekly intake trend">
       ${days
         .map((date) => {
           const dateString = formatDate(date);
           const entry = entryByDate.get(dateString);
           const isMissing = !entry;
-          const height = entry ? Math.max(18, Math.round(((entry.calories || 0) / maxCalories) * 76)) : 34;
+          const { kcal: kcalHeight, protein: proteinHeight } = getTrendDualBarHeights(entry, maxCalories, maxProtein);
           const isSelected = dateString === currentDate;
           const isFuture = isFutureDate(dateString);
           const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
           const shortDate = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-          const valueLabel = entry ? `${formatInt(entry.calories)} kcal` : "No entry";
+          const valueLabel = formatTrendDayValueLabel(entry);
+          const barTitle = entry
+            ? `${dateString}: ${formatInt(entry.calories)} kcal, ${formatInt(entry.protein)} g protein`
+            : `${dateString}: No data`;
 
           return `
             <button
@@ -1468,8 +1542,15 @@ function renderTrendBars(entries) {
               ${isFuture ? "disabled" : ""}
               ${isSelected ? "aria-current=\"date\"" : ""}
             >
-              <span class="trend-value">${valueLabel}</span>
-              <div class="trend-bar" style="height:${height}px" title="${dateString}: ${entry ? `${formatInt(entry.calories)} kcal` : "No data"}"></div>
+              <span class="trend-value">${formatTrendDayValueHtml(entry)}</span>
+              <div class="trend-bar-pair" title="${barTitle}">
+                <div class="trend-bar-slot">
+                  <div class="trend-bar trend-bar-kcal" style="height:${kcalHeight}px"></div>
+                </div>
+                <div class="trend-bar-slot">
+                  <div class="trend-bar trend-bar-protein" style="height:${proteinHeight}px"></div>
+                </div>
+              </div>
               <span class="trend-weekday">${weekday}<span class="trend-date">${date.getDate()}</span></span>
             </button>
           `;
@@ -1576,19 +1657,14 @@ function renderSummary(summary) {
     const calorieAlmostThere = calorieResult.celebrated && !calorieResult.isSurplus && deficitOverTarget === 0 && !caloriePerfect;
     const proteinAlmostThere = proteinResult.celebrated && roundedProtein < entryProteinTarget;
     // Logged day: compact offset copy; surplus still uses TDEE surplus, not intake delta.
-    const metricOffset = (delta, unit) => {
-      const v = roundInt(delta);
-      if (v === 0) return `0 ${unit}`;
-      return `${formatInt(Math.abs(v))} ${unit} ${v > 0 ? "over" : "under"}`;
-    };
     const calorieMetricText = calorieResult.isSurplus
-      ? metricOffset(calorieResult.surplus, "kcal")
+      ? formatMetricOffset(calorieResult.surplus, "kcal")
       : caloriePerfect
-        ? "perfect"
-        : metricOffset(roundedCalories - entryCalorieTarget, "kcal");
+        ? METRIC_NOTE_PERFECT
+        : formatMetricOffset(roundedCalories - entryCalorieTarget, "kcal");
     const proteinMetricText = proteinPerfect
-      ? "perfect"
-      : metricOffset(roundedProtein - entryProteinTarget, "g");
+      ? METRIC_NOTE_PERFECT
+      : formatMetricOffset(roundedProtein - entryProteinTarget, "g");
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone} ${doubleHit ? "double-hit" : ""}">
@@ -1646,23 +1722,18 @@ function renderSummary(summary) {
           <span class="status-pill missing">No entry</span>
         </div>
         <div class="daily-metrics">
-          <button class="daily-metric metric-button" type="button" data-edit-field="calories" aria-label="Add calories">
+          <button class="daily-metric metric-button metric-add" type="button" data-edit-field="calories" aria-label="Add calories, tap to enter">
             <span class="metric-label">Calories</span>
-            <strong class="metric-placeholder">--</strong>
-            <span>${isCompactLayout ? `Target ${formatInt(Math.max(0, TDEE - DEFICIT_TARGET))}` : `Target ${formatInt(Math.max(0, TDEE - DEFICIT_TARGET))} kcal`}</span>
+            <strong class="metric-add-prompt" aria-hidden="true">+</strong>
+            <span class="metric-add-target">${isCompactLayout ? `Target ${formatInt(Math.max(0, TDEE - DEFICIT_TARGET))}` : `Target ${formatInt(Math.max(0, TDEE - DEFICIT_TARGET))} kcal`}</span>
           </button>
-          <button class="daily-metric metric-button" type="button" data-edit-field="protein" aria-label="Add protein">
+          <button class="daily-metric metric-button metric-add" type="button" data-edit-field="protein" aria-label="Add protein, tap to enter">
             <span class="metric-label">Protein</span>
-            <strong class="metric-placeholder">--</strong>
-            <span>${isCompactLayout ? `Target ${formatInt(PROTEIN_TARGET)} g` : `Target ${formatInt(PROTEIN_TARGET)} g`}</span>
+            <strong class="metric-add-prompt" aria-hidden="true">+</strong>
+            <span class="metric-add-target">${isCompactLayout ? `Target ${formatInt(PROTEIN_TARGET)} g` : `Target ${formatInt(PROTEIN_TARGET)} g`}</span>
           </button>
-          <div class="daily-metric">
-            <span class="metric-label">Deficit</span>
-            <strong class="metric-placeholder">--</strong>
-            <span>${isCompactLayout ? `Target ${formatInt(DEFICIT_TARGET)}` : `Target ${formatInt(DEFICIT_TARGET)} kcal`}</span>
-          </div>
         </div>
-        <p class="empty-state">Add calories and protein when ready.</p>
+        <p class="empty-state">Tap Calories or Protein to log today.</p>
       </section>
     `;
   }
@@ -1696,7 +1767,10 @@ function renderSummary(summary) {
       </div>
       <div class="week-trend-panel">
         <div class="week-trend-header">
-          <span>Daily intake</span>
+          <div class="week-trend-header-start">
+            <span>Daily intake</span>
+            ${renderTrendLegend()}
+          </div>
           <strong class="trend-status ${consistencyTone}">${consistency}</strong>
         </div>
         ${renderTrendBars(summary.entries || [])}
@@ -1732,11 +1806,6 @@ async function loadWeekSummary() {
     renderSummary(data.summary);
     setSummaryRefreshing(false);
     setStatus("");
-
-    if (!didAutoOpenQuickEntry && currentDate === DIET_INITIAL_DATE && !todayEntry && !isCalendarOpen()) {
-      didAutoOpenQuickEntry = true;
-      openQuickEntry("calories");
-    }
   } catch (error) {
     if (error.isAuthError) {
       setSummaryRefreshing(false);

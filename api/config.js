@@ -1,9 +1,4 @@
-function setCorsHeaders(res) {
-  res.setHeader("Access-Control-Allow-Origin", "https://tylin496.github.io");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-App-Key");
-  res.setHeader("Access-Control-Max-Age", "86400");
-}
+import { setCorsHeaders } from "./_cors.js";
 
 function isAuthorized(req) {
   const expectedKey = process.env.APP_ACCESS_KEY;
@@ -202,7 +197,7 @@ function readConfig(page) {
 }
 
 export default async function handler(req, res) {
-  setCorsHeaders(res);
+  setCorsHeaders(req, res);
 
   if (req.method === "OPTIONS") {
     return res.status(204).end();
