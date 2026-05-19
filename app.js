@@ -485,8 +485,7 @@ function unlockQuickEntryScroll() {
   quickEntryScrollY = 0;
 }
 
-// iOS Safari: when keyboard is visible, snap the panel to just above it.
-// When no keyboard, fall back to CSS-centred position.
+// iOS Safari: anchor the sheet just above the keyboard; otherwise use CSS centre.
 function adjustQuickEntryForKeyboard() {
   const form = document.getElementById("today-form");
   if (!form || !isQuickEntryOpen()) return;
@@ -494,8 +493,8 @@ function adjustQuickEntryForKeyboard() {
   const vv = window.visualViewport;
   if (!vv) return;
 
-  const keyboardHeight = window.innerHeight - vv.height - vv.offsetTop;
-  const isKeyboardOpen = keyboardHeight > 50;
+  const keyboardInset = window.innerHeight - vv.offsetTop - vv.height;
+  const isKeyboardOpen = keyboardInset > 50;
 
   if (!isKeyboardOpen) {
     form.style.top = "";
@@ -507,14 +506,10 @@ function adjustQuickEntryForKeyboard() {
   }
 
   const safeGap = 12;
-  const visibleTop = Math.max(vv.offsetTop + safeGap, safeGap);
-  const visibleBottom = vv.offsetTop + vv.height - safeGap;
-  const availableHeight = Math.max(220, visibleBottom - visibleTop);
-  const formHeight = Math.min(form.offsetHeight || 0, availableHeight);
-  const top = Math.max(visibleTop, visibleTop + ((availableHeight - formHeight) / 2));
+  const availableHeight = Math.max(180, vv.height - safeGap * 2);
 
-  form.style.top = `${Math.round(top)}px`;
-  form.style.bottom = "auto";
+  form.style.top = "auto";
+  form.style.bottom = `${Math.round(Math.max(safeGap, keyboardInset + safeGap))}px`;
   form.style.transform = "translateX(-50%)";
   form.style.maxHeight = `${Math.round(availableHeight)}px`;
   form.style.overflowY = "auto";
@@ -1343,6 +1338,18 @@ function formatMetricOffset(delta, unit) {
   return `${formatInt(Math.abs(v))} ${unit} ${v > 0 ? "Over" : "Under"}`;
 }
 
+function renderMetricAddPrompt() {
+  return `
+    <strong class="metric-add-prompt" aria-hidden="true">
+      <span class="metric-add-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" focusable="false">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </span>
+    </strong>
+  `;
+}
+
 function getProgressPercent(value, target) {
   const safeTarget = Math.max(roundInt(target), 1);
   return Math.max(0, Math.min(100, Math.round((roundInt(value) / safeTarget) * 100)));
@@ -1724,12 +1731,12 @@ function renderSummary(summary) {
         <div class="daily-metrics">
           <button class="daily-metric metric-button metric-add" type="button" data-edit-field="calories" aria-label="Add calories, tap to enter">
             <span class="metric-label">Calories</span>
-            <strong class="metric-add-prompt" aria-hidden="true">+</strong>
+            ${renderMetricAddPrompt()}
             <span class="metric-add-target">${isCompactLayout ? `Target ${formatInt(Math.max(0, TDEE - DEFICIT_TARGET))}` : `Target ${formatInt(Math.max(0, TDEE - DEFICIT_TARGET))} kcal`}</span>
           </button>
           <button class="daily-metric metric-button metric-add" type="button" data-edit-field="protein" aria-label="Add protein, tap to enter">
             <span class="metric-label">Protein</span>
-            <strong class="metric-add-prompt" aria-hidden="true">+</strong>
+            ${renderMetricAddPrompt()}
             <span class="metric-add-target">${isCompactLayout ? `Target ${formatInt(PROTEIN_TARGET)} g` : `Target ${formatInt(PROTEIN_TARGET)} g`}</span>
           </button>
         </div>
