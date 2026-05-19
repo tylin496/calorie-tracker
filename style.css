@@ -1425,44 +1425,26 @@ input[type="number"] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--surface-solid) 62%, var(--surface-muted));
-  border: 1px solid color-mix(in srgb, var(--border) 100%, transparent);
-  color: color-mix(in srgb, var(--muted) 90%, var(--text));
-  -webkit-text-fill-color: color-mix(in srgb, var(--muted) 90%, var(--text));
-  box-shadow:
-    0 1px 0 color-mix(in srgb, var(--surface) 55%, transparent) inset,
-    0 4px 10px color-mix(in srgb, #000000 5%, transparent);
-  transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    color 160ms ease,
-    transform 160ms ease,
-    box-shadow 160ms ease;
+  color: color-mix(in srgb, var(--muted) 88%, var(--text));
+  -webkit-text-fill-color: color-mix(in srgb, var(--muted) 88%, var(--text));
+  transition: color 160ms ease, transform 160ms ease;
 }
 
 .metric-add-icon svg {
   display: block;
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
 }
 
 .daily-card.empty .daily-metric.metric-add:hover .metric-add-icon,
 .daily-card.empty .daily-metric.metric-add:focus-visible .metric-add-icon {
-  background: var(--accent-soft);
-  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
   color: var(--accent);
   -webkit-text-fill-color: var(--accent);
-  box-shadow:
-    0 1px 0 color-mix(in srgb, var(--accent) 12%, transparent) inset,
-    0 6px 14px color-mix(in srgb, var(--accent) 14%, transparent);
-  transform: scale(1.05);
+  transform: scale(1.06);
 }
 
 .daily-card.empty .daily-metric.metric-add:active .metric-add-icon {
-  transform: scale(0.96);
+  transform: scale(0.94);
 }
 
 .daily-card.empty .metric-add-target {
@@ -2692,14 +2674,9 @@ input[type="number"] {
     min-height: clamp(21px, 6.2vw, 27px);
   }
 
-  .metric-add-icon {
-    width: 28px;
-    height: 28px;
-  }
-
   .metric-add-icon svg {
-    width: 13px;
-    height: 13px;
+    width: 16px;
+    height: 16px;
   }
 
   .daily-card.empty .metric-add-target {
