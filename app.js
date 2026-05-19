@@ -13,10 +13,10 @@ const CALENDAR_INITIAL_HISTORY_MONTHS = 6;
 const CALENDAR_HISTORY_CHUNK_MONTHS = 3;
 
 // Cut phase tracking (Notion/server is source of truth)
-const CUT_PHASE_NAMES = ["Aggressive Cut", "Moderate Cut", "Cruise"];
-const CUT_PHASE_DEFAULT_DEFICITS = [805, 655, 455];
+const CUT_PHASE_NAMES = ["Aggressive Cut", "Moderate Cut", "Cruise", "Maintenance"];
+const CUT_PHASE_DEFAULT_DEFICITS = [805, 655, 455, 150];
 let cutStartDate = null;       // YYYY-MM-DD string or null
-let activeCutPhase = null;     // 0 | 1 | 2 | null
+let activeCutPhase = null;     // 0 | 1 | 2 | 3 | null
 let cutPhaseDeficits = [...CUT_PHASE_DEFAULT_DEFICITS];
 
 // The date the app defaults to on launch: yesterday if before 6am, today otherwise
@@ -224,14 +224,18 @@ function applyCutPhaseConfig(config) {
   if (!config?.hasCutPhaseSettings) return;
 
   cutStartDate = config.cutStartDate || null;
-  activeCutPhase = Number.isInteger(config.activeCutPhase) ? config.activeCutPhase : null;
+  activeCutPhase = Number.isInteger(config.activeCutPhase)
+    && config.activeCutPhase >= 0
+    && config.activeCutPhase < CUT_PHASE_NAMES.length
+    ? config.activeCutPhase
+    : null;
 
-  if (Array.isArray(config.cutPhaseDeficits) && config.cutPhaseDeficits.length === 3) {
-    cutPhaseDeficits = config.cutPhaseDeficits.map((value, index) => {
-      const number = Number(value);
+  if (Array.isArray(config.cutPhaseDeficits)) {
+    cutPhaseDeficits = CUT_PHASE_DEFAULT_DEFICITS.map((defaultValue, index) => {
+      const number = Number(config.cutPhaseDeficits[index]);
       return Number.isFinite(number) && number >= 0
         ? Math.round(number)
-        : CUT_PHASE_DEFAULT_DEFICITS[index];
+        : defaultValue;
     });
   }
 
@@ -485,34 +489,55 @@ function unlockQuickEntryScroll() {
   quickEntryScrollY = 0;
 }
 
-// iOS Safari: anchor the sheet just above the keyboard; otherwise use CSS centre.
+function isCompactQuickEntry() {
+  return window.matchMedia?.("(max-width: 620px)")?.matches ?? false;
+}
+
+function clearQuickEntryPosition(form) {
+  if (!form) return;
+  form.style.top = "";
+  form.style.bottom = "";
+  form.style.left = "";
+  form.style.transform = "";
+  form.style.maxHeight = "";
+  form.style.overflowY = "";
+}
+
+// Mobile: bottom sheet flush above the keyboard. Desktop: centred modal via CSS.
 function adjustQuickEntryForKeyboard() {
   const form = document.getElementById("today-form");
   if (!form || !isQuickEntryOpen()) return;
 
-  const vv = window.visualViewport;
-  if (!vv) return;
-
-  const keyboardInset = window.innerHeight - vv.offsetTop - vv.height;
-  const isKeyboardOpen = keyboardInset > 50;
-
-  if (!isKeyboardOpen) {
-    form.style.top = "";
-    form.style.bottom = "";
-    form.style.transform = "";
-    form.style.maxHeight = "";
-    form.style.overflowY = "";
+  if (!isCompactQuickEntry()) {
+    clearQuickEntryPosition(form);
+    document.body.classList.remove("quick-entry-keyboard");
     return;
   }
 
-  const safeGap = 12;
-  const availableHeight = Math.max(180, vv.height - safeGap * 2);
+  const vv = window.visualViewport;
+  const edgeGap = 8;
 
-  form.style.top = "auto";
-  form.style.bottom = `${Math.round(Math.max(safeGap, keyboardInset + safeGap))}px`;
+  form.style.left = "50%";
   form.style.transform = "translateX(-50%)";
-  form.style.maxHeight = `${Math.round(availableHeight)}px`;
   form.style.overflowY = "auto";
+
+  if (!vv) {
+    form.style.top = "auto";
+    form.style.bottom = `${edgeGap}px`;
+    form.style.maxHeight = `calc(100dvh - ${edgeGap * 2}px)`;
+    return;
+  }
+
+  const visibleBottom = vv.offsetTop + vv.height;
+  const keyboardInset = Math.max(0, window.innerHeight - visibleBottom);
+  const isKeyboardOpen = keyboardInset > 50;
+
+  document.body.classList.toggle("quick-entry-keyboard", isKeyboardOpen);
+
+  // Bottom edge of the sheet aligns with the top of the keyboard (visible viewport bottom).
+  form.style.top = "auto";
+  form.style.bottom = `${Math.round(isKeyboardOpen ? keyboardInset + edgeGap : edgeGap)}px`;
+  form.style.maxHeight = `${Math.round(Math.max(180, vv.height - edgeGap * 2))}px`;
 }
 
 function openQuickEntry(focusField = "calories") {
@@ -561,13 +586,24 @@ function openQuickEntry(focusField = "calories") {
     adjustQuickEntryForKeyboard();
   }
 
-  // Track visual viewport so the panel stays centred in the visible area as keyboard appears
+  teardownQuickEntryViewportListeners();
   if (window.visualViewport) {
     viewportResizeHandler = adjustQuickEntryForKeyboard;
     window.visualViewport.addEventListener("resize", viewportResizeHandler);
     window.visualViewport.addEventListener("scroll", viewportResizeHandler);
-    adjustQuickEntryForKeyboard();
   }
+  window.addEventListener("resize", adjustQuickEntryForKeyboard);
+  adjustQuickEntryForKeyboard();
+  requestAnimationFrame(adjustQuickEntryForKeyboard);
+}
+
+function teardownQuickEntryViewportListeners() {
+  if (window.visualViewport && viewportResizeHandler) {
+    window.visualViewport.removeEventListener("resize", viewportResizeHandler);
+    window.visualViewport.removeEventListener("scroll", viewportResizeHandler);
+    viewportResizeHandler = null;
+  }
+  window.removeEventListener("resize", adjustQuickEntryForKeyboard);
 }
 
 function forceQuickEntryFocus(input) {
@@ -608,20 +644,12 @@ function closeQuickEntry(options = {}) {
 
   const form = document.getElementById("today-form");
 
-  // Remove keyboard-lift listener and reset inline bottom
-  if (window.visualViewport && viewportResizeHandler) {
-    window.visualViewport.removeEventListener("resize", viewportResizeHandler);
-    window.visualViewport.removeEventListener("scroll", viewportResizeHandler);
-    viewportResizeHandler = null;
-  }
+  teardownQuickEntryViewportListeners();
   if (form) {
-    form.style.top = "";
-    form.style.bottom = "";
-    form.style.transform = "";
-    form.style.maxHeight = "";
-    form.style.overflowY = "";
+    clearQuickEntryPosition(form);
     form.removeEventListener("pointerdown", handleQuickEntryPointerFocus);
   }
+  document.body.classList.remove("quick-entry-keyboard");
 
   setEntryFormVisible(false);
   const backdrop = document.getElementById("quickEntryBackdrop");
@@ -1477,43 +1505,79 @@ async function copyTextToClipboard(text) {
   }
 }
 
-function formatTrendDayValueHtml(entry) {
-  if (!entry) return "";
+function getEntryTargets(entry) {
+  const entryTdee = entry.tdee || TDEE;
+  const entryCalorieTarget = entry.calorieTarget ?? Math.max(0, entryTdee - DEFICIT_TARGET);
+  const entryDeficitTarget = Math.max(0, entryTdee - entryCalorieTarget);
+  const entryProteinTarget = entry.proteinTarget ?? PROTEIN_TARGET;
+  return { entryTdee, entryCalorieTarget, entryDeficitTarget, entryProteinTarget };
+}
+
+function formatTrendDayValueHtml(trendDay) {
+  if (!trendDay?.entry) return "";
+  const { calorieResult, entryDeficitTarget, entryProteinTarget } = trendDay;
+  const kcalLine = calorieResult.isSurplus
+    ? `+${formatInt(calorieResult.surplus)}`
+    : `${formatInt(calorieResult.deficit)}/${formatInt(entryDeficitTarget)}`;
   return `
-    <span class="trend-value-line trend-value-kcal">${formatInt(entry.calories)}</span>
-    <span class="trend-value-line trend-value-protein">${formatInt(entry.protein)}</span>
+    <span class="trend-value-line trend-value-kcal">${kcalLine}</span>
+    <span class="trend-value-line trend-value-protein">${formatInt(trendDay.entry.protein)}/${formatInt(entryProteinTarget)}</span>
   `;
 }
 
-function formatTrendDayValueLabel(entry) {
-  if (!entry) return "Not logged";
-  return `${formatInt(entry.calories)} kcal, ${formatInt(entry.protein)} g protein`;
+function formatTrendDayValueLabel(trendDay) {
+  if (!trendDay?.entry) return "Not logged";
+  const { calorieResult, entryDeficitTarget, entryProteinTarget } = trendDay;
+  const deficitText = calorieResult.isSurplus
+    ? `+${formatInt(calorieResult.surplus)} kcal surplus`
+    : `${formatInt(calorieResult.deficit)} / ${formatInt(entryDeficitTarget)} kcal deficit`;
+  return `${deficitText}, ${formatInt(trendDay.entry.protein)} / ${formatInt(entryProteinTarget)} g protein`;
 }
 
 const TREND_BAR_TRACK_HEIGHT = 96;
 const TREND_BAR_MIN_HEIGHT = 10;
 const TREND_BAR_MISSING_HEIGHT = 34;
 
-function getTrendDualBarHeights(entry, maxCalories, maxProtein) {
+function progressToTrendBarHeight(progress) {
+  const clamped = Math.max(0, Math.min(100, roundInt(progress)));
+  return Math.max(
+    TREND_BAR_MIN_HEIGHT,
+    Math.round((clamped / 100) * TREND_BAR_TRACK_HEIGHT)
+  );
+}
+
+function getTrendDayMetrics(entry) {
   if (!entry) {
-    return { kcal: TREND_BAR_MISSING_HEIGHT, protein: TREND_BAR_MISSING_HEIGHT };
+    return {
+      entry: null,
+      kcalHeight: TREND_BAR_MISSING_HEIGHT,
+      proteinHeight: TREND_BAR_MISSING_HEIGHT,
+      kcalState: "missing",
+      proteinState: "missing"
+    };
   }
+
+  const { entryTdee, entryDeficitTarget, entryProteinTarget } = getEntryTargets(entry);
+  const calorieResult = getCalorieResult(entry.calories, entryTdee, entryDeficitTarget);
+  const proteinResult = getProteinResult(entry.protein, entryProteinTarget);
+
   return {
-    kcal: Math.max(
-      TREND_BAR_MIN_HEIGHT,
-      Math.round(((entry.calories || 0) / maxCalories) * TREND_BAR_TRACK_HEIGHT)
-    ),
-    protein: Math.max(
-      TREND_BAR_MIN_HEIGHT,
-      Math.round(((entry.protein || 0) / maxProtein) * TREND_BAR_TRACK_HEIGHT)
-    )
+    entry,
+    calorieResult,
+    proteinResult,
+    entryDeficitTarget,
+    entryProteinTarget,
+    kcalHeight: progressToTrendBarHeight(calorieResult.progress),
+    proteinHeight: progressToTrendBarHeight(proteinResult.progress),
+    kcalState: calorieResult.isSurplus ? "surplus" : calorieResult.celebrated ? "celebrated" : "neutral",
+    proteinState: proteinResult.celebrated ? "celebrated" : "neutral"
   };
 }
 
 function renderTrendLegend() {
   return `
     <div class="trend-legend" aria-hidden="true">
-      <span class="trend-legend-item"><span class="trend-legend-swatch trend-legend-swatch-kcal"></span>kcal</span>
+      <span class="trend-legend-item"><span class="trend-legend-swatch trend-legend-swatch-kcal"></span>deficit</span>
       <span class="trend-legend-item"><span class="trend-legend-swatch trend-legend-swatch-protein"></span>protein</span>
     </div>
   `;
@@ -1522,16 +1586,6 @@ function renderTrendLegend() {
 function renderTrendBars(entries) {
   const weekEntries = entries || [];
   const entryByDate = new Map(weekEntries.map((entry) => [entry.date, entry]));
-  const maxCalories = Math.max(
-    TDEE,
-    ...weekEntries.map((entry) => Math.max(entry.calories || 0, entry.tdee || 0)),
-    1
-  );
-  const maxProtein = Math.max(
-    PROTEIN_TARGET,
-    ...weekEntries.map((entry) => entry.protein || 0),
-    1
-  );
   const start = getWeekStart(currentDate);
   const days = Array.from({ length: 7 }, (_, index) => {
     const date = new Date(start);
@@ -1540,21 +1594,20 @@ function renderTrendBars(entries) {
   });
 
   return `
-    <div class="trend-bars" aria-label="Weekly intake trend">
+    <div class="trend-bars" aria-label="Weekly progress trend">
       ${days
         .map((date) => {
           const dateString = formatDate(date);
           const entry = entryByDate.get(dateString);
           const isMissing = !entry;
-          const { kcal: kcalHeight, protein: proteinHeight } = getTrendDualBarHeights(entry, maxCalories, maxProtein);
+          const trendDay = getTrendDayMetrics(entry);
+          const { kcalHeight, proteinHeight, kcalState, proteinState } = trendDay;
           const isSelected = dateString === currentDate;
           const isFuture = isFutureDate(dateString);
           const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
           const shortDate = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-          const valueLabel = formatTrendDayValueLabel(entry);
-          const barTitle = entry
-            ? `${dateString}: ${formatInt(entry.calories)} kcal, ${formatInt(entry.protein)} g protein`
-            : `${dateString}: No data`;
+          const valueLabel = formatTrendDayValueLabel(trendDay);
+          const barTitle = entry ? `${dateString}: ${valueLabel}` : `${dateString}: No data`;
 
           return `
             <button
@@ -1565,13 +1618,13 @@ function renderTrendBars(entries) {
               ${isFuture ? "disabled" : ""}
               ${isSelected ? "aria-current=\"date\"" : ""}
             >
-              <span class="trend-value">${formatTrendDayValueHtml(entry)}</span>
+              <span class="trend-value">${formatTrendDayValueHtml(trendDay)}</span>
               <div class="trend-bar-pair" title="${barTitle}">
                 <div class="trend-bar-slot">
-                  <div class="trend-bar trend-bar-kcal" style="height:${kcalHeight}px"></div>
+                  <div class="trend-bar trend-bar-kcal ${kcalState}" style="height:${kcalHeight}px"></div>
                 </div>
                 <div class="trend-bar-slot">
-                  <div class="trend-bar trend-bar-protein" style="height:${proteinHeight}px"></div>
+                  <div class="trend-bar trend-bar-protein ${proteinState}" style="height:${proteinHeight}px"></div>
                 </div>
               </div>
               <span class="trend-weekday">${weekday}<span class="trend-date">${date.getDate()}</span></span>

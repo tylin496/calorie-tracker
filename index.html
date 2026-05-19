@@ -2,17 +2,17 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <title>Calorie Tracker</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="app-icon-v2.png?v=2">
-  <link rel="apple-touch-icon" href="app-icon-light.png">
+  <link rel="icon" type="image/png" href="app-icon-v2.png">
+  <link rel="apple-touch-icon" href="app-icon-v2.png">
   <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Calorie Tracker">
-  <link rel="stylesheet" href="style.css?v=20260515-typography">
+  <link rel="stylesheet" href="style.css?v=20260515-empty-target-center">
 </head>
 <body class="auth-locked">
   <section id="accessGate" class="access-gate" aria-label="Access gate">
@@ -152,6 +152,13 @@
             </div>
             <button class="phase-activate-btn" id="cutPhaseActivateBtn2" type="button" data-phase-activate="2">Activate</button>
           </div>
+          <div class="phase-row" id="cutPhaseRow3">
+            <div class="phase-row-info">
+              <span class="phase-name">Maintenance</span>
+              <label class="phase-deficit-label">Deficit <input id="cutPhaseDeficit3" type="number" inputmode="numeric" min="0" step="1" /> kcal</label>
+            </div>
+            <button class="phase-activate-btn" id="cutPhaseActivateBtn3" type="button" data-phase-activate="3">Activate</button>
+          </div>
         </div>
       </div>
     </details>
@@ -179,6 +186,6 @@
     </details>
   </main>
 
-  <script src="app.js?v=20260512-0024"></script>
+  <script src="app.js?v=20260515-maintenance-phase"></script>
 </body>
 </html>

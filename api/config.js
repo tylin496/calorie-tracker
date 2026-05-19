@@ -22,11 +22,11 @@ function toValidNumber(value) {
   return Number.isFinite(number) && number >= 0 ? number : null;
 }
 
-const CUT_PHASE_DEFAULT_DEFICITS = [805, 655, 455];
+const CUT_PHASE_DEFAULT_DEFICITS = [805, 655, 455, 150];
 
 function toValidPhase(value) {
   const number = Number(value);
-  return Number.isInteger(number) && number >= 0 && number <= 2 ? number : null;
+  return Number.isInteger(number) && number >= 0 && number <= 3 ? number : null;
 }
 
 function readDeficitAt(properties, name, index) {
@@ -87,6 +87,9 @@ function buildProperties(config, propertyNames) {
     },
     "Cruise Deficit": {
       number: config.cutPhaseDeficits[2]
+    },
+    "Maintenance Deficit": {
+      number: config.cutPhaseDeficits[3]
     }
   };
 
@@ -178,7 +181,8 @@ function readConfig(page) {
     properties["Cut Phase"] ||
     properties["Aggressive Deficit"] ||
     properties["Moderate Deficit"] ||
-    properties["Cruise Deficit"]
+    properties["Cruise Deficit"] ||
+    properties["Maintenance Deficit"]
   );
 
   return {
@@ -191,7 +195,8 @@ function readConfig(page) {
     cutPhaseDeficits: [
       readDeficitAt(properties, "Aggressive Deficit", 0),
       readDeficitAt(properties, "Moderate Deficit", 1),
-      readDeficitAt(properties, "Cruise Deficit", 2)
+      readDeficitAt(properties, "Cruise Deficit", 2),
+      readDeficitAt(properties, "Maintenance Deficit", 3)
     ]
   };
 }
