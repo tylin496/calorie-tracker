@@ -26,6 +26,20 @@
   --shadow-strong: 0 30px 90px rgba(0, 0, 0, 0.22);
   --card-toolbar-height: 32px;
   --status-chip-height: 24px;
+  --trend-bar-track-height: 96px;
+  --trend-value-block-height: 28px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --card-pad: 20px;
+  --card-pad-compact: 16px;
+  --card-gap: 14px;
+  --stack-gap: 14px;
+  --section-gap: 16px;
+  --grid-gap: 10px;
+  --divider-gap: 14px;
+  --inline-gap: 12px;
 
 }
 @media (prefers-color-scheme: dark) {
@@ -1121,7 +1135,7 @@ input[type="number"] {
 .card-header-left {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-1);
 }
 
 .cut-phase-label {
@@ -1213,8 +1227,8 @@ input[type="number"] {
   border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: var(--shadow);
-  padding: 18px;
-  margin-bottom: 14px;
+  padding: var(--card-pad);
+  margin-bottom: var(--card-gap);
   backdrop-filter: blur(22px);
   animation: rise-in 420ms ease both;
 }
@@ -1227,8 +1241,8 @@ input[type="number"] {
     linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 70%, transparent), var(--surface)),
     var(--surface);
   box-shadow: var(--shadow);
-  padding: 20px;
-  margin-bottom: 14px;
+  padding: var(--card-pad);
+  margin-bottom: var(--card-gap);
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(22px);
@@ -1259,8 +1273,8 @@ input[type="number"] {
 .daily-card-top {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: var(--inline-gap);
+  margin-bottom: var(--stack-gap);
 }
 
 .day-label,
@@ -1284,8 +1298,8 @@ input[type="number"] {
 .daily-metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: var(--grid-gap);
+  margin-bottom: var(--section-gap);
 }
 
 .daily-metric {
@@ -1533,9 +1547,9 @@ input[type="number"] {
 
 .settlement-lines {
   display: grid;
-  gap: 12px;
+  gap: var(--stack-gap);
   border-top: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-  padding-top: 14px;
+  padding-top: var(--divider-gap);
 }
 
 .settlement-line {
@@ -1630,14 +1644,14 @@ input[type="number"] {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: var(--inline-gap);
+  margin-bottom: var(--stack-gap);
 }
 
 .card-actions {
   display: inline-flex;
   justify-content: flex-end;
-  gap: 14px;
+  gap: var(--inline-gap);
   flex: 0 0 auto;
 }
 
@@ -1817,7 +1831,7 @@ input[type="number"] {
 .week-snapshot {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: var(--grid-gap);
 }
 
 .metric {
@@ -1880,22 +1894,22 @@ input[type="number"] {
 }
 
 .week-trend-panel {
-  margin-top: 14px;
+  margin-top: var(--divider-gap);
   border-top: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-  padding-top: 13px;
+  padding-top: var(--stack-gap);
 }
 
 .week-trend-header {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
+  gap: var(--inline-gap);
+  margin-bottom: var(--stack-gap);
 }
 
 .week-trend-header-start {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: var(--space-4);
   min-width: 0;
   flex: 1;
 }
@@ -1944,20 +1958,21 @@ input[type="number"] {
 .trend-bars {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
-  gap: 10px;
+  gap: var(--grid-gap);
   align-items: end;
   min-height: 0;
   margin: 0;
-  padding: 0 4px 0;
+  padding: 0;
 }
 
 .trend-day {
   appearance: none;
   -webkit-appearance: none;
   display: grid;
-  align-items: end;
+  grid-template-rows: var(--trend-value-block-height) var(--trend-bar-track-height) auto;
+  align-items: stretch;
   justify-items: center;
-  gap: 6px;
+  gap: var(--space-2);
   min-width: 0;
   padding: 0;
   margin: 0;
@@ -1973,10 +1988,12 @@ input[type="number"] {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-end;
   gap: 2px;
-  min-height: 22px;
-  max-height: 32px;
-  margin-bottom: 6px;
+  width: 100%;
+  min-height: var(--trend-value-block-height);
+  height: var(--trend-value-block-height);
+  margin-bottom: 0;
   overflow: visible;
   color: color-mix(in srgb, var(--muted) 76%, transparent);
   -webkit-text-fill-color: color-mix(in srgb, var(--muted) 76%, transparent);
@@ -2008,9 +2025,12 @@ input[type="number"] {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  align-self: end;
   gap: 4px;
   width: 100%;
   max-width: 44px;
+  height: var(--trend-bar-track-height);
+  min-height: var(--trend-bar-track-height);
 }
 
 .trend-bar-slot {
@@ -2020,7 +2040,8 @@ input[type="number"] {
   justify-content: center;
   min-width: 0;
   max-width: 18px;
-  min-height: 96px;
+  height: 100%;
+  min-height: var(--trend-bar-track-height);
 }
 
 .trend-bar {
@@ -2203,7 +2224,7 @@ input[type="number"] {
 }
 
 .empty-state {
-  margin: 0;
+  margin: var(--space-2) 0 0;
   color: color-mix(in srgb, var(--muted) 82%, transparent);
   font-size: 12px;
   font-weight: 500;
@@ -2635,18 +2656,21 @@ input[type="number"] {
     font-size: 32px;
   }
 
+  :root {
+    --card-pad: var(--card-pad-compact);
+    --stack-gap: 12px;
+    --section-gap: 14px;
+    --grid-gap: 8px;
+    --divider-gap: 12px;
+    --inline-gap: 10px;
+    --trend-bar-track-height: 88px;
+    --trend-value-block-height: 26px;
+  }
+
   .daily-card,
   .card,
   .input-card {
-    padding: 16px;
-  }
-
-  .daily-card {
-    padding: 16px;
-  }
-
-  .daily-card-top {
-    margin-bottom: 12px;
+    padding: var(--card-pad);
   }
 
   .daily-metric {
@@ -2725,10 +2749,6 @@ input[type="number"] {
     gap: 6px;
   }
 
-  .settlement-lines {
-    gap: 14px;
-  }
-
   .week-snapshot .metric {
     min-height: 76px;
     padding: 9px 7px;
@@ -2752,26 +2772,12 @@ input[type="number"] {
     grid-template-columns: 1fr;
   }
 
-  .daily-metrics,
-  .week-snapshot {
-    gap: 8px;
-  }
-
   .daily-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .week-snapshot {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .week-trend-header {
-    margin-bottom: 8px;
-  }
-
-  .trend-bars {
-    gap: 6px;
-    padding-inline: 0;
   }
 
   .trend-bar-pair {
@@ -2781,7 +2787,6 @@ input[type="number"] {
 
   .trend-bar-slot {
     max-width: 15px;
-    min-height: 88px;
   }
 
   .trend-bar {
@@ -2789,11 +2794,7 @@ input[type="number"] {
   }
 
   .week-trend-header-start {
-    gap: 14px;
-  }
-
-  .trend-legend {
-    gap: 8px;
+    gap: var(--space-3);
   }
 
   #deleteBtn {
