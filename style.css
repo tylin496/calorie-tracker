@@ -1390,21 +1390,10 @@ input[type="number"] {
 }
 
 .daily-card.empty .daily-metric.metric-add {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  align-items: center;
-  justify-items: stretch;
   border-style: dashed;
   border-color: color-mix(in srgb, var(--border) 92%, transparent);
   background: color-mix(in srgb, var(--surface-muted) 68%, transparent);
   box-shadow: none;
-}
-
-.daily-card.empty .daily-metric.metric-add .metric-label,
-.daily-card.empty .daily-metric.metric-add .metric-add-target {
-  justify-self: start;
-  width: 100%;
-  text-align: left;
 }
 
 .daily-card.empty .daily-metric.metric-add:hover,
@@ -1419,11 +1408,12 @@ input[type="number"] {
 }
 
 .daily-card.empty .metric-add-prompt {
-  display: block;
-  width: auto;
-  margin: 0;
-  justify-self: center;
-  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 2px;
+  min-height: clamp(24px, 5.4vw, 31px);
   color: var(--text);
   -webkit-text-fill-color: var(--text);
   font-size: clamp(28px, 6vw, 34px);
@@ -1441,7 +1431,15 @@ input[type="number"] {
   opacity: 1;
 }
 
-.daily-card.empty .metric-add-target,
+.daily-card.empty .metric-add-target {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: color-mix(in srgb, var(--muted) 58%, transparent);
+  -webkit-text-fill-color: color-mix(in srgb, var(--muted) 58%, transparent);
+}
+
 .daily-card.empty .daily-metric.metric-readonly > span:last-child {
   font-size: 11px;
   font-weight: 600;
@@ -2653,6 +2651,16 @@ input[type="number"] {
     margin-top: 4px;
     font-size: 10px;
     line-height: 1.15;
+    white-space: nowrap;
+  }
+
+  .daily-card.empty .metric-add-prompt {
+    min-height: clamp(21px, 6.2vw, 27px);
+  }
+
+  .daily-card.empty .metric-add-target {
+    margin-top: 4px;
+    font-size: 10px;
     white-space: nowrap;
   }
 
