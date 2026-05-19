@@ -20,6 +20,25 @@ const MIME = {
   ".webmanifest": "application/manifest+json"
 };
 
+function loadEnvLocal() {
+  const envPath = path.join(ROOT, ".env.local");
+  if (!fs.existsSync(envPath)) return;
+
+  const text = fs.readFileSync(envPath, "utf8");
+  for (const line of text.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let value = trimmed.slice(eq + 1).trim();
+    value = value.replace(/^["']|["']$/g, "");
+    if (key && !(key in process.env)) process.env[key] = value;
+  }
+}
+
+loadEnvLocal();
+
 function serveStatic(req, res) {
   const urlPath = req.url?.split("?")[0] || "/";
   const relativePath = urlPath === "/" ? "/index.html" : urlPath;
@@ -49,6 +68,11 @@ function proxyApi(req, res) {
   const headers = { ...req.headers, host: target.host };
   delete headers.connection;
 
+  const devKey = process.env.APP_ACCESS_KEY;
+  if (devKey && !headers["x-app-key"]) {
+    headers["x-app-key"] = devKey;
+  }
+
   const proxyReq = https.request(
     target,
     { method: req.method, headers },
@@ -77,6 +101,11 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, "127.0.0.1", () => {
+  const hasKey = Boolean(process.env.APP_ACCESS_KEY);
   console.log(`Calorie tracker dev server: http://127.0.0.1:${PORT}/`);
-  console.log(`API proxied to ${API_TARGET}`);
+  if (hasKey) {
+    console.log("Local dev: access gate skipped; API proxy injects APP_ACCESS_KEY from .env.local");
+  } else {
+    console.log("Tip: add APP_ACCESS_KEY=... to .env.local to skip the unlock screen locally");
+  }
 });

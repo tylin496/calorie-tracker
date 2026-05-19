@@ -8,6 +8,12 @@ const API_BASE = (() => {
   return "https://calorie-tracker-omega-ten.vercel.app";
 })();
 const ACCESS_KEY_STORAGE_KEY = "calorieTrackerAccessKey";
+
+function isLocalDevHost() {
+  if (typeof window === "undefined") return false;
+  const { hostname } = window.location;
+  return hostname === "localhost" || hostname === "127.0.0.1";
+}
 const LAST_LOGGED_DATE_STORAGE_KEY = "calorieTrackerLastLoggedDate";
 const CALENDAR_INITIAL_HISTORY_MONTHS = 6;
 const CALENDAR_HISTORY_CHUNK_MONTHS = 3;
@@ -1047,20 +1053,21 @@ function getFormValues() {
 
 async function fetchJson(url, options = {}, didRetry = false) {
   const accessKey = getStoredAccessKey();
+  const localDev = isLocalDevHost();
 
-  if (!accessKey) {
+  if (!accessKey && !localDev) {
     showAccessGate();
     throw createAuthError("Access key required");
   }
+
+  const headers = { ...(options.headers || {}) };
+  if (accessKey) headers["X-App-Key"] = accessKey;
 
   let res;
   try {
     res = await fetch(url, {
       ...options,
-      headers: {
-        ...(options.headers || {}),
-        "X-App-Key": accessKey
-      }
+      headers
     });
   } catch {
     throw new Error("Network error. Restart with: node scripts/dev-server.mjs");
@@ -1414,7 +1421,7 @@ function getCalorieResult(calories, tdee = TDEE, deficitTarget = DEFICIT_TARGET)
     surplus,
     isSurplus,
     isPerfect,
-    progress: isSurplus ? getProgressPercent(surplus, roundedDeficitTarget) : exceeded ? 100 : getProgressPercent(deficit, roundedDeficitTarget),
+    progress: isSurplus ? 100 : exceeded ? 100 : getProgressPercent(deficit, roundedDeficitTarget),
     celebrated: exceeded,
     tone: isSurplus ? "surplus" : "logged",
     status: isSurplus ? "Surplus" : "Deficit"
@@ -1515,13 +1522,9 @@ function getEntryTargets(entry) {
 
 function formatTrendDayValueHtml(trendDay) {
   if (!trendDay?.entry) return "";
-  const { calorieResult, entryDeficitTarget, entryProteinTarget } = trendDay;
-  const kcalLine = calorieResult.isSurplus
-    ? `+${formatInt(calorieResult.surplus)}`
-    : `${formatInt(calorieResult.deficit)}/${formatInt(entryDeficitTarget)}`;
   return `
-    <span class="trend-value-line trend-value-kcal">${kcalLine}</span>
-    <span class="trend-value-line trend-value-protein">${formatInt(trendDay.entry.protein)}/${formatInt(entryProteinTarget)}</span>
+    <span class="trend-value-line trend-value-kcal">${formatInt(trendDay.entry.calories)}</span>
+    <span class="trend-value-line trend-value-protein">${formatInt(trendDay.entry.protein)}</span>
   `;
 }
 
@@ -1536,7 +1539,16 @@ function formatTrendDayValueLabel(trendDay) {
 
 const TREND_BAR_TRACK_HEIGHT = 96;
 const TREND_BAR_MIN_HEIGHT = 10;
-const TREND_BAR_MISSING_HEIGHT = 34;
+// Placeholder silhouette: left (deficit) lower, right (protein) higher — matches typical logged days.
+const TREND_BAR_MISSING_KCAL_RATIO = 0.28;
+const TREND_BAR_MISSING_PROTEIN_RATIO = 0.38;
+
+function getMissingTrendBarHeights() {
+  return {
+    kcalHeight: Math.max(TREND_BAR_MIN_HEIGHT, Math.round(TREND_BAR_TRACK_HEIGHT * TREND_BAR_MISSING_KCAL_RATIO)),
+    proteinHeight: Math.max(TREND_BAR_MIN_HEIGHT, Math.round(TREND_BAR_TRACK_HEIGHT * TREND_BAR_MISSING_PROTEIN_RATIO))
+  };
+}
 
 function progressToTrendBarHeight(progress) {
   const clamped = Math.max(0, Math.min(100, roundInt(progress)));
@@ -1548,10 +1560,11 @@ function progressToTrendBarHeight(progress) {
 
 function getTrendDayMetrics(entry) {
   if (!entry) {
+    const { kcalHeight, proteinHeight } = getMissingTrendBarHeights();
     return {
       entry: null,
-      kcalHeight: TREND_BAR_MISSING_HEIGHT,
-      proteinHeight: TREND_BAR_MISSING_HEIGHT,
+      kcalHeight,
+      proteinHeight,
       kcalState: "missing",
       proteinState: "missing"
     };
@@ -2073,6 +2086,22 @@ function initApp() {
   updateDietDayDisplay();
   updateTargetForm();
   renderInitialLoadingState();
+
+  if (isLocalDevHost()) {
+    hideAccessGate();
+    setStatus("");
+    loadConfig()
+      .then(() => loadWeekSummary())
+      .catch((error) => {
+        if (error.isAuthError) {
+          setStatus("Add APP_ACCESS_KEY to .env.local and run: node scripts/dev-server.mjs");
+          showAccessGate("Local dev: set APP_ACCESS_KEY in .env.local");
+          return;
+        }
+        setStatus("Could not load — use: node scripts/dev-server.mjs");
+      });
+    return;
+  }
 
   if (getStoredAccessKey()) {
     hideAccessGate();
