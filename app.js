@@ -7,13 +7,7 @@ const API_BASE = (() => {
   if (hostname === "localhost" || hostname === "127.0.0.1") return origin;
   return "https://calorie-tracker-omega-ten.vercel.app";
 })();
-const ACCESS_KEY_STORAGE_KEY = "calorieTrackerAccessKey";
-
-function isLocalDevHost() {
-  if (typeof window === "undefined") return false;
-  const { hostname } = window.location;
-  return hostname === "localhost" || hostname === "127.0.0.1";
-}
+let authUser = null;
 const LAST_LOGGED_DATE_STORAGE_KEY = "calorieTrackerLastLoggedDate";
 const CALENDAR_INITIAL_HISTORY_MONTHS = 6;
 const CALENDAR_HISTORY_CHUNK_MONTHS = 3;
@@ -113,14 +107,6 @@ function showToast(message) {
   }, 2200);
 }
 
-function getStoredAccessKey() {
-  return localStorage.getItem(ACCESS_KEY_STORAGE_KEY);
-}
-
-function clearAccessKey() {
-  localStorage.removeItem(ACCESS_KEY_STORAGE_KEY);
-}
-
 function getLastLoggedDate() {
   return localStorage.getItem(LAST_LOGGED_DATE_STORAGE_KEY);
 }
@@ -144,15 +130,10 @@ function createAuthError(message) {
 function showAccessGate(message = "") {
   const gate = document.getElementById("accessGate");
   const error = document.getElementById("accessError");
-  const input = document.getElementById("accessKeyInput");
 
   document.body.classList.add("auth-locked");
   if (gate) gate.hidden = false;
   if (error) error.textContent = message;
-
-  setTimeout(() => {
-    input?.focus();
-  }, 60);
 }
 
 function hideAccessGate() {
@@ -1053,27 +1034,20 @@ function getFormValues() {
   };
 }
 
-async function fetchJson(url, options = {}, didRetry = false) {
-  const accessKey = getStoredAccessKey();
-  const localDev = isLocalDevHost();
-
-  if (!accessKey && !localDev) {
-    showAccessGate();
-    throw createAuthError("Access key required");
-  }
-
-  const headers = { ...(options.headers || {}) };
-  if (accessKey) headers["X-App-Key"] = accessKey;
-
+async function fetchJson(url, options = {}) {
   let res;
   try {
     res = await fetch(url, {
       ...options,
-      headers
+      credentials: "include",
+      headers: {
+        ...(options.headers || {})
+      }
     });
   } catch {
     throw new Error("Network error. Restart with: node scripts/dev-server.mjs");
   }
+
   let data = null;
   let parseOk = true;
 
@@ -1085,10 +1059,16 @@ async function fetchJson(url, options = {}, didRetry = false) {
   }
 
   if (!res.ok) {
-    if (res.status === 401 && !didRetry) {
-      clearAccessKey();
-      showAccessGate("Access key incorrect");
-      throw createAuthError("Access key incorrect");
+    if (res.status === 401 || res.status === 403) {
+      authUser = null;
+      updateAuthUI();
+      await setupGoogleSignIn();
+      showAccessGate(
+        res.status === 403
+          ? "This Google account is not allowed"
+          : "Session expired — sign in again"
+      );
+      throw createAuthError(parseOk && data.error ? data.error : "Unauthorized");
     }
 
     const message = parseOk && (data.error || data.detail?.message);
@@ -1096,6 +1076,130 @@ async function fetchJson(url, options = {}, didRetry = false) {
   }
 
   return data;
+}
+
+function updateAuthUI() {
+  const bar = document.getElementById("authUserBar");
+  const label = document.getElementById("authUserLabel");
+  const avatar = document.getElementById("authUserAvatar");
+
+  if (!bar || !label) return;
+
+  if (!authUser) {
+    bar.hidden = true;
+    if (avatar) avatar.hidden = true;
+    return;
+  }
+
+  bar.hidden = false;
+  label.textContent = authUser.name || authUser.email;
+
+  if (avatar && authUser.picture) {
+    avatar.src = authUser.picture;
+    avatar.alt = authUser.name || authUser.email;
+    avatar.hidden = false;
+  } else if (avatar) {
+    avatar.hidden = true;
+  }
+}
+
+async function setupGoogleSignIn() {
+  const configRes = await fetch(`${API_BASE}/api/auth/config`, { credentials: "include" });
+  const configData = await configRes.json().catch(() => ({}));
+
+  if (!configRes.ok || !configData.googleClientId) {
+    throw new Error("Google sign-in is not configured on the server");
+  }
+
+  await new Promise((resolve) => {
+    const start = () => {
+      if (!window.google?.accounts?.id) {
+        window.setTimeout(start, 40);
+        return;
+      }
+
+      window.google.accounts.id.initialize({
+        client_id: configData.googleClientId,
+        callback: handleGoogleCredential,
+        auto_select: false,
+        cancel_on_tap_outside: true
+      });
+
+      const slot = document.getElementById("googleSignInButton");
+      if (slot) {
+        slot.replaceChildren();
+        window.google.accounts.id.renderButton(slot, {
+          theme: "filled_black",
+          size: "large",
+          shape: "pill",
+          text: "signin_with",
+          width: Math.min(320, Math.max(240, slot.clientWidth || 320))
+        });
+      }
+
+      resolve();
+    };
+
+    start();
+  });
+}
+
+async function handleGoogleCredential(response) {
+  const error = document.getElementById("accessError");
+  if (error) error.textContent = "";
+  setStatus("Signing in...");
+
+  try {
+    const data = await fetchJson(`${API_BASE}/api/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential: response.credential })
+    });
+
+    authUser = data.user;
+    hideAccessGate();
+    updateAuthUI();
+    setStatus("");
+    await loadConfig();
+    await loadWeekSummary();
+  } catch (signInError) {
+    setStatus("Locked");
+    showAccessGate(signInError.message || "Could not sign in");
+  }
+}
+
+async function restoreSession() {
+  const sessionRes = await fetch(`${API_BASE}/api/auth/session`, { credentials: "include" });
+  if (!sessionRes.ok) return false;
+
+  const data = await sessionRes.json().catch(() => null);
+  if (!data?.user) return false;
+
+  authUser = data.user;
+  hideAccessGate();
+  updateAuthUI();
+  await loadConfig();
+  await loadWeekSummary();
+  return true;
+}
+
+async function signOut() {
+  try {
+    await fetch(`${API_BASE}/api/auth/logout`, {
+      method: "POST",
+      credentials: "include"
+    });
+  } catch {
+    // Still clear local UI if network fails.
+  }
+
+  authUser = null;
+  updateAuthUI();
+  showAccessGate();
+  setStatus("Locked");
+  await setupGoogleSignIn().catch(() => {
+    showAccessGate("Could not load Google sign-in");
+  });
 }
 
 async function loadConfig() {
@@ -2017,32 +2121,8 @@ function handleTargetsSubmit(event) {
     });
 }
 
-function handleAccessSubmit(event) {
-  event.preventDefault();
-
-  const input = document.getElementById("accessKeyInput");
-  const accessKey = input?.value.trim();
-
-  if (!accessKey) {
-    showAccessGate("Access key required");
-    return;
-  }
-
-  clearAccessKey();
-  localStorage.setItem(ACCESS_KEY_STORAGE_KEY, accessKey);
-  hideAccessGate();
-  setStatus("Unlocking...");
-  loadConfig()
-    .then(() => loadWeekSummary())
-    .catch((error) => {
-      clearAccessKey();
-      setStatus("Locked");
-      showAccessGate(error.isAuthError ? "Access key incorrect" : "Could not unlock. Try again.");
-    });
-}
-
 function initApp() {
-  document.getElementById("accessForm")?.addEventListener("submit", handleAccessSubmit);
+  document.getElementById("signOutBtn")?.addEventListener("click", signOut);
   document.getElementById("today-form")?.addEventListener("submit", handleFormSubmit);
   document.getElementById("targets-form")?.addEventListener("submit", handleTargetsSubmit);
   document.getElementById("diet-day")?.addEventListener("click", openCalendar);
@@ -2090,36 +2170,22 @@ function initApp() {
   updateTargetForm();
   setEntryFormVisible(false);
   renderInitialLoadingState();
+  showAccessGate();
+  setStatus("Locked");
 
-  if (isLocalDevHost()) {
-    hideAccessGate();
-    setStatus("");
-    loadConfig()
-      .then(() => loadWeekSummary())
-      .catch((error) => {
-        if (error.isAuthError) {
-          setStatus("Add APP_ACCESS_KEY to .env.local and run: node scripts/dev-server.mjs");
-          showAccessGate("Local dev: set APP_ACCESS_KEY in .env.local");
-          return;
-        }
-        setStatus("Could not load — use: node scripts/dev-server.mjs");
-      });
-    return;
-  }
+  restoreSession()
+    .then((ok) => {
+      if (ok) {
+        setStatus("");
+        return;
+      }
 
-  if (getStoredAccessKey()) {
-    hideAccessGate();
-    loadConfig()
-      .then(() => loadWeekSummary())
-      .catch((error) => {
-        clearAccessKey();
-        setStatus("Locked");
-        showAccessGate(error.isAuthError ? "Access key incorrect" : "Could not unlock. Try again.");
-      });
-  } else {
-    showAccessGate();
-    setStatus("Locked");
-  }
+      return setupGoogleSignIn();
+    })
+    .catch((error) => {
+      setStatus("Locked");
+      showAccessGate(error.message || "Could not start sign-in");
+    });
 }
 
 document.addEventListener("DOMContentLoaded", initApp);

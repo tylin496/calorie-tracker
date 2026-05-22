@@ -1,9 +1,5 @@
 import { setCorsHeaders } from "./_cors.js";
-
-function isAuthorized(req) {
-  const expectedKey = process.env.APP_ACCESS_KEY;
-  return Boolean(expectedKey) && req.headers["x-app-key"] === expectedKey;
-}
+import { isAuthorized } from "./_auth.js";
 
 async function notionFetch(path, options = {}) {
   return fetch(`https://api.notion.com/v1${path}`, {
@@ -215,9 +211,7 @@ export default async function handler(req, res) {
   }
 
   if (!isAuthorized(req)) {
-    return res.status(401).json({
-      error: "Unauthorized"
-    });
+    return res.status(401).json({ error: "Unauthorized" });
   }
 
   try {

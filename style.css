@@ -661,10 +661,52 @@ h1 {
   font: inherit;
 }
 
-.access-card button {
-  width: 100%;
-  min-height: 48px;
-  margin-top: 10px;
+.google-sign-in-slot {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: var(--space-3);
+}
+
+.auth-user-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.auth-user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.auth-user-label {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.sign-out-btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.sign-out-btn:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
 }
 
 .access-error {

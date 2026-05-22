@@ -1,59 +1,35 @@
 # Calorie Tracker
+
 A small calorie and protein tracker backed by a Notion database through Vercel API routes.
 
-## Required Vercel Environment Variables
+## Required Vercel environment variables
 
 - `NOTION_TOKEN`
 - `NOTION_DATABASE_ID`
-- `APP_ACCESS_KEY` - private key required by the frontend for all API requests
+- `GOOGLE_CLIENT_ID` — OAuth 2.0 Web client ID (Google Cloud Console)
+- `ALLOWED_GOOGLE_EMAILS` — comma-separated allowlist, e.g. `you@gmail.com,partner@gmail.com`
+- `SESSION_SECRET` — long random string for signing session cookies (`openssl rand -hex 32`)
 
-## Persistent Targets
+Remove legacy `APP_ACCESS_KEY` after deploying Google auth.
 
-Target settings are stored in the same Notion database as a page named `Settings`.
+## Google Cloud setup
 
-- `TDEE` stores the TDEE target
-- `Protein` stores the protein target
-- `Calories` stores the deficit target
-- `Cut Start Date` stores the active cut start date
-- `Cut Phase` stores the active phase index (`0`, `1`, or `2`)
-- `Aggressive Deficit`, `Moderate Deficit`, and `Cruise Deficit` store phase deficit targets
+1. Create a project in [Google Cloud Console](https://console.cloud.google.com/).
+2. Configure the OAuth consent screen (External or Internal).
+3. Create **OAuth 2.0 Client ID** → Application type: **Web application**.
+4. Authorized JavaScript origins:
+   - `https://tylin496.github.io`
+   - `http://127.0.0.1:8765` (local dev)
+5. Copy the client ID into `GOOGLE_CLIENT_ID` on Vercel.
 
-## Notion Database Fields
-
-The API expects these properties:
-
-- `Name` - title
-- `Date` - date
-- `Calories` - number
-- `Protein` - number
-- `TDEE` - number
-- `Calorie Target` - number
-- `Protein Target` - number
-- `Cut Start Date` - date
-- `Cut Phase` - number
-- `Cut Phase Name` - text or select
-- `Cut Week` - number
-- `Deficit Target` - number
-- `Aggressive Deficit` - number
-- `Moderate Deficit` - number
-- `Cruise Deficit` - number
+Only emails listed in `ALLOWED_GOOGLE_EMAILS` can sign in. Data stays in your single Notion database; Google auth gates who may read or write it.
 
 ## Local preview
 
-The production API only allows browser requests from the deployed site origin. For local UI work, use the dev server so `/api/*` is proxied on the same origin:
-
 ```bash
+cp .env.local.example .env.local
+# fill in NOTION_*, GOOGLE_CLIENT_ID, ALLOWED_GOOGLE_EMAILS, SESSION_SECRET
 node scripts/dev-server.mjs
 ```
 
-Open `http://127.0.0.1:8765/` and unlock with your usual access key.
-
-## Files
-
-- `index.html` - app shell
-- `style.css` - responsive UI styles
-- `app.js` - frontend state, save/delete, summary rendering
-- `api/save.js` - create or update a Notion entry
-- `api/summary.js` - weekly summary
-- `api/delete.js` - archive a Notion entry
-- `api/config.js` - read or update persistent targets
+Open `http://127.0.0.1:8765/` and sign in with an allowed Google account.

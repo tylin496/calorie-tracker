@@ -1,9 +1,5 @@
 import { setCorsHeaders } from "./_cors.js";
-
-function isAuthorized(req) {
-  const expectedKey = process.env.APP_ACCESS_KEY;
-  return Boolean(expectedKey) && req.headers["x-app-key"] === expectedKey;
-}
+import { isAuthorized } from "./_auth.js";
 
 async function notionFetch(path, options = {}) {
   return fetch(`https://api.notion.com/v1${path}`, {
@@ -162,7 +158,7 @@ function toValidNumber(value) {
 
 function toValidPhase(value) {
   const number = Number(value);
-  return Number.isInteger(number) && number >= 0 && number <= 2 ? number : null;
+  return Number.isInteger(number) && number >= 0 && number <= 3 ? number : null;
 }
 
 async function updateEntry(pageId, properties) {

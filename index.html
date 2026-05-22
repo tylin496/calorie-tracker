@@ -12,32 +12,17 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Calorie Tracker">
-  <link rel="stylesheet" href="style.css?v=20260519-hide-form-loading">
+  <link rel="stylesheet" href="style.css?v=20260520-google-auth">
 </head>
 <body class="auth-locked">
-  <section id="accessGate" class="access-gate" aria-label="Access gate">
-    <form id="accessForm" class="access-card">
-      <input
-        type="text"
-        name="username"
-        autocomplete="username"
-        value="calorie-tracker"
-        hidden
-      />
+  <section id="accessGate" class="access-gate" aria-label="Sign in">
+    <div class="access-card">
       <span class="access-label">Private Tracker</span>
-      <h2>Access key</h2>
-      <p>Enter your private key once on this device.</p>
-      <input
-        id="accessKeyInput"
-        name="password"
-        type="password"
-        autocomplete="current-password"
-        placeholder="Access key"
-        required
-      />
-      <button class="primary-btn" type="submit">Unlock</button>
+      <h2>Sign in</h2>
+      <p>Use your allowed Google account to open this tracker.</p>
+      <div id="googleSignInButton" class="google-sign-in-slot"></div>
       <p id="accessError" class="access-error"></p>
-    </form>
+    </div>
   </section>
 
   <main class="app-shell">
@@ -45,6 +30,11 @@
       <div>
         <h1>Calorie Tracker</h1>
         <p class="subtle-text">Daily intake and weekly trend</p>
+      </div>
+      <div id="authUserBar" class="auth-user-bar" hidden>
+        <img id="authUserAvatar" class="auth-user-avatar" alt="" width="28" height="28" hidden />
+        <span id="authUserLabel" class="auth-user-label"></span>
+        <button id="signOutBtn" class="sign-out-btn" type="button">Sign out</button>
       </div>
     </header>
 
@@ -186,6 +176,7 @@
     </details>
   </main>
 
-  <script src="app.js?v=20260519-hide-form-loading"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="app.js?v=20260520-google-auth"></script>
 </body>
 </html>
