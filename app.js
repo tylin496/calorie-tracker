@@ -1103,13 +1103,7 @@ function updateAuthUI() {
   }
 }
 
-function getGoogleSignInTheme() {
-  const isDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
-  return {
-    colorScheme: isDark ? "dark" : "light",
-    buttonTheme: isDark ? "filled_black" : "outline"
-  };
-}
+let googleTokenClient = null;
 
 async function setupGoogleSignIn() {
   const configRes = await fetch(`${API_BASE}/api/auth/config`, { credentials: "include" });
@@ -1119,34 +1113,35 @@ async function setupGoogleSignIn() {
     throw new Error("Google sign-in is not configured on the server");
   }
 
-  const { colorScheme, buttonTheme } = getGoogleSignInTheme();
+  const signInBtn = document.getElementById("googleSignInBtn");
+  if (signInBtn) signInBtn.disabled = true;
 
-  await new Promise((resolve) => {
+  await new Promise((resolve, reject) => {
     const start = () => {
-      if (!window.google?.accounts?.id) {
+      if (!window.google?.accounts?.oauth2?.initTokenClient) {
         window.setTimeout(start, 40);
         return;
       }
 
-      window.google.accounts.id.initialize({
+      googleTokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: configData.googleClientId,
-        callback: handleGoogleCredential,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-        color_scheme: colorScheme
+        scope: "openid email profile",
+        callback: (tokenResponse) => {
+          if (tokenResponse.error) {
+            setStatus("Locked");
+            showAccessGate(tokenResponse.error);
+            return;
+          }
+
+          completeGoogleSignIn({ accessToken: tokenResponse.access_token });
+        }
       });
 
-      const slot = document.getElementById("googleSignInButton");
-      if (slot) {
-        slot.dataset.colorScheme = colorScheme;
-        slot.replaceChildren();
-        window.google.accounts.id.renderButton(slot, {
-          theme: buttonTheme,
-          size: "large",
-          shape: "pill",
-          text: "signin_with",
-          width: Math.min(320, Math.max(240, slot.clientWidth || 320))
-        });
+      if (signInBtn) {
+        signInBtn.disabled = false;
+        signInBtn.onclick = () => {
+          googleTokenClient?.requestAccessToken({ prompt: "select_account" });
+        };
       }
 
       resolve();
@@ -1156,7 +1151,7 @@ async function setupGoogleSignIn() {
   });
 }
 
-async function handleGoogleCredential(response) {
+async function completeGoogleSignIn(payload) {
   const error = document.getElementById("accessError");
   if (error) error.textContent = "";
   setStatus("Signing in...");
@@ -1165,7 +1160,7 @@ async function handleGoogleCredential(response) {
     const data = await fetchJson(`${API_BASE}/api/auth/google`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ credential: response.credential })
+      body: JSON.stringify(payload)
     });
 
     authUser = data.user;

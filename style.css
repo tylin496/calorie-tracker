@@ -661,34 +661,42 @@ h1 {
   font: inherit;
 }
 
-.google-sign-in-slot {
+.google-sign-in-btn {
   display: flex;
-  justify-content: center;
   align-items: center;
-  min-height: 44px;
-  margin-top: var(--space-3);
-  overflow: hidden;
-  border-radius: 999px;
-}
-
-.google-sign-in-slot > div {
-  display: flex;
   justify-content: center;
-  background: transparent !important;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: var(--space-3);
+  padding: 0 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface-strong);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
 }
 
-.google-sign-in-slot iframe {
-  display: block;
-  background: transparent !important;
-  color-scheme: light;
+.google-sign-in-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--surface-muted) 72%, var(--surface-strong));
+  border-color: color-mix(in srgb, var(--text) 18%, var(--border));
 }
 
-.google-sign-in-slot[data-color-scheme="dark"] {
-  background: color-mix(in srgb, var(--surface-muted) 88%, transparent);
+.google-sign-in-btn:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
-.google-sign-in-slot[data-color-scheme="dark"] iframe {
-  color-scheme: dark;
+.google-sign-in-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.google-sign-in-icon {
+  flex: 0 0 auto;
 }
 
 .auth-user-bar {
