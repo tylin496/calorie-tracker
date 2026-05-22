@@ -1103,6 +1103,14 @@ function updateAuthUI() {
   }
 }
 
+function getGoogleSignInTheme() {
+  const isDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
+  return {
+    colorScheme: isDark ? "dark" : "light",
+    buttonTheme: isDark ? "filled_black" : "outline"
+  };
+}
+
 async function setupGoogleSignIn() {
   const configRes = await fetch(`${API_BASE}/api/auth/config`, { credentials: "include" });
   const configData = await configRes.json().catch(() => ({}));
@@ -1110,6 +1118,8 @@ async function setupGoogleSignIn() {
   if (!configRes.ok || !configData.googleClientId) {
     throw new Error("Google sign-in is not configured on the server");
   }
+
+  const { colorScheme, buttonTheme } = getGoogleSignInTheme();
 
   await new Promise((resolve) => {
     const start = () => {
@@ -1122,14 +1132,16 @@ async function setupGoogleSignIn() {
         client_id: configData.googleClientId,
         callback: handleGoogleCredential,
         auto_select: false,
-        cancel_on_tap_outside: true
+        cancel_on_tap_outside: true,
+        color_scheme: colorScheme
       });
 
       const slot = document.getElementById("googleSignInButton");
       if (slot) {
+        slot.dataset.colorScheme = colorScheme;
         slot.replaceChildren();
         window.google.accounts.id.renderButton(slot, {
-          theme: "filled_black",
+          theme: buttonTheme,
           size: "large",
           shape: "pill",
           text: "signin_with",

@@ -664,8 +664,31 @@ h1 {
 .google-sign-in-slot {
   display: flex;
   justify-content: center;
+  align-items: center;
   min-height: 44px;
   margin-top: var(--space-3);
+  overflow: hidden;
+  border-radius: 999px;
+}
+
+.google-sign-in-slot > div {
+  display: flex;
+  justify-content: center;
+  background: transparent !important;
+}
+
+.google-sign-in-slot iframe {
+  display: block;
+  background: transparent !important;
+  color-scheme: light;
+}
+
+.google-sign-in-slot[data-color-scheme="dark"] {
+  background: color-mix(in srgb, var(--surface-muted) 88%, transparent);
+}
+
+.google-sign-in-slot[data-color-scheme="dark"] iframe {
+  color-scheme: dark;
 }
 
 .auth-user-bar {
