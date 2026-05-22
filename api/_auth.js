@@ -79,6 +79,36 @@ export function isEmailAllowed(email) {
   return allowed.includes(String(email || "").trim().toLowerCase());
 }
 
+export async function verifyGoogleAccessToken(accessToken) {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId || !accessToken) return null;
+
+  const tokenInfoRes = await fetch(
+    `https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(accessToken)}`
+  );
+  if (!tokenInfoRes.ok) return null;
+
+  const tokenInfo = await tokenInfoRes.json();
+  const audience = tokenInfo.aud || tokenInfo.azp;
+  if (audience !== clientId) return null;
+  if (Number(tokenInfo.exp) * 1000 < Date.now()) return null;
+
+  const userRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+  if (!userRes.ok) return null;
+
+  const data = await userRes.json();
+  if (!data.email) return null;
+
+  return {
+    email: data.email,
+    sub: data.sub || data.id || tokenInfo.sub,
+    name: data.name || "",
+    picture: data.picture || ""
+  };
+}
+
 export async function verifyGoogleIdToken(idToken) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   if (!clientId || !idToken) return null;

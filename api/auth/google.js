@@ -3,6 +3,7 @@ import {
   buildSessionCookie,
   createSessionToken,
   isEmailAllowed,
+  verifyGoogleAccessToken,
   verifyGoogleIdToken
 } from "../_auth.js";
 
@@ -18,15 +19,19 @@ export default async function handler(req, res) {
   }
 
   const credential = req.body?.credential;
-  if (!credential) {
-    return res.status(400).json({ error: "Missing Google credential" });
+  const accessToken = req.body?.accessToken;
+
+  if (!credential && !accessToken) {
+    return res.status(400).json({ error: "Missing Google sign-in token" });
   }
 
   if (!process.env.SESSION_SECRET) {
     return res.status(500).json({ error: "Server auth is not configured" });
   }
 
-  const profile = await verifyGoogleIdToken(credential);
+  const profile = accessToken
+    ? await verifyGoogleAccessToken(accessToken)
+    : await verifyGoogleIdToken(credential);
   if (!profile) {
     return res.status(401).json({ error: "Invalid Google sign-in" });
   }
