@@ -157,6 +157,43 @@ function handleSummary(res, url) {
   sendJson(res, 200, { ok: true, summary: summarizeWeek(today, tdee, weekEntries, start, end) });
 }
 
+function summarizePhase(start, end, fallbackTdee, entries, latestEntry) {
+  const count = entries.length;
+  const totalCalories = entries.reduce((sum, entry) => sum + entry.calories, 0);
+  const totalProtein = entries.reduce((sum, entry) => sum + entry.protein, 0);
+  const totalDeficit = entries.reduce((sum, entry) => {
+    return sum + ((entry.tdee || fallbackTdee) - entry.calories);
+  }, 0);
+
+  return {
+    start,
+    end,
+    days: Math.floor((parseLocalDate(end) - parseLocalDate(start)) / (1000 * 60 * 60 * 24)) + 1,
+    count,
+    averageCalories: count ? Math.round(totalCalories / count) : 0,
+    averageProtein: count ? Math.round(totalProtein / count) : 0,
+    totalDeficit,
+    fatLossKg: totalDeficit / FAT_KCAL_PER_KG,
+    latestEntry,
+    entries
+  };
+}
+
+function handlePhase(res, url) {
+  const end = url.searchParams.get("end") || formatDate(new Date());
+  const tdee = toNumberOrNull(url.searchParams.get("tdee")) || state.config.tdee;
+  const latestEntry = [...state.entries]
+    .filter((entry) => entry.date <= end && (entry.cutStartDate || entry.cutPhaseName || entry.cutPhaseIndex !== null))
+    .sort((a, b) => b.date.localeCompare(a.date))[0] || null;
+  const start = url.searchParams.get("start") || latestEntry?.cutStartDate || latestEntry?.date || end;
+  const entries = state.entries.filter((entry) => entry.date >= start && entry.date <= end);
+
+  sendJson(res, 200, {
+    ok: true,
+    phase: summarizePhase(start, end, tdee, entries, latestEntry)
+  });
+}
+
 function handleSave(res, body) {
   if (!body?.date) {
     sendJson(res, 400, { error: "Invalid date" });
@@ -230,6 +267,10 @@ export function tryHandleMockApi(req, res, url, body) {
   }
   if (pathname === "/api/summary" && method === "GET") {
     handleSummary(res, url);
+    return true;
+  }
+  if (pathname === "/api/phase" && method === "GET") {
+    handlePhase(res, url);
     return true;
   }
   if (pathname === "/api/save" && method === "POST") {

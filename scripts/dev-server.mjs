@@ -25,6 +25,7 @@ const API_ROUTES = {
   "/api/auth/logout": "../api/auth/logout.js",
   "/api/auth/session": "../api/auth/session.js",
   "/api/config": "../api/config.js",
+  "/api/phase": "../api/phase.js",
   "/api/save": "../api/save.js",
   "/api/delete": "../api/delete.js",
   "/api/summary": "../api/summary.js"

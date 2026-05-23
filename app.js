@@ -323,26 +323,47 @@ function getCutPhaseSnapshot(dateString) {
   };
 }
 
-function buildCutPhasesPlainText() {
-  const activeName = activeCutPhase === null ? "None" : CUT_PHASE_NAMES[activeCutPhase];
-  const currentWeek = getCutWeek(currentDate);
+function buildPhaseLogPlainText(phase) {
+  const latestEntry = phase.latestEntry || {};
+  const phaseName = latestEntry.cutPhaseName || getCutPhaseNameFromIndex(latestEntry.cutPhaseIndex) || "Latest phase";
+  const range = formatDateRange(phase.start, phase.end).replace(/, \d{4}/g, "");
+  const entries = phase.entries || [];
   const lines = [
-    "Cut phase data",
-    `Cut start date: ${cutStartDate || "Not set"}`,
-    `Active phase: ${activeName}`,
-    `Current date: ${currentDate}`,
-    `Current week: ${currentWeek || "Not started"}`,
-    `Current deficit target: ${formatInt(DEFICIT_TARGET)} kcal`,
+    `${phaseName} data (${range})`,
+    `Cut start date: ${phase.start}`,
+    `End date: ${phase.end}`,
+    `Days: ${phase.count || 0}/${phase.days || 0} logged`,
+    `Avg: ${formatInt(phase.averageCalories || 0)} kcal, ${formatInt(phase.averageProtein || 0)}g protein`,
+    `Total: ${formatInt(phase.totalDeficit || 0)} kcal deficit, est fat ${formatFatLossKg(phase.fatLossKg || 0)} kg`,
     "",
-    "Phases:"
+    "Daily: date | kcal | protein | deficit | phase"
   ];
 
-  CUT_PHASE_NAMES.forEach((name, index) => {
-    const activeMarker = activeCutPhase === index ? " (active)" : "";
-    lines.push(`${index + 1}. ${name}${activeMarker}: ${formatInt(cutPhaseDeficits[index])} kcal deficit`);
+  if (!entries.length) {
+    lines.push("No entries");
+    return lines.join("\n");
+  }
+
+  entries.forEach((entry) => {
+    const entryTdee = entry.tdee || TDEE;
+    const deficit = roundInt(entryTdee - entry.calories);
+    const deficitText = deficit < 0
+      ? `+${formatInt(Math.abs(deficit))}`
+      : `-${formatInt(deficit)}`;
+    const entryPhaseName = entry.cutPhaseName || getCutPhaseNameFromIndex(entry.cutPhaseIndex) || "";
+    const weekText = entry.cutWeek ? ` · Week ${entry.cutWeek}` : "";
+
+    lines.push(
+      `${formatPlainDateLabel(entry.date)} | ${formatInt(entry.calories)} | ${formatInt(entry.protein)}g | ${deficitText} | ${entryPhaseName}${weekText}`
+    );
   });
 
   return lines.join("\n");
+}
+
+async function fetchLatestPhaseLog() {
+  const data = await fetchJson(`${API_BASE}/api/phase?end=${encodeURIComponent(currentDate)}&tdee=${encodeURIComponent(TDEE)}`);
+  return data.phase;
 }
 
 function updateCutPhaseUI() {
@@ -373,7 +394,8 @@ async function handleCopyCutPhases(button) {
   try {
     button.classList.remove("copied");
     button.classList.add("copying");
-    await copyTextToClipboard(buildCutPhasesPlainText());
+    const phase = await fetchLatestPhaseLog();
+    await copyTextToClipboard(buildPhaseLogPlainText(phase));
     button.disabled = true;
     button.classList.remove("copying");
     button.classList.add("copied");
