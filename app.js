@@ -264,19 +264,42 @@ function getCutPhaseLabel(dateString = getDietDate()) {
   return week ? `${name} · Week ${week}` : name;
 }
 
-function formatEntryCutPhaseLabel(entry) {
-  if (!entry?.cutPhaseName) return null;
+function getCutPhaseNameFromIndex(index) {
+  const number = Number(index);
+  return Number.isInteger(number) && number >= 0 && number < CUT_PHASE_NAMES.length
+    ? CUT_PHASE_NAMES[number]
+    : null;
+}
 
-  const week = Number(entry.cutWeek);
-  return Number.isFinite(week) && week > 0
-    ? `${entry.cutPhaseName} · Week ${Math.round(week)}`
-    : entry.cutPhaseName;
+function getCutWeekFromSnapshot(entry) {
+  const week = Number(entry?.cutWeek);
+  if (Number.isFinite(week) && week > 0) return Math.round(week);
+
+  if (!entry?.cutStartDate || !entry?.date) return null;
+  const start = new Date(`${entry.cutStartDate}T00:00:00`);
+  const entryDate = new Date(`${entry.date}T00:00:00`);
+  const diffDays = Math.floor((entryDate - start) / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return null;
+  return Math.floor(diffDays / 7) + 1;
+}
+
+function formatEntryCutPhaseLabel(entry) {
+  const phaseName = entry?.cutPhaseName || getCutPhaseNameFromIndex(entry?.cutPhaseIndex);
+  if (!phaseName) return null;
+
+  const week = getCutWeekFromSnapshot(entry);
+  return week ? `${phaseName} · Week ${week}` : phaseName;
+}
+
+function isCurrentWeekRange(summary) {
+  const today = getDietDate();
+  return summary.weekStart <= today && today <= summary.weekEnd;
 }
 
 function getWeekCutPhaseLabel(summary) {
   const entries = summary.entries || [];
   const datedEntries = entries
-    .filter((entry) => entry.cutPhaseName)
+    .filter((entry) => formatEntryCutPhaseLabel(entry))
     .sort((a, b) => a.date.localeCompare(b.date));
   const selectedEntry = formatEntryCutPhaseLabel(summary.todayEntry);
   if (selectedEntry) return selectedEntry;
@@ -285,7 +308,7 @@ function getWeekCutPhaseLabel(summary) {
   const historicalEntry = formatEntryCutPhaseLabel(latestPastEntry || datedEntries[0]);
   if (historicalEntry) return historicalEntry;
 
-  return getCutPhaseLabel(currentDate);
+  return isCurrentWeekRange(summary) ? getCutPhaseLabel(currentDate) : null;
 }
 
 function getCutPhaseSnapshot(dateString) {
