@@ -2098,9 +2098,9 @@ function renderSummary(summary) {
         <div class="card-header-left">
           <h2>This Week</h2>
           ${cutLabel ? `<p class="cut-phase-label">${cutLabel}</p>` : ""}
+          ${getCopySummaryButtonHtml()}
         </div>
         <div class="card-actions">
-          ${getCopySummaryButtonHtml()}
           <span class="status-pill logged">${weeklyPillText}</span>
         </div>
       </div>

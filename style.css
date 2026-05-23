@@ -1304,9 +1304,11 @@ input[type="number"] {
 
 .card-header-left {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
   min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .week-card .card-header {
@@ -1320,6 +1322,12 @@ input[type="number"] {
   flex-wrap: nowrap;
   min-width: max-content;
   white-space: nowrap;
+}
+
+.card-header-left .copy-summary-btn {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
 }
 
 .cut-phase-label {
