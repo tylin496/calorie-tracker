@@ -211,7 +211,9 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error(error);
 
-    return res.status(error.status || 500).json({
+    const upstreamStatus = Number(error?.status);
+    const safeStatus = upstreamStatus >= 500 ? upstreamStatus : 502;
+    return res.status(safeStatus).json({
       error: "API error"
     });
   }

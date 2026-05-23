@@ -2805,9 +2805,16 @@ input[type="number"] {
     padding-top: 18px;
   }
 
-  .app-header,
   .form-actions {
     display: block;
+  }
+
+  .app-header {
+    gap: var(--space-3);
+  }
+
+  .auth-user-label {
+    max-width: 90px;
   }
 
   h1 {

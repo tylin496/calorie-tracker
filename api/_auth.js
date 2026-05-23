@@ -139,7 +139,23 @@ function getBearerToken(req) {
   return match ? match[1].trim() : "";
 }
 
+function getDevBypassSession(req) {
+  if (process.env.DEV_BYPASS_AUTH !== "1") return null;
+  // Only honor on localhost requests so a misconfigured prod deploy can never bypass auth.
+  const host = String(req.headers.host || "").toLowerCase();
+  const isLocalHost = host.startsWith("127.0.0.1") || host.startsWith("localhost");
+  if (!isLocalHost) return null;
+  return {
+    email: process.env.DEV_BYPASS_EMAIL || "dev@local",
+    sub: "dev-local",
+    name: "Dev (local)",
+    picture: ""
+  };
+}
+
 export function getSessionFromRequest(req) {
+  const dev = getDevBypassSession(req);
+  if (dev) return dev;
   const bearer = getBearerToken(req);
   if (bearer) {
     const fromBearer = verifySessionToken(bearer);
@@ -151,7 +167,9 @@ export function getSessionFromRequest(req) {
 
 export function isAuthorized(req) {
   const session = getSessionFromRequest(req);
-  return session && isEmailAllowed(session.email) ? session : null;
+  if (!session) return null;
+  if (getDevBypassSession(req)) return session;
+  return isEmailAllowed(session.email) ? session : null;
 }
 
 export function buildSessionCookie(token, req) {

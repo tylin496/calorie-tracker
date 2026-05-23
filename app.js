@@ -1217,8 +1217,19 @@ async function restoreSession() {
   authUser = data.user;
   hideAccessGate();
   updateAuthUI();
-  await loadConfig();
-  await loadWeekSummary();
+  try {
+    await loadConfig();
+  } catch (configError) {
+    if (configError?.isAuthError) throw configError;
+    console.warn("loadConfig failed:", configError);
+    setStatus("Could not load settings");
+  }
+  try {
+    await loadWeekSummary();
+  } catch (summaryError) {
+    if (summaryError?.isAuthError) throw summaryError;
+    console.warn("loadWeekSummary failed:", summaryError);
+  }
   return true;
 }
 

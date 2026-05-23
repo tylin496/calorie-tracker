@@ -1,5 +1,5 @@
 import { setCorsHeaders } from "../_cors.js";
-import { getSessionFromRequest, isEmailAllowed } from "../_auth.js";
+import { isAuthorized } from "../_auth.js";
 
 export default async function handler(req, res) {
   setCorsHeaders(req, res, "GET, OPTIONS");
@@ -12,8 +12,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const session = getSessionFromRequest(req);
-  if (!session || !isEmailAllowed(session.email)) {
+  const session = isAuthorized(req);
+  if (!session) {
     return res.status(401).json({ error: "Not signed in" });
   }
 
