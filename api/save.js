@@ -13,39 +13,48 @@ async function notionFetch(path, options = {}) {
   });
 }
 
-async function findEntryByDate(date) {
-  const response = await notionFetch(
-    `/databases/${process.env.NOTION_DATABASE_ID}/query`,
-    {
-      method: "POST",
-      body: JSON.stringify({
-        filter: {
-          property: "Date",
-          date: {
-            equals: date
-          }
-        },
-        sorts: [
-          {
+async function findEntriesByDate(date) {
+  const results = [];
+  let cursor = undefined;
+
+  do {
+    const response = await notionFetch(
+      `/databases/${process.env.NOTION_DATABASE_ID}/query`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          filter: {
             property: "Date",
-            direction: "descending"
-          }
-        ],
-        page_size: 1
-      })
+            date: {
+              equals: date
+            }
+          },
+          sorts: [
+            {
+              timestamp: "last_edited_time",
+              direction: "descending"
+            }
+          ],
+          page_size: 100,
+          ...(cursor ? { start_cursor: cursor } : {})
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw {
+        status: response.status,
+        data
+      };
     }
-  );
 
-  const data = await response.json();
+    results.push(...(data.results || []));
+    cursor = data.has_more ? data.next_cursor : undefined;
+  } while (cursor);
 
-  if (!response.ok) {
-    throw {
-      status: response.status,
-      data
-    };
-  }
-
-  return data.results[0] || null;
+  return results;
 }
 
 async function getDatabaseProperties() {
@@ -184,6 +193,38 @@ async function updateEntry(pageId, properties) {
   return data;
 }
 
+async function archiveEntry(pageId) {
+  const response = await notionFetch(
+    `/pages/${pageId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({
+        archived: true
+      })
+    }
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw {
+      status: response.status,
+      data
+    };
+  }
+
+  return data;
+}
+
+async function archiveDuplicateEntries(date, keepPageId) {
+  const entries = await findEntriesByDate(date);
+  const duplicateEntries = entries.filter((entry) => entry.id !== keepPageId);
+
+  await Promise.all(duplicateEntries.map((entry) => archiveEntry(entry.id)));
+
+  return duplicateEntries.length;
+}
+
 async function createEntry(properties) {
   const response = await notionFetch(
     "/pages",
@@ -270,25 +311,30 @@ export default async function handler(req, res) {
       cutSnapshot,
       databaseProperties
     );
-    const existingEntry = await findEntryByDate(date);
+    const existingEntries = await findEntriesByDate(date);
+    const existingEntry = existingEntries[0] || null;
 
     if (existingEntry) {
       const data = await updateEntry(existingEntry.id, properties);
+      const duplicatesArchived = await archiveDuplicateEntries(date, existingEntry.id);
 
       return res.status(200).json({
         ok: true,
         mode: "updated",
         id: existingEntry.id,
+        duplicatesArchived,
         data
       });
     }
 
     const data = await createEntry(properties);
+    const duplicatesArchived = await archiveDuplicateEntries(date, data.id);
 
     return res.status(200).json({
       ok: true,
       mode: "created",
       id: data.id,
+      duplicatesArchived,
       data
     });
   } catch (error) {

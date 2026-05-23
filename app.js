@@ -264,6 +264,30 @@ function getCutPhaseLabel(dateString = getDietDate()) {
   return week ? `${name} · Week ${week}` : name;
 }
 
+function formatEntryCutPhaseLabel(entry) {
+  if (!entry?.cutPhaseName) return null;
+
+  const week = Number(entry.cutWeek);
+  return Number.isFinite(week) && week > 0
+    ? `${entry.cutPhaseName} · Week ${Math.round(week)}`
+    : entry.cutPhaseName;
+}
+
+function getWeekCutPhaseLabel(summary) {
+  const entries = summary.entries || [];
+  const datedEntries = entries
+    .filter((entry) => entry.cutPhaseName)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const selectedEntry = formatEntryCutPhaseLabel(summary.todayEntry);
+  if (selectedEntry) return selectedEntry;
+
+  const latestPastEntry = [...datedEntries].reverse().find((entry) => entry.date <= currentDate);
+  const historicalEntry = formatEntryCutPhaseLabel(latestPastEntry || datedEntries[0]);
+  if (historicalEntry) return historicalEntry;
+
+  return getCutPhaseLabel(currentDate);
+}
+
 function getCutPhaseSnapshot(dateString) {
   const cutWeek = activeCutPhase === null ? null : getCutWeek(dateString);
 
@@ -1991,7 +2015,7 @@ function renderSummary(summary) {
     `;
   }
 
-  const cutLabel = getCutPhaseLabel(currentDate);
+  const cutLabel = getWeekCutPhaseLabel(summary);
   const weekHtml = `
     <section class="card week-card">
       <div class="card-header">
