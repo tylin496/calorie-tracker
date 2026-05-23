@@ -1176,12 +1176,11 @@ input[type="number"] {
   justify-content: flex-end;
   gap: 6px;
   min-width: 0;
-  margin-left: auto;
   overflow: hidden;
 }
 
 #cutPhasesPanel summary::after {
-  margin-left: 0;
+  margin-left: auto;
 }
 
 .settings-summary-actions small {
