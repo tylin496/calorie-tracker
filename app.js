@@ -323,6 +323,28 @@ function getCutPhaseSnapshot(dateString) {
   };
 }
 
+function buildCutPhasesPlainText() {
+  const activeName = activeCutPhase === null ? "None" : CUT_PHASE_NAMES[activeCutPhase];
+  const currentWeek = getCutWeek(currentDate);
+  const lines = [
+    "Cut phase data",
+    `Cut start date: ${cutStartDate || "Not set"}`,
+    `Active phase: ${activeName}`,
+    `Current date: ${currentDate}`,
+    `Current week: ${currentWeek || "Not started"}`,
+    `Current deficit target: ${formatInt(DEFICIT_TARGET)} kcal`,
+    "",
+    "Phases:"
+  ];
+
+  CUT_PHASE_NAMES.forEach((name, index) => {
+    const activeMarker = activeCutPhase === index ? " (active)" : "";
+    lines.push(`${index + 1}. ${name}${activeMarker}: ${formatInt(cutPhaseDeficits[index])} kcal deficit`);
+  });
+
+  return lines.join("\n");
+}
+
 function updateCutPhaseUI() {
   const startInput = document.getElementById("cutStartDateInput");
   if (startInput) startInput.value = cutStartDate || "";
@@ -345,6 +367,29 @@ function updateCutPhaseUI() {
 
   const summary = document.getElementById("cutPhaseSummary");
   if (summary) summary.textContent = activeCutPhase !== null ? CUT_PHASE_NAMES[activeCutPhase] : "";
+}
+
+async function handleCopyCutPhases(button) {
+  try {
+    button.disabled = true;
+    button.classList.remove("copied");
+    button.classList.add("copying");
+    await copyTextToClipboard(buildCutPhasesPlainText());
+    button.classList.remove("copying");
+    button.classList.add("copied");
+    button.setAttribute("aria-label", "Phase data copied");
+    triggerHaptic("success");
+    setTimeout(() => {
+      button.classList.remove("copied");
+      button.disabled = false;
+      button.setAttribute("aria-label", "Copy all phase data");
+    }, 1400);
+  } catch (error) {
+    button.classList.remove("copying", "copied");
+    button.disabled = false;
+    button.setAttribute("aria-label", "Copy all phase data");
+    showToast("Copy failed");
+  }
 }
 
 function handlePhaseActivate(index) {
@@ -396,6 +441,14 @@ function handlePhaseDeficitBlur(index, value) {
 }
 
 function handleCutPhasePanelClick(event) {
+  const copyBtn = event.target.closest("[data-copy-cut-phases]");
+  if (copyBtn) {
+    event.preventDefault();
+    event.stopPropagation();
+    handleCopyCutPhases(copyBtn);
+    return;
+  }
+
   const btn = event.target.closest("[data-phase-activate]");
   if (!btn) return;
   const index = Number(btn.dataset.phaseActivate);
