@@ -28,6 +28,7 @@ function setStoredAuthToken(token) {
   }
 }
 const LAST_LOGGED_DATE_STORAGE_KEY = "calorieTrackerLastLoggedDate";
+const MIN_DIET_DATE = "2026-02-09";
 const CALENDAR_INITIAL_HISTORY_MONTHS = 6;
 const CALENDAR_HISTORY_CHUNK_MONTHS = 3;
 
@@ -99,6 +100,10 @@ function isFutureDate(dateString) {
   return new Date(`${dateString}T12:00:00`) > new Date(`${getDietDate()}T12:00:00`);
 }
 
+function isBeforeMinDietDate(dateString) {
+  return new Date(`${dateString}T12:00:00`) < new Date(`${MIN_DIET_DATE}T12:00:00`);
+}
+
 function setStatus(msg, variant = null) {
   const el = document.getElementById("status");
   if (!el) return;
@@ -168,7 +173,9 @@ function updateDietDayDisplay() {
   const btn = document.getElementById("diet-day");
   const label = document.getElementById("diet-day-label");
   const nextBtn = document.getElementById("nextDayBtn");
+  const prevBtn = document.getElementById("prevDayBtn");
   const isAtDietToday = currentDate === getDietDate();
+  const isAtMinDietDate = currentDate === MIN_DIET_DATE || isBeforeMinDietDate(currentDate);
 
   if (label) {
     const displayLabel = getDisplayDateLabel(currentDate, { todayStyle: "compact" });
@@ -181,6 +188,11 @@ function updateDietDayDisplay() {
   if (nextBtn) {
     nextBtn.setAttribute("aria-disabled", String(isAtDietToday));
     nextBtn.disabled = isAtDietToday;
+  }
+
+  if (prevBtn) {
+    prevBtn.setAttribute("aria-disabled", String(isAtMinDietDate));
+    prevBtn.disabled = isAtMinDietDate;
   }
 }
 
@@ -945,6 +957,7 @@ function renderCalendarMonths(grid, dietToday, dietTodayString) {
   const anchorOffset = (historyAnchor.getDay() + 6) % 7; // Mon=0
   const startDate = new Date(historyAnchor);
   startDate.setDate(historyAnchor.getDate() - anchorOffset);
+  const minDate = new Date(`${MIN_DIET_DATE}T12:00:00`);
 
   // If the selected date is before our start, extend back to include it
   const selectedAnchor = new Date(`${currentDate}T12:00:00`);
@@ -952,6 +965,10 @@ function renderCalendarMonths(grid, dietToday, dietTodayString) {
     const selOffset = (selectedAnchor.getDay() + 6) % 7;
     startDate.setTime(selectedAnchor.getTime());
     startDate.setDate(selectedAnchor.getDate() - selOffset);
+  }
+
+  if (startDate < minDate) {
+    startDate.setTime(minDate.getTime());
   }
 
   // End at Sunday of current week + 4 more weeks.
@@ -1023,6 +1040,8 @@ function updateCalendarMonthLabel(grid) {
 
 function extendCalendarIfNeeded(grid) {
   if (calendarIsExtending || grid.scrollTop > 96) return;
+  const earliestButton = grid.querySelector(".calendar-day[data-date]");
+  if (earliestButton?.dataset.date && earliestButton.dataset.date <= MIN_DIET_DATE) return;
 
   calendarIsExtending = true;
   const previousHeight = grid.scrollHeight;
@@ -1046,6 +1065,7 @@ function renderCalendarDay(date, dietToday, dietTodayString, extraClass = "") {
   const isSelected = dateString === currentDate;
   const isToday = dateString === dietTodayString;
   const isFuture = date > dietToday;
+  const isTooEarly = isBeforeMinDietDate(dateString);
   const isMonthStart = extraClass === "month-start";
   const isFutureMonth = dayMonth > dietTodayString.slice(0, 7);
 
@@ -1065,7 +1085,7 @@ function renderCalendarDay(date, dietToday, dietTodayString, extraClass = "") {
       data-date="${dateString}"
       data-day-month="${dayMonth}"
       ${isMonthStart ? `data-month="${dayMonth}"` : ""}
-      ${isFuture ? "disabled" : ""}
+      ${isFuture || isTooEarly ? "disabled" : ""}
     >
       ${date.getDate()}
     </button>
@@ -1088,7 +1108,7 @@ function foldSettingsPanels() {
 }
 
 function setDietDay(date) {
-  if (!isValidDateString(date) || isFutureDate(date)) return;
+  if (!isValidDateString(date) || isFutureDate(date) || isBeforeMinDietDate(date)) return;
   if (date === currentDate) return;
 
   currentDate = date;
@@ -1112,11 +1132,12 @@ function setDietDay(date) {
 function shiftDietDay(days) {
   const d = new Date(`${currentDate}T12:00:00`);
   d.setDate(d.getDate() + days);
+  const nextDate = formatDate(d);
 
-  if (d > new Date(`${getDietDate()}T12:00:00`)) return;
+  if (isFutureDate(nextDate) || isBeforeMinDietDate(nextDate)) return;
 
   triggerHaptic("select");
-  setDietDay(formatDate(d));
+  setDietDay(nextDate);
 }
 
 function handleGlobalKeydown(event) {
