@@ -1309,6 +1309,19 @@ input[type="number"] {
   min-width: 0;
 }
 
+.week-card .card-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.week-card .card-actions {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  min-width: max-content;
+  white-space: nowrap;
+}
+
 .cut-phase-label {
   margin: 0;
   min-width: 0;
