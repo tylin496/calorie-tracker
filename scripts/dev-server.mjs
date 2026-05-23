@@ -2,6 +2,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { getMockSummary, isMockMode, tryHandleMockApi } from "./mock-api.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -110,6 +111,10 @@ async function handleLocalApi(req, res) {
     }
   }
 
+  if (isMockMode() && tryHandleMockApi(req, res, url, body)) {
+    return;
+  }
+
   const vercelReq = {
     method: req.method,
     headers: req.headers,
@@ -162,8 +167,20 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, "127.0.0.1", () => {
   const hasGoogle = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.SESSION_SECRET);
+  const devBypass = process.env.DEV_BYPASS_AUTH === "1";
   console.log(`Calorie tracker dev server: http://127.0.0.1:${PORT}/`);
-  console.log(hasGoogle
-    ? "Local API with Google auth (.env.local)"
-    : "Warning: set GOOGLE_CLIENT_ID, SESSION_SECRET, ALLOWED_GOOGLE_EMAILS, NOTION_* in .env.local");
+  if (devBypass) {
+    console.log("Auth: DEV_BYPASS_AUTH=1 (auto signed-in as dev@local on localhost)");
+  } else if (hasGoogle) {
+    console.log("Auth: Google Sign-In (.env.local)");
+  } else {
+    console.log("Warning: set GOOGLE_CLIENT_ID, SESSION_SECRET, ALLOWED_GOOGLE_EMAILS in .env.local");
+  }
+  if (isMockMode()) {
+    const summary = getMockSummary();
+    console.log(`Data: in-memory mock (${summary.entryCount} entries, ${summary.firstDate} → ${summary.lastDate})`);
+    console.log("      Set NOTION_TOKEN + NOTION_DATABASE_ID in .env.local to use real Notion.");
+  } else {
+    console.log("Data: Notion API");
+  }
 });
