@@ -140,7 +140,10 @@ function getBearerToken(req) {
 }
 
 function getDevBypassSession(req) {
-  if (process.env.DEV_BYPASS_AUTH !== "1") return null;
+  // Auto-bypass when no credentials are configured (local dev without .env.local),
+  // or when DEV_BYPASS_AUTH=1 is explicitly set.
+  const isAutoBypass = !process.env.SESSION_SECRET && !process.env.GOOGLE_CLIENT_ID;
+  if (process.env.DEV_BYPASS_AUTH !== "1" && !isAutoBypass) return null;
   // Only honor on localhost requests so a misconfigured prod deploy can never bypass auth.
   const host = String(req.headers.host || "").toLowerCase();
   const isLocalHost = host.startsWith("127.0.0.1") || host.startsWith("localhost");

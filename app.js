@@ -1876,7 +1876,12 @@ function renderSummary(summary) {
   const consistencyTone = rawConsistency.toLowerCase();
   const isCompactLayout = window.matchMedia?.("(max-width: 620px)")?.matches;
   const loggedDays = summary.count || 0;
-  const weeklyPillText = loggedDays >= 7 ? "Full week" : `${loggedDays} ${loggedDays === 1 ? "day" : "days"}`;
+  const _weekStart = new Date(`${summary.weekStart}T12:00:00`);
+  const _weekEnd = new Date(`${summary.weekEnd}T12:00:00`);
+  const _dietToday = new Date(`${getDietDate()}T12:00:00`);
+  const _effectiveEnd = _dietToday < _weekEnd ? _dietToday : _weekEnd;
+  const daysElapsed = Math.round((_effectiveEnd - _weekStart) / (1000 * 60 * 60 * 24)) + 1;
+  const weeklyPillText = loggedDays >= daysElapsed ? "Full week" : `${loggedDays} ${loggedDays === 1 ? "day" : "days"}`;
   const weekRangeText = formatDateRange(summary.weekStart, summary.weekEnd).replace(/, \d{4}/g, "");
   const dailyHeadingText = currentDate === getDietDate() ? "Today" : "This Day";
   latestWeekSummary = summary;
