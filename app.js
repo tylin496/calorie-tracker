@@ -371,10 +371,10 @@ function updateCutPhaseUI() {
 
 async function handleCopyCutPhases(button) {
   try {
-    button.disabled = true;
     button.classList.remove("copied");
     button.classList.add("copying");
     await copyTextToClipboard(buildCutPhasesPlainText());
+    button.disabled = true;
     button.classList.remove("copying");
     button.classList.add("copied");
     button.setAttribute("aria-label", "Phase data copied");
@@ -1750,18 +1750,29 @@ function buildWeeklyPlainTextSummary(summary) {
 }
 
 async function copyTextToClipboard(text) {
-  if (navigator.clipboard?.writeText && window.isSecureContext) {
-    await navigator.clipboard.writeText(text);
-    return;
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch {
+      // Fall through to the textarea copy path for browsers with partial clipboard support.
+    }
   }
 
   const textarea = document.createElement("textarea");
   textarea.value = text;
   textarea.setAttribute("readonly", "");
   textarea.style.position = "fixed";
-  textarea.style.top = "-9999px";
+  textarea.style.top = "0";
+  textarea.style.left = "0";
+  textarea.style.width = "1px";
+  textarea.style.height = "1px";
+  textarea.style.opacity = "0";
   document.body.appendChild(textarea);
+  window.focus();
+  textarea.focus({ preventScroll: true });
   textarea.select();
+  textarea.setSelectionRange(0, textarea.value.length);
 
   try {
     const copied = document.execCommand("copy");
@@ -1929,12 +1940,14 @@ function handleTrendDayClick(event) {
 async function handleCopyWeeklySummaryClick(event) {
   const button = event.target.closest("[data-copy-week-summary]");
   if (!button || !latestWeekSummary) return;
+  event.preventDefault();
+  event.stopPropagation();
 
   try {
-    button.disabled = true;
     button.classList.remove("copied");
     button.classList.add("copying");
     await copyTextToClipboard(buildWeeklyPlainTextSummary(latestWeekSummary));
+    button.disabled = true;
     button.classList.remove("copying");
     button.classList.add("copied");
     button.setAttribute("aria-label", "Weekly summary copied");
