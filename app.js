@@ -8,6 +8,25 @@ const API_BASE = (() => {
   return "https://calorie-tracker-omega-ten.vercel.app";
 })();
 let authUser = null;
+const AUTH_TOKEN_STORAGE_KEY = "calorieTrackerAuthToken";
+function getStoredAuthToken() {
+  try {
+    return window.localStorage?.getItem(AUTH_TOKEN_STORAGE_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+function setStoredAuthToken(token) {
+  try {
+    if (token) {
+      window.localStorage?.setItem(AUTH_TOKEN_STORAGE_KEY, token);
+    } else {
+      window.localStorage?.removeItem(AUTH_TOKEN_STORAGE_KEY);
+    }
+  } catch {
+    // localStorage may be unavailable (private mode); silently ignore.
+  }
+}
 const LAST_LOGGED_DATE_STORAGE_KEY = "calorieTrackerLastLoggedDate";
 const CALENDAR_INITIAL_HISTORY_MONTHS = 6;
 const CALENDAR_HISTORY_CHUNK_MONTHS = 3;
@@ -1035,13 +1054,15 @@ function getFormValues() {
 }
 
 async function fetchJson(url, options = {}) {
+  const token = getStoredAuthToken();
   let res;
   try {
     res = await fetch(url, {
       ...options,
       credentials: "include",
       headers: {
-        ...(options.headers || {})
+        ...(options.headers || {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
       }
     });
   } catch {
@@ -1060,6 +1081,7 @@ async function fetchJson(url, options = {}) {
 
   if (!res.ok) {
     if (res.status === 401 || res.status === 403) {
+      setStoredAuthToken("");
       authUser = null;
       updateAuthUI();
       await setupGoogleSignIn();
@@ -1163,6 +1185,7 @@ async function completeGoogleSignIn(payload) {
       body: JSON.stringify(payload)
     });
 
+    if (data?.token) setStoredAuthToken(data.token);
     authUser = data.user;
     hideAccessGate();
     updateAuthUI();
@@ -1176,8 +1199,17 @@ async function completeGoogleSignIn(payload) {
 }
 
 async function restoreSession() {
-  const sessionRes = await fetch(`${API_BASE}/api/auth/session`, { credentials: "include" });
-  if (!sessionRes.ok) return false;
+  const token = getStoredAuthToken();
+  const sessionRes = await fetch(`${API_BASE}/api/auth/session`, {
+    credentials: "include",
+    headers: token ? { Authorization: `Bearer ${token}` } : {}
+  });
+  if (!sessionRes.ok) {
+    if (sessionRes.status === 401 || sessionRes.status === 403) {
+      setStoredAuthToken("");
+    }
+    return false;
+  }
 
   const data = await sessionRes.json().catch(() => null);
   if (!data?.user) return false;
@@ -1191,15 +1223,18 @@ async function restoreSession() {
 }
 
 async function signOut() {
+  const token = getStoredAuthToken();
   try {
     await fetch(`${API_BASE}/api/auth/logout`, {
       method: "POST",
-      credentials: "include"
+      credentials: "include",
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
     });
   } catch {
     // Still clear local UI if network fails.
   }
 
+  setStoredAuthToken("");
   authUser = null;
   updateAuthUI();
   showAccessGate();

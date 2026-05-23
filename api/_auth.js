@@ -132,7 +132,19 @@ export async function verifyGoogleIdToken(idToken) {
   };
 }
 
+function getBearerToken(req) {
+  const header = req.headers.authorization || req.headers.Authorization || "";
+  if (typeof header !== "string") return "";
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1].trim() : "";
+}
+
 export function getSessionFromRequest(req) {
+  const bearer = getBearerToken(req);
+  if (bearer) {
+    const fromBearer = verifySessionToken(bearer);
+    if (fromBearer) return fromBearer;
+  }
   const cookies = parseCookies(req.headers.cookie || "");
   return verifySessionToken(cookies[SESSION_COOKIE]);
 }
