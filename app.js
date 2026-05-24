@@ -269,8 +269,14 @@ function getCutWeek(dateString = getDietDate()) {
   return Math.floor(diffDays / 7) + 1;
 }
 
+function isCutPhaseActiveForDate(dateString) {
+  if (activeCutPhase === null) return false;
+  if (!cutStartDate) return true;
+  return dateString >= cutStartDate;
+}
+
 function getCutPhaseLabel(dateString = getDietDate()) {
-  if (activeCutPhase === null) return null;
+  if (!isCutPhaseActiveForDate(dateString)) return null;
   const name = CUT_PHASE_NAMES[activeCutPhase];
   const week = getCutWeek(dateString);
   return week ? `${name} · Week ${week}` : name;
@@ -298,6 +304,7 @@ function getCutWeekFromSnapshot(entry) {
 function formatEntryCutPhaseLabel(entry) {
   const phaseName = entry?.cutPhaseName || getCutPhaseNameFromIndex(entry?.cutPhaseIndex);
   if (!phaseName) return null;
+  if (entry?.cutStartDate && entry?.date && entry.date < entry.cutStartDate) return null;
 
   const week = getCutWeekFromSnapshot(entry);
   return week ? `${phaseName} · Week ${week}` : phaseName;
@@ -324,12 +331,14 @@ function getWeekCutPhaseLabel(summary) {
 }
 
 function getCutPhaseSnapshot(dateString) {
-  const cutWeek = activeCutPhase === null ? null : getCutWeek(dateString);
-
+  if (!isCutPhaseActiveForDate(dateString)) {
+    return { cutStartDate, cutPhaseIndex: null, cutPhaseName: null, cutWeek: null };
+  }
+  const cutWeek = getCutWeek(dateString);
   return {
     cutStartDate,
     cutPhaseIndex: activeCutPhase,
-    cutPhaseName: activeCutPhase === null ? null : CUT_PHASE_NAMES[activeCutPhase],
+    cutPhaseName: CUT_PHASE_NAMES[activeCutPhase],
     cutWeek,
     deficitTarget: DEFICIT_TARGET
   };
