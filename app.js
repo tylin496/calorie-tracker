@@ -341,14 +341,12 @@ function buildPhaseLogPlainText(phase) {
   const range = formatDateRange(phase.start, phase.end).replace(/, \d{4}/g, "");
   const entries = phase.entries || [];
   const lines = [
-    `${phaseName} data (${range})`,
-    `Cut start date: ${phase.start}`,
-    `End date: ${phase.end}`,
-    `Days: ${phase.count || 0}/${phase.days || 0} logged`,
-    `Avg: ${formatInt(phase.averageCalories || 0)} kcal, ${formatInt(phase.averageProtein || 0)}g protein`,
-    `Total: ${formatInt(phase.totalDeficit || 0)} kcal deficit, est fat ${formatFatLossKg(phase.fatLossKg || 0)} kg`,
+    `${phaseName} (${range})`,
+    `${phase.count || 0}/${phase.days || 0} days logged`,
+    `Avg ${formatInt(phase.averageCalories || 0)} kcal, ${formatInt(phase.averageProtein || 0)}g protein`,
+    `Total deficit ${formatInt(phase.totalDeficit || 0)} kcal (${formatFatLossKg(phase.fatLossKg || 0)} kg est)`,
     "",
-    "Daily: date | kcal | protein | deficit | phase"
+    "Daily"
   ];
 
   if (!entries.length) {
@@ -362,11 +360,9 @@ function buildPhaseLogPlainText(phase) {
     const deficitText = deficit < 0
       ? `+${formatInt(Math.abs(deficit))}`
       : `-${formatInt(deficit)}`;
-    const entryPhaseName = entry.cutPhaseName || getCutPhaseNameFromIndex(entry.cutPhaseIndex) || "";
-    const weekText = entry.cutWeek ? ` · Week ${entry.cutWeek}` : "";
 
     lines.push(
-      `${formatPlainDateLabel(entry.date)} | ${formatInt(entry.calories)} | ${formatInt(entry.protein)}g | ${deficitText} | ${entryPhaseName}${weekText}`
+      `${formatPlainDateLabel(entry.date)}: ${formatInt(entry.calories)} kcal, ${formatInt(entry.protein)}g, ${deficitText}`
     );
   });
 
@@ -1755,16 +1751,16 @@ function buildWeeklyPlainTextSummary(summary) {
   });
   const uniqueTargets = [...new Set(targetSnapshots)];
   const targetLine = uniqueTargets.length === 1
-    ? `Targets: TDEE/cal/protein ${uniqueTargets[0]}`
-    : "Targets: vary by day";
+    ? `Targets ${uniqueTargets[0]} (TDEE/cal/protein)`
+    : "Targets vary by day";
   const lines = [
-    `Calorie tracker context (${range})`,
+    `Week summary (${range})`,
     targetLine,
-    `Week: ${summary.count || 0}/7 days, ${summary.consistency || getConsistency(entries)}`,
-    `Avg: ${formatInt(summary.averageCalories || 0)} kcal, ${formatInt(summary.averageProtein || 0)}g protein`,
-    `Total: ${formatInt(summary.totalDeficit || 0)} kcal deficit, est fat ${formatFatLossKg(summary.fatLossKg || 0)} kg`,
+    `${summary.count || 0}/7 days logged, ${summary.consistency || getConsistency(entries)}`,
+    `Avg ${formatInt(summary.averageCalories || 0)} kcal, ${formatInt(summary.averageProtein || 0)}g protein`,
+    `Total deficit ${formatInt(summary.totalDeficit || 0)} kcal (${formatFatLossKg(summary.fatLossKg || 0)} kg est)`,
     "",
-    "Daily: date | kcal | protein | deficit"
+    "Daily"
   ];
 
   if (!entries.length) {
@@ -1781,11 +1777,11 @@ function buildWeeklyPlainTextSummary(summary) {
       ? `+${formatInt(Math.abs(deficit))}`
       : `-${formatInt(deficit)}`;
     const targetsText = uniqueTargets.length > 1
-      ? ` | target ${formatInt(calorieTarget)} kcal/${formatInt(proteinTarget)}g`
+      ? `, target ${formatInt(calorieTarget)} kcal/${formatInt(proteinTarget)}g`
       : "";
 
     lines.push(
-      `${formatPlainDateLabel(entry.date)} | ${formatInt(entry.calories)} | ${formatInt(entry.protein)}g | ${deficitText}${targetsText}`
+      `${formatPlainDateLabel(entry.date)}: ${formatInt(entry.calories)} kcal, ${formatInt(entry.protein)}g, ${deficitText}${targetsText}`
     );
   });
 
