@@ -1151,32 +1151,128 @@ function initSwipeNavigation() {
   let touchStartX = 0;
   let touchStartY = 0;
   let touchStartTarget = null;
+  let activeDrag = false;
+  let dragCancelled = false;
+
+  const THRESHOLD = 50;
+  const DRAG_DAMPING = 0.38;
+
+  function isOverlayOpen() {
+    return document.body.classList.contains("calendar-open") ||
+      document.body.classList.contains("quick-entry-open") ||
+      document.body.classList.contains("auth-locked") ||
+      document.body.classList.contains("delete-confirm-open");
+  }
+
+  function contentEls() {
+    return [document.getElementById("daily-result"), document.getElementById("weekly-summary")].filter(Boolean);
+  }
+
+  function setLiveTransform(x) {
+    contentEls().forEach((el) => {
+      el.style.transition = "none";
+      el.style.transform = x !== 0 ? `translateX(${x}px)` : "";
+    });
+  }
+
+  function snapBack() {
+    contentEls().forEach((el) => {
+      el.style.transition = "transform 440ms cubic-bezier(0.34, 1.56, 0.64, 1)";
+      el.style.transform = "";
+      el.addEventListener("transitionend", () => { el.style.transition = ""; }, { once: true });
+    });
+  }
+
+  function commitSwipe(days) {
+    const direction = days > 0 ? "forward" : "backward";
+    const exitX = days > 0 ? -90 : 90;
+    const els = contentEls();
+
+    els.forEach((el) => {
+      el.style.transition = "transform 150ms ease-in, opacity 150ms ease-in";
+      el.style.transform = `translateX(${exitX}px)`;
+      el.style.opacity = "0.2";
+    });
+
+    triggerHaptic("select");
+
+    setTimeout(() => {
+      els.forEach((el) => {
+        el.style.transition = "none";
+        el.style.transform = "";
+        el.style.opacity = "";
+      });
+      const d = new Date(`${currentDate}T12:00:00`);
+      d.setDate(d.getDate() + days);
+      setDietDay(formatDate(d), { direction });
+    }, 140);
+  }
 
   document.addEventListener("touchstart", (e) => {
     if (e.touches.length !== 1) return;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     touchStartTarget = e.target;
+    activeDrag = false;
+    dragCancelled = false;
+  }, { passive: true });
+
+  document.addEventListener("touchmove", (e) => {
+    if (e.touches.length !== 1 || dragCancelled) return;
+    if (isOverlayOpen()) { dragCancelled = true; return; }
+    if (touchStartTarget instanceof Element && touchStartTarget.closest("input, textarea, select, button")) {
+      dragCancelled = true;
+      return;
+    }
+
+    const deltaX = e.touches[0].clientX - touchStartX;
+    const deltaY = e.touches[0].clientY - touchStartY;
+
+    if (!activeDrag) {
+      if ((Math.abs(deltaY) > Math.abs(deltaX) * 1.2) && (Math.abs(deltaY) > 8 || Math.abs(deltaX) > 8)) {
+        dragCancelled = true;
+        return;
+      }
+      if (Math.abs(deltaX) > 8) {
+        activeDrag = true;
+      } else {
+        return;
+      }
+    }
+
+    const d = new Date(`${currentDate}T12:00:00`);
+    d.setDate(d.getDate() + (deltaX < 0 ? 1 : -1));
+    const atBoundary = (deltaX < 0 && isFutureDate(formatDate(d))) || (deltaX > 0 && isBeforeMinDietDate(formatDate(d)));
+
+    setLiveTransform(deltaX * (atBoundary ? 0.08 : DRAG_DAMPING));
   }, { passive: true });
 
   document.addEventListener("touchend", (e) => {
-    if (e.changedTouches.length !== 1) return;
+    if (!activeDrag) { activeDrag = false; dragCancelled = false; return; }
+    activeDrag = false;
+    dragCancelled = false;
 
-    const isOverlayOpen =
-      document.body.classList.contains("calendar-open") ||
-      document.body.classList.contains("quick-entry-open") ||
-      document.body.classList.contains("auth-locked") ||
-      document.body.classList.contains("delete-confirm-open");
-    if (isOverlayOpen) return;
-
-    if (touchStartTarget instanceof Element && touchStartTarget.closest("input, textarea, select, button")) return;
+    if (isOverlayOpen()) { snapBack(); return; }
 
     const deltaX = e.changedTouches[0].clientX - touchStartX;
     const deltaY = e.changedTouches[0].clientY - touchStartY;
 
-    if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY) * 1.5) return;
+    if (Math.abs(deltaX) < THRESHOLD || Math.abs(deltaX) < Math.abs(deltaY) * 1.5) {
+      snapBack();
+      return;
+    }
 
-    shiftDietDay(deltaX < 0 ? 1 : -1);
+    const days = deltaX < 0 ? 1 : -1;
+    const d = new Date(`${currentDate}T12:00:00`);
+    d.setDate(d.getDate() + days);
+    const nextDate = formatDate(d);
+
+    if (isFutureDate(nextDate) || isBeforeMinDietDate(nextDate)) {
+      snapBack();
+      return;
+    }
+
+    commitSwipe(days);
   }, { passive: true });
 }
 
