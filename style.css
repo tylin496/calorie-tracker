@@ -1331,13 +1331,17 @@ input[type="number"] {
 
 .cut-phase-label {
   margin: 0;
-  min-width: 0;
-  font-size: var(--text-sm);
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--muted) 30%, transparent);
+  background: var(--surface-muted);
+  font-size: var(--text-xs);
   font-weight: var(--font-medium);
-  line-height: var(--leading-normal);
+  line-height: var(--leading-tight);
   color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
