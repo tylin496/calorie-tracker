@@ -55,6 +55,7 @@ let calendarVisibleMonth = null;
 let calendarHistoryMonths = CALENDAR_INITIAL_HISTORY_MONTHS;
 let calendarIsExtending = false;
 let latestWeekSummary = null;
+let latestPhaseLog = null;
 let viewportResizeHandler = null;
 let quickEntryScrollY = 0;
 
@@ -408,11 +409,11 @@ function updateCutPhaseUI() {
 }
 
 async function handleCopyCutPhases(button) {
+  if (!latestPhaseLog) return;
   try {
     button.classList.remove("copied");
     button.classList.add("copying");
-    const phase = await fetchLatestPhaseLog();
-    await copyTextToClipboard(buildPhaseLogPlainText(phase));
+    await copyTextToClipboard(buildPhaseLogPlainText(latestPhaseLog));
     button.disabled = true;
     button.classList.remove("copying");
     button.classList.add("copied");
@@ -2441,6 +2442,7 @@ async function loadWeekSummary() {
     renderSummary(data.summary);
     setSummaryRefreshing(false);
     setStatus("");
+    fetchLatestPhaseLog().then(phase => { latestPhaseLog = phase; }).catch(() => {});
   } catch (error) {
     if (error.isAuthError) {
       setSummaryRefreshing(false);
