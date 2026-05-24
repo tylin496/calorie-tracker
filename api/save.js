@@ -293,6 +293,14 @@ export default async function handler(req, res) {
       });
     }
 
+    // Clear phase data when the entry date is before the cut start date
+    if (cutSnapshot.cutStartDate && isValidDateString(cutSnapshot.cutStartDate) && date < cutSnapshot.cutStartDate) {
+      cutSnapshot.cutPhaseIndex = null;
+      cutSnapshot.cutPhaseName = null;
+      cutSnapshot.cutWeek = null;
+      cutSnapshot.deficitTarget = null;
+    }
+
     // Allow up to tomorrow UTC to handle clients in UTC+ timezones
     const maxDate = new Date();
     maxDate.setDate(maxDate.getDate() + 1);

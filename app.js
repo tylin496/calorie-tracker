@@ -1555,6 +1555,28 @@ async function loadConfig() {
   applyConfig(data.config);
 }
 
+async function repairEntryPhaseIfNeeded(entry) {
+  if (!entry || !cutStartDate || entry.date >= cutStartDate) return;
+  if (entry.cutPhaseIndex === null || entry.cutPhaseIndex === undefined) return;
+  try {
+    await fetchJson(`${API_BASE}/api/save`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        date: entry.date,
+        calories: Math.round(entry.calories),
+        protein: Math.round(entry.protein),
+        tdee: entry.tdee || TDEE,
+        calorieTarget: entry.calorieTarget ?? Math.max(0, (entry.tdee || TDEE) - DEFICIT_TARGET),
+        proteinTarget: entry.proteinTarget ?? PROTEIN_TARGET,
+        ...getCutPhaseSnapshot(entry.date)
+      })
+    });
+  } catch {
+    // best-effort silent repair
+  }
+}
+
 async function saveEntry(calories, protein) {
   setLoading(true);
   const roundedCalories = roundInt(calories);
@@ -2360,6 +2382,7 @@ async function loadWeekSummary() {
 
     if (todayEntry) {
       rememberLoggedDate(currentDate);
+      repairEntryPhaseIfNeeded(todayEntry);
     } else {
       forgetLoggedDate(currentDate);
     }
