@@ -2296,14 +2296,14 @@ function renderSummary(summary) {
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone} ${doubleHit ? "double-hit" : ""}">
         <div class="daily-card-top">
-          <div class="daily-card-top-left">
-            <h2 class="daily-card-heading">${dailyHeadingText}</h2>
+          <h2 class="daily-card-heading">${dailyHeadingText}</h2>
+          <div class="daily-card-top-right">
             <button class="copy-summary-btn" type="button" data-copy-today-summary aria-label="Copy today's summary" title="Copy today's summary">
               <span class="copy-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" focusable="false"><rect x="9" y="3" width="10" height="13" rx="2.5" opacity="0.5"/><rect x="5" y="8" width="10" height="13" rx="2.5"/></svg></span>
               <span class="check-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" focusable="false"><polyline points="20 6 9 17 4 12"/></svg></span>
             </button>
+            <span class="status-pill ${doubleHit ? "double-hit" : "logged"}">${statusPillText}</span>
           </div>
-          <span class="status-pill ${doubleHit ? "double-hit" : "logged"}">${statusPillText}</span>
         </div>
 
         <div class="daily-metrics">
@@ -2378,9 +2378,9 @@ function renderSummary(summary) {
         <div class="card-header-left">
           <h2>This Week</h2>
           ${cutLabel ? `<p class="cut-phase-label">${cutLabel}</p>` : ""}
-          ${getCopySummaryButtonHtml()}
         </div>
         <div class="card-actions">
+          ${getCopySummaryButtonHtml()}
           <span class="status-pill logged">${weeklyPillText}</span>
         </div>
       </div>

@@ -1303,27 +1303,28 @@ input[type="number"] {
 
 .card-header-left {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
   min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
 }
 
 .week-card .card-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
+  align-items: flex-start;
 }
 
 .week-card .card-actions {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   flex-wrap: nowrap;
   min-width: max-content;
   white-space: nowrap;
 }
 
-.card-header-left .copy-summary-btn {
+.week-card .card-actions .copy-summary-btn {
   flex: 0 0 auto;
   width: 30px;
   height: 30px;
@@ -1493,14 +1494,14 @@ input[type="number"] {
   margin-bottom: var(--stack-gap);
 }
 
-.daily-card-top-left {
+.daily-card-top-right {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 0;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
-.daily-card-top-left .copy-summary-btn {
+.daily-card-top-right .copy-summary-btn {
   flex: 0 0 auto;
   width: 30px;
   height: 30px;
@@ -1706,7 +1707,7 @@ input[type="number"] {
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   line-height: var(--leading-snug);
-  text-align: center;
+  text-align: left;
   color: color-mix(in srgb, var(--muted) 58%, transparent);
   -webkit-text-fill-color: color-mix(in srgb, var(--muted) 58%, transparent);
 }
