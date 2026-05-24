@@ -1966,6 +1966,17 @@ function buildWeeklyPlainTextSummary(summary) {
   return lines.join("\n");
 }
 
+function buildTodayPlainTextSummary(today, entryCalorieTarget, entryDeficitTarget, entryProteinTarget) {
+  const tdee = today.tdee || TDEE;
+  const deficit = roundInt(tdee - today.calories);
+  const deficitText = deficit < 0 ? `+${formatInt(Math.abs(deficit))}` : `-${formatInt(deficit)}`;
+  const dateLabel = formatPlainDateLabel(today.date);
+  return [
+    `${dateLabel}: ${formatInt(roundInt(today.calories))} kcal, ${formatInt(roundInt(today.protein))}g, ${deficitText}`,
+    `Target ${formatInt(tdee)}/${formatInt(entryCalorieTarget)}/${formatInt(entryProteinTarget)} (TDEE/cal/protein)`
+  ].join("\n");
+}
+
 async function copyTextToClipboard(text) {
   if (navigator.clipboard?.writeText) {
     try {
@@ -2182,6 +2193,39 @@ async function handleCopyWeeklySummaryClick(event) {
   }
 }
 
+async function handleCopyTodaySummaryClick(event) {
+  const button = event.target.closest("[data-copy-today-summary]");
+  if (!button || !todayEntry) return;
+  event.preventDefault();
+  event.stopPropagation();
+
+  const entryTdee = todayEntry.tdee || TDEE;
+  const entryCalorieTarget = todayEntry.calorieTarget ?? Math.max(0, entryTdee - DEFICIT_TARGET);
+  const entryDeficitTarget = Math.max(0, entryTdee - entryCalorieTarget);
+  const entryProteinTarget = todayEntry.proteinTarget ?? PROTEIN_TARGET;
+
+  try {
+    button.classList.remove("copied");
+    button.classList.add("copying");
+    await copyTextToClipboard(buildTodayPlainTextSummary(todayEntry, entryCalorieTarget, entryDeficitTarget, entryProteinTarget));
+    button.disabled = true;
+    button.classList.remove("copying");
+    button.classList.add("copied");
+    button.setAttribute("aria-label", "Today copied");
+    triggerHaptic("success");
+    setTimeout(() => {
+      button.classList.remove("copied");
+      button.disabled = false;
+      button.setAttribute("aria-label", "Copy today's summary");
+    }, 1400);
+  } catch {
+    button.classList.remove("copying", "copied");
+    button.disabled = false;
+    button.setAttribute("aria-label", "Copy today's summary");
+    showToast("Copy failed");
+  }
+}
+
 function handleDailyMetricClick(event) {
   const metric = event.target.closest("[data-edit-field]");
   if (!metric) return;
@@ -2252,7 +2296,13 @@ function renderSummary(summary) {
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone} ${doubleHit ? "double-hit" : ""}">
         <div class="daily-card-top">
-          <h2 class="daily-card-heading">${dailyHeadingText}</h2>
+          <div class="daily-card-top-left">
+            <h2 class="daily-card-heading">${dailyHeadingText}</h2>
+            <button class="copy-summary-btn" type="button" data-copy-today-summary aria-label="Copy today's summary" title="Copy today's summary">
+              <span class="copy-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" focusable="false"><rect x="9" y="3" width="10" height="13" rx="2.5" opacity="0.5"/><rect x="5" y="8" width="10" height="13" rx="2.5"/></svg></span>
+              <span class="check-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" focusable="false"><polyline points="20 6 9 17 4 12"/></svg></span>
+            </button>
+          </div>
           <span class="status-pill ${doubleHit ? "double-hit" : "logged"}">${statusPillText}</span>
         </div>
 
@@ -2528,6 +2578,7 @@ function initApp() {
   document.getElementById("weekly-summary")?.addEventListener("click", handleTrendDayClick);
   document.getElementById("weekly-summary")?.addEventListener("click", handleCopyWeeklySummaryClick);
   document.getElementById("daily-result")?.addEventListener("click", handleDailyMetricClick);
+  document.getElementById("daily-result")?.addEventListener("click", handleCopyTodaySummaryClick);
   document.getElementById("deleteBtn")?.addEventListener("click", deleteEntry);
   document.getElementById("deleteConfirmBackdrop")?.addEventListener("click", closeDeleteConfirm);
   document.getElementById("cancelDeleteBtn")?.addEventListener("click", closeDeleteConfirm);

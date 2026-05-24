@@ -1489,6 +1489,19 @@ input[type="number"] {
   margin-bottom: var(--stack-gap);
 }
 
+.daily-card-top-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.daily-card-top-left .copy-summary-btn {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+}
+
 .day-label,
 .daily-card-title {
   color: var(--muted);
