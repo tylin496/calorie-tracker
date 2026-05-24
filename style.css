@@ -1361,6 +1361,22 @@ input[type="number"] {
   min-height: 0;
 }
 
+.swipe-viewport {
+  overflow: hidden;
+}
+
+.swipe-track {
+  display: flex;
+  align-items: flex-start;
+  will-change: transform;
+}
+
+.swipe-panel {
+  flex-shrink: 0;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 #daily-result,
 #weekly-summary {
   transition: opacity 180ms ease, transform 220ms ease, filter 220ms ease;

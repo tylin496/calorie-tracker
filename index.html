@@ -56,7 +56,20 @@
       <button id="nextDayBtn" class="icon-btn" type="button" aria-label="Next day">›</button>
     </nav>
 
-    <div id="daily-result"></div>
+    <div id="swipe-viewport" class="swipe-viewport">
+      <div id="swipe-track" class="swipe-track">
+        <div class="swipe-panel" id="swipe-panel-prev"></div>
+        <div class="swipe-panel" id="swipe-panel-center">
+          <div id="daily-result"></div>
+          <div id="weekly-summary"></div>
+        </div>
+        <div class="swipe-panel" id="swipe-panel-next"></div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <div id="status" role="status" aria-live="polite"></div>
+    </div>
 
     <div id="quickEntryBackdrop" class="quick-entry-backdrop" hidden></div>
     <div id="calendarBackdrop" class="calendar-backdrop" hidden></div>
@@ -113,12 +126,6 @@
       <button id="saveBtn" class="primary-btn commit-btn" type="submit">Commit today</button>
       <button id="deleteBtn" class="danger-btn" type="button" hidden>Delete entry</button>
     </form>
-
-    <div class="form-actions">
-      <div id="status" role="status" aria-live="polite"></div>
-    </div>
-
-    <div id="weekly-summary"></div>
 
     <details class="settings-panel" id="cutPhasesPanel">
       <summary>

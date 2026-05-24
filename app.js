@@ -1103,7 +1103,7 @@ function foldSettingsPanels() {
   document.querySelectorAll(".settings-panel[open]").forEach(el => el.removeAttribute("open"));
 }
 
-function setDietDay(date, { direction = null } = {}) {
+function setDietDay(date, { direction = null, skipAnimation = false } = {}) {
   if (!isValidDateString(date) || isFutureDate(date) || isBeforeMinDietDate(date)) return;
   if (date === currentDate) return;
 
@@ -1121,7 +1121,7 @@ function setDietDay(date, { direction = null } = {}) {
     el.textContent = "g";
   });
 
-  if (direction) {
+  if (direction && !skipAnimation) {
     const animClass = direction === "forward" ? "day-nav-forward" : "day-nav-backward";
     [document.getElementById("daily-result"), document.getElementById("weekly-summary")].forEach((el) => {
       if (!el) return;
@@ -1147,69 +1147,79 @@ function shiftDietDay(days) {
   setDietDay(nextDate, { direction: days > 0 ? "forward" : "backward" });
 }
 
-function initSwipeNavigation() {
+function initCarouselSwipe() {
+  const viewport = document.getElementById("swipe-viewport");
+  const track = document.getElementById("swipe-track");
+  if (!viewport || !track) return;
+
+  const GAP = 16;
+  const THRESHOLD = 50;
   let touchStartX = 0;
   let touchStartY = 0;
   let touchStartTarget = null;
   let activeDrag = false;
   let dragCancelled = false;
+  let transitioning = false;
 
-  const THRESHOLD = 50;
-  const DRAG_DAMPING = 0.38;
-
-  function isOverlayOpen() {
+  function overlayOpen() {
     return document.body.classList.contains("calendar-open") ||
       document.body.classList.contains("quick-entry-open") ||
       document.body.classList.contains("auth-locked") ||
       document.body.classList.contains("delete-confirm-open");
   }
 
-  function contentEls() {
-    return [document.getElementById("daily-result"), document.getElementById("weekly-summary")].filter(Boolean);
+  function pw() { return viewport.offsetWidth; }
+  function co() { return -(pw() + GAP); }
+
+  function setTrackX(x, animated) {
+    track.style.transition = animated ? "transform 380ms cubic-bezier(0.25, 1, 0.5, 1)" : "none";
+    track.style.transform = `translateX(${x}px)`;
   }
 
-  function setLiveTransform(x) {
-    contentEls().forEach((el) => {
-      el.style.transition = "none";
-      el.style.transform = x !== 0 ? `translateX(${x}px)` : "";
+  function resetToCenter() { setTrackX(co(), false); }
+
+  function populateSidePanels() {
+    ["swipe-panel-prev", "swipe-panel-next"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = dailySkeletonHtml() + weekSkeletonHtml();
     });
+  }
+
+  function updateSizes() {
+    const w = pw();
+    document.querySelectorAll(".swipe-panel").forEach((el, i) => {
+      el.style.width = `${w}px`;
+      el.style.marginRight = i < 2 ? `${GAP}px` : "";
+    });
+    resetToCenter();
   }
 
   function snapBack() {
-    contentEls().forEach((el) => {
-      el.style.transition = "transform 440ms cubic-bezier(0.34, 1.56, 0.64, 1)";
-      el.style.transform = "";
-      el.addEventListener("transitionend", () => { el.style.transition = ""; }, { once: true });
-    });
+    setTrackX(co(), true);
+    track.addEventListener("transitionend", () => { transitioning = false; }, { once: true });
   }
 
   function commitSwipe(days) {
-    const direction = days > 0 ? "forward" : "backward";
-    const exitX = days > 0 ? -90 : 90;
-    const els = contentEls();
-
-    els.forEach((el) => {
-      el.style.transition = "transform 150ms ease-in, opacity 150ms ease-in";
-      el.style.transform = `translateX(${exitX}px)`;
-      el.style.opacity = "0.2";
-    });
-
+    transitioning = true;
+    const target = co() + (days > 0 ? -(pw() + GAP) : (pw() + GAP));
     triggerHaptic("select");
-
-    setTimeout(() => {
-      els.forEach((el) => {
-        el.style.transition = "none";
-        el.style.transform = "";
-        el.style.opacity = "";
-      });
+    setTrackX(target, true);
+    track.addEventListener("transitionend", () => {
+      resetToCenter();
+      populateSidePanels();
       const d = new Date(`${currentDate}T12:00:00`);
       d.setDate(d.getDate() + days);
-      setDietDay(formatDate(d), { direction });
-    }, 140);
+      setDietDay(formatDate(d), { direction: days > 0 ? "forward" : "backward", skipAnimation: true });
+      transitioning = false;
+    }, { once: true });
   }
 
+  updateSizes();
+  populateSidePanels();
+  window.addEventListener("resize", updateSizes);
+
   document.addEventListener("touchstart", (e) => {
-    if (e.touches.length !== 1) return;
+    if (e.touches.length !== 1 || transitioning) return;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     touchStartTarget = e.target;
@@ -1218,8 +1228,8 @@ function initSwipeNavigation() {
   }, { passive: true });
 
   document.addEventListener("touchmove", (e) => {
-    if (e.touches.length !== 1 || dragCancelled) return;
-    if (isOverlayOpen()) { dragCancelled = true; return; }
+    if (e.touches.length !== 1 || dragCancelled || transitioning) return;
+    if (overlayOpen()) { dragCancelled = true; resetToCenter(); return; }
     if (touchStartTarget instanceof Element && touchStartTarget.closest("input, textarea, select, button")) {
       dragCancelled = true;
       return;
@@ -1233,18 +1243,15 @@ function initSwipeNavigation() {
         dragCancelled = true;
         return;
       }
-      if (Math.abs(deltaX) > 8) {
-        activeDrag = true;
-      } else {
-        return;
-      }
+      if (Math.abs(deltaX) > 8) activeDrag = true;
+      else return;
     }
 
     const d = new Date(`${currentDate}T12:00:00`);
     d.setDate(d.getDate() + (deltaX < 0 ? 1 : -1));
     const atBoundary = (deltaX < 0 && isFutureDate(formatDate(d))) || (deltaX > 0 && isBeforeMinDietDate(formatDate(d)));
 
-    setLiveTransform(deltaX * (atBoundary ? 0.08 : DRAG_DAMPING));
+    setTrackX(co() + (atBoundary ? deltaX * 0.08 : deltaX), false);
   }, { passive: true });
 
   document.addEventListener("touchend", (e) => {
@@ -1252,7 +1259,7 @@ function initSwipeNavigation() {
     activeDrag = false;
     dragCancelled = false;
 
-    if (isOverlayOpen()) { snapBack(); return; }
+    if (overlayOpen()) { snapBack(); return; }
 
     const deltaX = e.changedTouches[0].clientX - touchStartX;
     const deltaY = e.changedTouches[0].clientY - touchStartY;
@@ -1265,9 +1272,7 @@ function initSwipeNavigation() {
     const days = deltaX < 0 ? 1 : -1;
     const d = new Date(`${currentDate}T12:00:00`);
     d.setDate(d.getDate() + days);
-    const nextDate = formatDate(d);
-
-    if (isFutureDate(nextDate) || isBeforeMinDietDate(nextDate)) {
+    if (isFutureDate(formatDate(d)) || isBeforeMinDietDate(formatDate(d))) {
       snapBack();
       return;
     }
@@ -2498,7 +2503,7 @@ function initApp() {
   document.getElementById("calories")?.addEventListener("input", handleCaloriesInput);
   document.getElementById("protein")?.addEventListener("input", handleProteinInput);
   document.addEventListener("keydown", handleGlobalKeydown);
-  initSwipeNavigation();
+  initCarouselSwipe();
 
   window.matchMedia?.("(max-width: 620px)")?.addEventListener?.("change", (event) => {
     document.getElementById("today-form")?.classList.toggle("compact-entry-fields", event.matches);
