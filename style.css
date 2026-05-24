@@ -2806,6 +2806,19 @@ input[type="number"] {
   }
 }
 
+@keyframes slide-from-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-from-left {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.day-nav-forward  { animation: slide-from-right 200ms ease both; }
+.day-nav-backward { animation: slide-from-left  200ms ease both; }
+
 @keyframes settings-reveal {
   from {
     opacity: 0;

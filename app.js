@@ -1103,7 +1103,7 @@ function foldSettingsPanels() {
   document.querySelectorAll(".settings-panel[open]").forEach(el => el.removeAttribute("open"));
 }
 
-function setDietDay(date) {
+function setDietDay(date, { direction = null } = {}) {
   if (!isValidDateString(date) || isFutureDate(date) || isBeforeMinDietDate(date)) return;
   if (date === currentDate) return;
 
@@ -1121,6 +1121,17 @@ function setDietDay(date) {
     el.textContent = "g";
   });
 
+  if (direction) {
+    const animClass = direction === "forward" ? "day-nav-forward" : "day-nav-backward";
+    [document.getElementById("daily-result"), document.getElementById("weekly-summary")].forEach((el) => {
+      if (!el) return;
+      el.classList.remove("day-nav-forward", "day-nav-backward");
+      void el.offsetWidth;
+      el.classList.add(animClass);
+      el.addEventListener("animationend", () => el.classList.remove(animClass), { once: true });
+    });
+  }
+
   renderInitialLoadingState();
   loadWeekSummary();
 }
@@ -1133,7 +1144,40 @@ function shiftDietDay(days) {
   if (isFutureDate(nextDate) || isBeforeMinDietDate(nextDate)) return;
 
   triggerHaptic("select");
-  setDietDay(nextDate);
+  setDietDay(nextDate, { direction: days > 0 ? "forward" : "backward" });
+}
+
+function initSwipeNavigation() {
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchStartTarget = null;
+
+  document.addEventListener("touchstart", (e) => {
+    if (e.touches.length !== 1) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchStartTarget = e.target;
+  }, { passive: true });
+
+  document.addEventListener("touchend", (e) => {
+    if (e.changedTouches.length !== 1) return;
+
+    const isOverlayOpen =
+      document.body.classList.contains("calendar-open") ||
+      document.body.classList.contains("quick-entry-open") ||
+      document.body.classList.contains("auth-locked") ||
+      document.body.classList.contains("delete-confirm-open");
+    if (isOverlayOpen) return;
+
+    if (touchStartTarget instanceof Element && touchStartTarget.closest("input, textarea, select, button")) return;
+
+    const deltaX = e.changedTouches[0].clientX - touchStartX;
+    const deltaY = e.changedTouches[0].clientY - touchStartY;
+
+    if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY) * 1.5) return;
+
+    shiftDietDay(deltaX < 0 ? 1 : -1);
+  }, { passive: true });
 }
 
 function handleGlobalKeydown(event) {
@@ -2358,6 +2402,7 @@ function initApp() {
   document.getElementById("calories")?.addEventListener("input", handleCaloriesInput);
   document.getElementById("protein")?.addEventListener("input", handleProteinInput);
   document.addEventListener("keydown", handleGlobalKeydown);
+  initSwipeNavigation();
 
   window.matchMedia?.("(max-width: 620px)")?.addEventListener?.("change", (event) => {
     document.getElementById("today-form")?.classList.toggle("compact-entry-fields", event.matches);
