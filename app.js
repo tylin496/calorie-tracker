@@ -1256,12 +1256,14 @@ function initCarouselSwipe() {
       else return;
     }
 
+    e.preventDefault();
+
     const d = new Date(`${currentDate}T12:00:00`);
     d.setDate(d.getDate() + (deltaX < 0 ? 1 : -1));
     const atBoundary = (deltaX < 0 && isFutureDate(formatDate(d))) || (deltaX > 0 && isBeforeMinDietDate(formatDate(d)));
 
     setTrackX(co() + (atBoundary ? deltaX * 0.08 : deltaX), false);
-  }, { passive: true });
+  }, { passive: false });
 
   document.addEventListener("touchend", (e) => {
     if (!activeDrag) { activeDrag = false; dragCancelled = false; return; }
