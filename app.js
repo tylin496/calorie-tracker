@@ -2063,7 +2063,9 @@ function getTrendDayMetrics(entry) {
     return {
       entry: null,
       kcalHeight,
+      kcalOverHeight: 0,
       proteinHeight,
+      proteinOverHeight: 0,
       kcalState: "missing",
       proteinState: "missing"
     };
@@ -2073,14 +2075,20 @@ function getTrendDayMetrics(entry) {
   const calorieResult = getCalorieResult(entry.calories, entryTdee, entryDeficitTarget);
   const proteinResult = getProteinResult(entry.protein, entryProteinTarget);
 
+  const kcalProgress = getProgressPercent(entry.calories, entryCalorieTarget);
+  const kcalBaseHeight = progressToTrendBarHeight(Math.min(100, kcalProgress));
+  const proteinBaseHeight = progressToTrendBarHeight(Math.min(100, proteinResult.progress));
+
   return {
     entry,
     calorieResult,
     proteinResult,
     entryDeficitTarget,
     entryProteinTarget,
-    kcalHeight: progressToTrendBarHeight(getProgressPercent(entry.calories, entryCalorieTarget)),
-    proteinHeight: progressToTrendBarHeight(proteinResult.progress),
+    kcalHeight: kcalBaseHeight,
+    kcalOverHeight: progressToTrendBarHeight(kcalProgress) - kcalBaseHeight,
+    proteinHeight: proteinBaseHeight,
+    proteinOverHeight: progressToTrendBarHeight(proteinResult.progress) - proteinBaseHeight,
     kcalState: calorieResult.isSurplus ? "surplus" : calorieResult.celebrated ? "celebrated" : "neutral",
     proteinState: proteinResult.celebrated ? "celebrated" : "neutral"
   };
@@ -2113,7 +2121,7 @@ function renderTrendBars(entries) {
           const entry = entryByDate.get(dateString);
           const isMissing = !entry;
           const trendDay = getTrendDayMetrics(entry);
-          const { kcalHeight, proteinHeight, kcalState, proteinState } = trendDay;
+          const { kcalHeight, kcalOverHeight, proteinHeight, proteinOverHeight, kcalState, proteinState } = trendDay;
           const isSelected = dateString === currentDate;
           const isFuture = isFutureDate(dateString);
           const weekday = date.toLocaleDateString("en-US", { weekday: "short" });
@@ -2133,9 +2141,11 @@ function renderTrendBars(entries) {
               <span class="trend-value">${formatTrendDayValueHtml(trendDay)}</span>
               <div class="trend-bar-pair" title="${barTitle}">
                 <div class="trend-bar-slot">
+                  ${kcalOverHeight > 0 ? `<div class="trend-bar-cap trend-bar-kcal ${kcalState}" style="height:${kcalOverHeight}px"></div>` : ""}
                   <div class="trend-bar trend-bar-kcal ${kcalState}" style="height:${kcalHeight}px"></div>
                 </div>
                 <div class="trend-bar-slot">
+                  ${proteinOverHeight > 0 ? `<div class="trend-bar-cap trend-bar-protein ${proteinState}" style="height:${proteinOverHeight}px"></div>` : ""}
                   <div class="trend-bar trend-bar-protein ${proteinState}" style="height:${proteinHeight}px"></div>
                 </div>
               </div>
