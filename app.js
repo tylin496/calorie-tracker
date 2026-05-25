@@ -2039,8 +2039,8 @@ function formatTrendDayValueLabel(trendDay) {
 const TREND_BAR_TRACK_HEIGHT = 96;
 const TREND_BAR_MIN_HEIGHT = 10;
 // Placeholder silhouette: left (deficit) lower, right (protein) higher — matches typical logged days.
-const TREND_BAR_MISSING_KCAL_RATIO = 0.28;
-const TREND_BAR_MISSING_PROTEIN_RATIO = 0.38;
+const TREND_BAR_MISSING_KCAL_RATIO = 0.35;
+const TREND_BAR_MISSING_PROTEIN_RATIO = 0.46;
 
 function getMissingTrendBarHeights() {
   return {
