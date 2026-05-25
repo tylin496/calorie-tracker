@@ -2069,7 +2069,7 @@ function getTrendDayMetrics(entry) {
     };
   }
 
-  const { entryTdee, entryDeficitTarget, entryProteinTarget } = getEntryTargets(entry);
+  const { entryTdee, entryCalorieTarget, entryDeficitTarget, entryProteinTarget } = getEntryTargets(entry);
   const calorieResult = getCalorieResult(entry.calories, entryTdee, entryDeficitTarget);
   const proteinResult = getProteinResult(entry.protein, entryProteinTarget);
 
@@ -2079,7 +2079,7 @@ function getTrendDayMetrics(entry) {
     proteinResult,
     entryDeficitTarget,
     entryProteinTarget,
-    kcalHeight: progressToTrendBarHeight(calorieResult.progress),
+    kcalHeight: progressToTrendBarHeight(getProgressPercent(entry.calories, entryCalorieTarget)),
     proteinHeight: progressToTrendBarHeight(proteinResult.progress),
     kcalState: calorieResult.isSurplus ? "surplus" : calorieResult.celebrated ? "celebrated" : "neutral",
     proteinState: proteinResult.celebrated ? "celebrated" : "neutral"
