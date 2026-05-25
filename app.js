@@ -2050,7 +2050,7 @@ function getMissingTrendBarHeights() {
 }
 
 function progressToTrendBarHeight(progress) {
-  const clamped = Math.max(0, Math.min(100, roundInt(progress)));
+  const clamped = Math.max(0, Math.min(130, roundInt(progress)));
   return Math.max(
     TREND_BAR_MIN_HEIGHT,
     Math.round((clamped / 100) * TREND_BAR_TRACK_HEIGHT)

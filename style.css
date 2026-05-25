@@ -2265,6 +2265,7 @@ input[type="number"] {
   max-width: 44px;
   height: var(--trend-bar-track-height);
   min-height: var(--trend-bar-track-height);
+  overflow: visible;
 }
 
 .trend-bar-slot {
