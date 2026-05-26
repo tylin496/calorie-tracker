@@ -1715,7 +1715,7 @@ input[type="number"] {
 .daily-metric.metric-add .metric-add-prompt {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   width: 100%;
   margin-top: 2px;
   min-height: clamp(20px, 4.6vw, 26px);
