@@ -73,6 +73,14 @@
 
     <div id="quickEntryBackdrop" class="quick-entry-backdrop" hidden></div>
     <div id="calendarBackdrop" class="calendar-backdrop" hidden></div>
+    <div id="phasePickerBackdrop" class="calendar-backdrop" hidden></div>
+    <section id="phasePickerPanel" class="calendar-panel phase-picker-panel" role="dialog" aria-modal="true" aria-label="Select phase to copy" hidden>
+      <div class="calendar-header">
+        <span class="calendar-month-label">Copy phase data</span>
+        <button class="calendar-close-btn" id="phasePickerCloseBtn" type="button" aria-label="Close">×</button>
+      </div>
+      <div id="phasePickerList" class="phase-picker-list"></div>
+    </section>
 
     <section id="calendarPanel" class="calendar-panel" role="dialog" aria-modal="true" aria-label="Date picker" hidden>
       <div class="calendar-header">
@@ -216,6 +224,6 @@
   </main>
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="./app.js?v=20260524-phase-log-copy"></script>
+  <script src="./app.js?v=20260527-phase-picker"></script>
 </body>
 </html>

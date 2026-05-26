@@ -1201,6 +1201,61 @@ input[type="number"] {
   opacity: 1;
 }
 
+.phase-picker-panel {
+  padding: 24px 16px 20px;
+}
+
+.phase-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.phase-picker-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-solid);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.phase-picker-item:hover,
+.phase-picker-item:focus-visible {
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-solid));
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  outline: none;
+}
+
+.phase-picker-item:active {
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface-solid));
+}
+
+.phase-picker-item-name {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.phase-picker-item-range {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.phase-picker-loading {
+  padding: 20px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
 .cut-start-row input[type="date"] {
   border: 1px solid var(--border);
   border-radius: 8px;

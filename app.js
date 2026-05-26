@@ -409,11 +409,63 @@ function updateCutPhaseUI() {
 }
 
 async function handleCopyCutPhases(button) {
-  if (!latestPhaseLog) return;
+  openPhasePicker(button);
+}
+
+function openPhasePicker(copyButton) {
+  const panel = document.getElementById("phasePickerPanel");
+  const backdrop = document.getElementById("phasePickerBackdrop");
+  const list = document.getElementById("phasePickerList");
+  if (!panel || !backdrop || !list) return;
+
+  triggerHaptic("tap");
+  list.innerHTML = `<div class="phase-picker-loading">Loading…</div>`;
+  panel.hidden = false;
+  backdrop.hidden = false;
+
+  fetchJson(`${API_BASE}/api/phases`)
+    .then(data => {
+      const phases = data.phases || [];
+      if (!phases.length) {
+        list.innerHTML = `<div class="phase-picker-loading">No phases found</div>`;
+        return;
+      }
+      list.innerHTML = phases.map((phase, i) => {
+        const range = formatDateRange(phase.start, phase.end).replace(/, \d{4}/g, "");
+        return `<button class="phase-picker-item" type="button" data-phase-index="${i}"
+          data-phase-start="${phase.start}" data-phase-end="${phase.end}">
+          <span class="phase-picker-item-name">${phase.name}</span>
+          <span class="phase-picker-item-range">${range}</span>
+        </button>`;
+      }).join("");
+
+      list.querySelectorAll(".phase-picker-item").forEach(item => {
+        item.addEventListener("click", () => {
+          const start = item.dataset.phaseStart;
+          const end = item.dataset.phaseEnd;
+          closePhasePicker();
+          copyPhaseByRange(start, end, copyButton);
+        });
+      });
+    })
+    .catch(() => {
+      list.innerHTML = `<div class="phase-picker-loading">Failed to load phases</div>`;
+    });
+}
+
+function closePhasePicker() {
+  const panel = document.getElementById("phasePickerPanel");
+  const backdrop = document.getElementById("phasePickerBackdrop");
+  if (panel) panel.hidden = true;
+  if (backdrop) backdrop.hidden = true;
+}
+
+async function copyPhaseByRange(start, end, button) {
   try {
     button.classList.remove("copied");
     button.classList.add("copying");
-    await copyTextToClipboard(buildPhaseLogPlainText(latestPhaseLog));
+    const data = await fetchJson(`${API_BASE}/api/phase?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}&tdee=${encodeURIComponent(TDEE)}`);
+    await copyTextToClipboard(buildPhaseLogPlainText(data.phase));
     button.disabled = true;
     button.classList.remove("copying");
     button.classList.add("copied");
@@ -2595,6 +2647,8 @@ function initApp() {
   document.getElementById("deleteConfirmBackdrop")?.addEventListener("click", closeDeleteConfirm);
   document.getElementById("cancelDeleteBtn")?.addEventListener("click", closeDeleteConfirm);
   document.getElementById("confirmDeleteBtn")?.addEventListener("click", confirmDeleteEntry);
+  document.getElementById("phasePickerBackdrop")?.addEventListener("click", closePhasePicker);
+  document.getElementById("phasePickerCloseBtn")?.addEventListener("click", closePhasePicker);
   document.getElementById("closeQuickEntryBtn")?.addEventListener("click", closeQuickEntry);
   document.getElementById("quickEntryBackdrop")?.addEventListener("click", closeQuickEntry);
   document.getElementById("calories")?.addEventListener("input", handleCaloriesInput);
