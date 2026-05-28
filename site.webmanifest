@@ -5,13 +5,5 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
-  "icons": [
-    {
-      "src": "./app-icon-v2.png",
-      "sizes": "1471x1471",
-      "type": "image/png",
-      "purpose": "any"
-    }
-  ]
+  "orientation": "portrait"
 }
