@@ -734,6 +734,9 @@ function adjustQuickEntryForKeyboard() {
 
   document.body.classList.toggle("quick-entry-keyboard", isKeyboardOpen);
 
+  // When keyboard dismisses, iOS may auto-scroll the page — pin it back.
+  if (!isKeyboardOpen) window.scrollTo(0, quickEntryScrollY || 0);
+
   // Bottom edge of the sheet aligns with the top of the keyboard (visible viewport bottom).
   form.style.top = "auto";
   form.style.bottom = `${Math.round(isKeyboardOpen ? keyboardInset + edgeGap : edgeGap)}px`;
