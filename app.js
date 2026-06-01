@@ -379,12 +379,14 @@ function buildPhaseLogPlainText(phase) {
   return lines.join("\n");
 }
 
-async function copyAllPhases(button) {
+async function copyAllPhases(button, phases) {
   try {
     button.classList.remove("copied");
     button.classList.add("copying");
-    const data = await fetchJson(`${API_BASE}/api/phases`);
-    const phases = data.phases || [];
+    if (!phases) {
+      const data = await fetchJson(`${API_BASE}/api/phases`);
+      phases = data.phases || [];
+    }
     if (!phases.length) { showToast("No phases found"); button.classList.remove("copying"); return; }
 
     const texts = await Promise.all(phases.map(async (p) => {
@@ -456,7 +458,12 @@ function openPhasePicker(copyButton) {
         list.innerHTML = `<div class="phase-picker-loading">No phases found</div>`;
         return;
       }
-      list.innerHTML = phases.map((phase, i) => {
+      const allBtn = `<button class="phase-picker-item phase-picker-item-all" type="button" data-phase-all>
+        <span class="phase-picker-item-name">All</span>
+        <span class="phase-picker-item-range">${phases.length} phases</span>
+      </button>`;
+
+      list.innerHTML = allBtn + phases.map((phase, i) => {
         const range = formatDateRange(phase.start, phase.end).replace(/, \d{4}/g, "");
         return `<button class="phase-picker-item" type="button" data-phase-index="${i}"
           data-phase-start="${phase.start}" data-phase-end="${phase.end}">
@@ -465,7 +472,12 @@ function openPhasePicker(copyButton) {
         </button>`;
       }).join("");
 
-      list.querySelectorAll(".phase-picker-item").forEach(item => {
+      list.querySelector("[data-phase-all]")?.addEventListener("click", () => {
+        closePhasePicker();
+        copyAllPhases(copyButton, phases);
+      });
+
+      list.querySelectorAll(".phase-picker-item:not([data-phase-all])").forEach(item => {
         item.addEventListener("click", () => {
           const start = item.dataset.phaseStart;
           const end = item.dataset.phaseEnd;
