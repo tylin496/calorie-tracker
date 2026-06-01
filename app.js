@@ -379,6 +379,32 @@ function buildPhaseLogPlainText(phase) {
   return lines.join("\n");
 }
 
+async function copyAllPhases(button) {
+  try {
+    button.classList.remove("copied");
+    button.classList.add("copying");
+    const data = await fetchJson(`${API_BASE}/api/phases`);
+    const phases = data.phases || [];
+    if (!phases.length) { showToast("No phases found"); button.classList.remove("copying"); return; }
+
+    const texts = await Promise.all(phases.map(async (p) => {
+      const res = await fetchJson(`${API_BASE}/api/phase?start=${encodeURIComponent(p.start)}&end=${encodeURIComponent(p.end)}&tdee=${encodeURIComponent(TDEE)}`);
+      return buildPhaseLogPlainText(res.phase);
+    }));
+
+    await copyTextToClipboard(texts.join("\n\n---\n\n"));
+    button.disabled = true;
+    button.classList.remove("copying");
+    button.classList.add("copied");
+    triggerHaptic("success");
+    setTimeout(() => { button.classList.remove("copied"); button.disabled = false; }, 1400);
+  } catch {
+    button.classList.remove("copying", "copied");
+    button.disabled = false;
+    showToast("Copy failed");
+  }
+}
+
 async function fetchLatestPhaseLog() {
   const data = await fetchJson(`${API_BASE}/api/phase?end=${encodeURIComponent(currentDate)}&tdee=${encodeURIComponent(TDEE)}`);
   return data.phase;
@@ -2232,6 +2258,14 @@ function handleTrendDayClick(event) {
 }
 
 async function handleCopyWeeklySummaryClick(event) {
+  const allPhasesBtn = event.target.closest("[data-copy-all-phases]");
+  if (allPhasesBtn) {
+    event.preventDefault();
+    event.stopPropagation();
+    copyAllPhases(allPhasesBtn);
+    return;
+  }
+
   const button = event.target.closest("[data-copy-week-summary]");
   if (!button || !latestWeekSummary) return;
   event.preventDefault();
@@ -2446,6 +2480,25 @@ function renderSummary(summary) {
           ${cutLabel ? `<p class="cut-phase-label">${cutLabel}</p>` : ""}
         </div>
         <div class="card-actions">
+          <button
+            class="copy-summary-btn"
+            type="button"
+            data-copy-all-phases
+            aria-label="Copy all phases"
+            title="Copy all phases"
+          >
+            <span class="copy-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor" focusable="false">
+                <rect x="9" y="3" width="10" height="13" rx="2.5" opacity="0.5"/>
+                <rect x="5" y="8" width="10" height="13" rx="2.5"/>
+              </svg>
+            </span>
+            <span class="check-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </span>
+          </button>
           ${getCopySummaryButtonHtml()}
           <span class="status-pill logged">${weeklyPillText}</span>
         </div>
