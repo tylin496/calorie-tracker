@@ -1731,8 +1731,13 @@ function dailySkeletonHtml() {
   return `
     <section class="daily-card loading-card">
       <div class="daily-card-top">
-        <div class="skel" style="width:48px;height:20px;border-radius:5px"></div>
-        <div class="skel" style="width:58px;height:22px;border-radius:100px"></div>
+        <div class="daily-card-top-left">
+          <div class="skel" style="width:48px;height:20px;border-radius:5px"></div>
+          <div class="skel" style="width:22px;height:22px;border-radius:6px"></div>
+        </div>
+        <div class="daily-card-top-right">
+          <div class="skel" style="width:58px;height:22px;border-radius:100px"></div>
+        </div>
       </div>
       <div class="daily-metrics">
         <div class="skel" style="height:76px;border-radius:12px"></div>
@@ -1762,9 +1767,13 @@ function weekSkeletonHtml() {
   return `
     <section class="card week-card loading-card">
       <div class="card-header">
-        <div class="skel" style="width:80px;height:20px;border-radius:5px"></div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <div class="skel" style="width:32px;height:28px;border-radius:8px"></div>
+        <div class="card-header-left">
+          <div class="card-header-title-row">
+            <div class="skel" style="width:80px;height:20px;border-radius:5px"></div>
+            <div class="skel" style="width:22px;height:22px;border-radius:6px"></div>
+          </div>
+        </div>
+        <div class="card-actions">
           <div class="skel" style="width:52px;height:22px;border-radius:100px"></div>
         </div>
       </div>
