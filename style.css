@@ -1549,6 +1549,13 @@ input[type="number"] {
   margin-bottom: var(--stack-gap);
 }
 
+.daily-card-top-left,
+.card-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .daily-card-top-right {
   display: flex;
   align-items: center;
