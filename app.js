@@ -2488,7 +2488,8 @@ function renderSummary(summary) {
   const weekProteinRewarded = weekAvgProtein >= PROTEIN_TARGET * 0.9;
 
   const weekFatRewarded = weekFatLossKg >= weekFatLossTarget * 0.9;
-  const weekDoubleHit = weekCalRewarded && weekProteinRewarded && weekFatRewarded;
+  const isFullWeek = loggedDays >= 7;
+  const weekDoubleHit = isFullWeek && weekCalRewarded && weekProteinRewarded && weekFatRewarded;
 
   const weekHtml = `
     <section class="card week-card ${weekDoubleHit ? "double-hit" : ""}">
