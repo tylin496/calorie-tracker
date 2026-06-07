@@ -1676,8 +1676,8 @@ input[type="number"] {
 
 .daily-metric.rewarded::before {
   background: linear-gradient(180deg,
-    color-mix(in srgb, var(--accent) 12%, transparent) 0%,
-    color-mix(in srgb, var(--accent) 22%, transparent) 100%
+    color-mix(in srgb, var(--accent) 5%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 10%, transparent) 100%
   );
   animation: metric-water-flow 5s ease-in-out infinite;
 }
