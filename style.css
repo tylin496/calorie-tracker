@@ -1625,8 +1625,8 @@ input[type="number"] {
   width: 200%;
   height: var(--metric-fill, var(--metric-progress, 0%));
   background: linear-gradient(180deg,
-    color-mix(in srgb, var(--accent) 3%, transparent) 0%,
-    color-mix(in srgb, var(--accent) 7%, transparent) 100%
+    color-mix(in srgb, var(--text-muted) 5%, transparent) 0%,
+    color-mix(in srgb, var(--text-muted) 10%, transparent) 100%
   );
   border-radius: 44% 56% 0 0 / 8px 8px 0 0;
   transition: height 600ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -1635,8 +1635,8 @@ input[type="number"] {
 
 .daily-metric[data-metric-over]::before {
   background: linear-gradient(180deg,
-    color-mix(in srgb, var(--accent) 3%, transparent) 0%,
-    color-mix(in srgb, var(--accent) 7%, transparent) 100%
+    color-mix(in srgb, var(--muted) 5%, transparent) 0%,
+    color-mix(in srgb, var(--muted) 10%, transparent) 100%
   );
 }
 
@@ -2271,8 +2271,8 @@ input[type="number"] {
   width: 200%;
   height: var(--metric-progress, 0%);
   background: linear-gradient(180deg,
-    color-mix(in srgb, var(--accent) 3%, transparent) 0%,
-    color-mix(in srgb, var(--accent) 7%, transparent) 100%
+    color-mix(in srgb, var(--muted) 5%, transparent) 0%,
+    color-mix(in srgb, var(--muted) 10%, transparent) 100%
   );
   border-radius: 44% 56% 0 0 / 8px 8px 0 0;
   transition: height 600ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -2281,8 +2281,8 @@ input[type="number"] {
 
 .week-snapshot .metric[data-metric-over]::before {
   background: linear-gradient(180deg,
-    color-mix(in srgb, var(--accent) 3%, transparent) 0%,
-    color-mix(in srgb, var(--accent) 7%, transparent) 100%
+    color-mix(in srgb, var(--muted) 5%, transparent) 0%,
+    color-mix(in srgb, var(--muted) 10%, transparent) 100%
   );
 }
 
