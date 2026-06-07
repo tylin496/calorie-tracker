@@ -1620,18 +1620,18 @@ input[type="number"] {
 .daily-metric::before {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: -50%;
-  width: 200%;
-  height: var(--metric-fill, var(--metric-progress, 0%));
-  background: color-mix(in srgb, var(--border) 25%, transparent);
-  border-radius: 44% 56% 0 0 / 8px 8px 0 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100% - var(--metric-fill, var(--metric-progress, 0%)));
+  background: color-mix(in srgb, var(--surface) 40%, transparent);
+  border-radius: 12px 12px 0 0;
   transition: height 600ms cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 0;
 }
 
 .daily-metric[data-metric-over]::before {
-  background: color-mix(in srgb, var(--border) 25%, transparent);
+  background: color-mix(in srgb, var(--surface) 40%, transparent);
 }
 
 .daily-metric.rewarded[data-metric-over]::before,
@@ -1672,8 +1672,8 @@ input[type="number"] {
 }
 
 .daily-metric.rewarded::before {
-  background: none;
-  animation: metric-water-flow 5s ease-in-out infinite;
+  height: 0;
+  animation: none;
 }
 
 .daily-card.double-hit {
@@ -2260,18 +2260,18 @@ input[type="number"] {
 .week-snapshot .metric::before {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: -50%;
-  width: 200%;
-  height: var(--metric-progress, 0%);
-  background: color-mix(in srgb, var(--border) 25%, transparent);
-  border-radius: 44% 56% 0 0 / 8px 8px 0 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100% - var(--metric-progress, 0%));
+  background: color-mix(in srgb, var(--surface) 40%, transparent);
+  border-radius: 12px 12px 0 0;
   transition: height 600ms cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 0;
 }
 
 .week-snapshot .metric[data-metric-over]::before {
-  background: color-mix(in srgb, var(--border) 25%, transparent);
+  background: color-mix(in srgb, var(--surface) 40%, transparent);
 }
 
 .week-snapshot .metric.rewarded {
@@ -2282,8 +2282,8 @@ input[type="number"] {
 }
 
 .week-snapshot .metric.rewarded::before {
-  background: none;
-  animation: metric-water-flow 5s ease-in-out infinite;
+  height: 0;
+  animation: none;
 }
 
 .week-trend-panel {
