@@ -2396,15 +2396,17 @@ function renderSummary(summary) {
     const proteinMetricTone = (proteinOverTarget > 0 || proteinPerfect) ? "rewarded" : proteinResult.celebrated ? "on-track" : "";
     const calorieAlmostThere = calorieResult.celebrated && !calorieResult.isSurplus && deficitOverTarget === 0 && !caloriePerfect;
     const proteinAlmostThere = proteinResult.celebrated && roundedProtein < entryProteinTarget;
-    // Logged day: compact offset copy; surplus still uses TDEE surplus, not intake delta.
     const calorieMetricText = calorieResult.isSurplus
       ? formatCalorieSurplusNote(calorieResult.surplus)
       : caloriePerfect
         ? METRIC_NOTE_PERFECT
-        : formatMetricOffset(roundedCalories - entryCalorieTarget, "kcal");
+        : `${formatInt(calorieResult.deficit)} kcal deficit`;
+    const proteinDelta = roundedProtein - entryProteinTarget;
     const proteinMetricText = proteinPerfect
       ? METRIC_NOTE_PERFECT
-      : formatMetricOffset(roundedProtein - entryProteinTarget, "g");
+      : proteinDelta >= 0
+        ? `over by ${formatInt(proteinDelta)} g`
+        : `${formatInt(Math.abs(proteinDelta))} g short`;
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone} ${doubleHit ? "double-hit" : ""}">
