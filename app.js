@@ -2404,7 +2404,7 @@ function renderSummary(summary) {
         ? METRIC_NOTE_PERFECT
         : calorieOverIntake
           ? `over by ${formatInt(roundedCalories - calorieIntakeTarget)} kcal`
-          : `${formatInt(calorieResult.deficit)} kcal deficit`;
+          : `under by ${formatInt(calorieResult.deficit)} kcal`;
     const proteinDelta = roundedProtein - entryProteinTarget;
     const proteinMetricText = proteinPerfect
       ? METRIC_NOTE_PERFECT
