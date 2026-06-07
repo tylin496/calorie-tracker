@@ -1670,7 +1670,7 @@ input[type="number"] {
 }
 
 .daily-metric.rewarded {
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
   background: color-mix(in srgb, var(--surface-muted) 76%, transparent);
 }
 
@@ -2287,7 +2287,7 @@ input[type="number"] {
 }
 
 .week-snapshot .metric.rewarded {
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
   background: var(--surface-muted);
 }
 
