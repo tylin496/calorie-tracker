@@ -2424,44 +2424,18 @@ function renderSummary(summary) {
         </div>
 
         <div class="daily-metrics">
-          <button class="daily-metric metric-button ${calorieMetricTone}" type="button" data-edit-field="calories" aria-label="Edit calories">
+          <button class="daily-metric metric-button ${calorieMetricTone}" type="button" data-edit-field="calories" aria-label="Edit calories" style="--metric-progress:${calorieResult.progress}%">
             <span class="metric-label">Calories</span>
             <strong>${formatInt(roundedCalories)} <small>kcal</small></strong>
             <span class="metric-note ${deficitOverTarget > 0 || caloriePerfect || calorieAlmostThere ? "reward" : calorieResult.isSurplus ? "negative" : ""}">${calorieMetricText}</span>
           </button>
-          <button class="daily-metric metric-button ${proteinMetricTone}" type="button" data-edit-field="protein" aria-label="Edit protein">
+          <button class="daily-metric metric-button ${proteinMetricTone}" type="button" data-edit-field="protein" aria-label="Edit protein" style="--metric-progress:${proteinResult.progress}%">
             <span class="metric-label">Protein</span>
             <strong>${formatInt(roundedProtein)} <small>g</small></strong>
             <span class="metric-note ${proteinOverTarget > 0 || proteinPerfect || proteinAlmostThere ? "reward" : ""}">${proteinMetricText}</span>
           </button>
         </div>
 
-        <div class="settlement-lines">
-          <div class="settlement-line ${calorieResult.isSurplus ? "surplus" : calorieResult.celebrated ? "celebrated" : "neutral"}">
-            <div class="settlement-line-top">
-              <strong>${calorieResult.status}</strong>
-              <span class="settlement-progress-value">${calorieResult.isSurplus
-                ? `+${formatInt(calorieResult.surplus)} kcal`
-                : `${formatInt(calorieResult.deficit)} / ${formatInt(entryDeficitTarget)} kcal`}</span>
-            </div>
-            <div class="settlement-track-row">
-              <div class="settlement-track" aria-hidden="true">
-                <span style="width:${calorieResult.progress}%"></span>
-              </div>
-            </div>
-          </div>
-          <div class="settlement-line ${proteinResult.celebrated ? "celebrated" : "neutral"}">
-            <div class="settlement-line-top">
-              <strong>${proteinResult.status}</strong>
-              <span class="settlement-progress-value">${formatInt(roundedProtein)} / ${formatInt(entryProteinTarget)} g</span>
-            </div>
-            <div class="settlement-track-row">
-              <div class="settlement-track" aria-hidden="true">
-                <span style="width:${proteinResult.progress}%"></span>
-              </div>
-            </div>
-          </div>
-        </div>
       </section>
     `;
   } else {
