@@ -2480,7 +2480,7 @@ function renderSummary(summary) {
   const weekCalOver = weekCalOverTarget;
 
   const weekProteinProgress = Math.min(100, Math.round(weekAvgProtein / Math.max(1, PROTEIN_TARGET) * 100));
-  const weekProteinRewarded = weekAvgProtein >= PROTEIN_TARGET;
+  const weekProteinRewarded = weekAvgProtein >= PROTEIN_TARGET * 0.9;
 
   const weekFatRewarded = weekFatLossKg >= weekFatLossTarget * 0.9;
 
