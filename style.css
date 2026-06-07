@@ -1633,22 +1633,21 @@ input[type="number"] {
   z-index: 0;
 }
 
-.daily-metric::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--metric-overflow, 0%);
-  background: color-mix(in srgb, var(--warning) 18%, transparent);
-  border-radius: 11px 11px 0 0;
-  transition: height 600ms cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 0;
+.daily-metric[data-metric-over]::before {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--warning) 8%, transparent) 0%,
+    color-mix(in srgb, var(--warning) 16%, transparent) 100%
+  );
 }
 
-.daily-metric.rewarded::after,
-.daily-metric.on-track::after {
-  display: none;
+.daily-metric.rewarded[data-metric-over]::before,
+.daily-metric.on-track[data-metric-over]::before {
+  --metric-fill: unset;
+  animation: none;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--warning) 8%, transparent) 0%,
+    color-mix(in srgb, var(--warning) 16%, transparent) 100%
+  );
 }
 
 .daily-metric > * {

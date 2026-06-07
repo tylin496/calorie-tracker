@@ -2424,12 +2424,12 @@ function renderSummary(summary) {
         </div>
 
         <div class="daily-metrics">
-          <button class="daily-metric metric-button ${calorieMetricTone}" type="button" data-edit-field="calories" aria-label="Edit calories" style="--metric-progress:${Math.min(100, Math.round(roundedCalories / calorieIntakeTarget * 100))}%;--metric-overflow:${calorieResult.isSurplus ? 0 : Math.min(40, Math.max(0, Math.round((roundedCalories - calorieIntakeTarget) / calorieIntakeTarget * 100)))}%">
+          <button class="daily-metric metric-button ${calorieMetricTone}" type="button" data-edit-field="calories" aria-label="Edit calories" style="--metric-progress:${(() => { const over = !calorieResult.isSurplus && roundedCalories > calorieIntakeTarget; return calorieResult.isSurplus ? 100 : over ? Math.min(50, Math.round((roundedCalories - calorieIntakeTarget) / calorieIntakeTarget * 100)) : Math.min(100, Math.round(roundedCalories / calorieIntakeTarget * 100)); })()}%" ${!calorieResult.isSurplus && roundedCalories > calorieIntakeTarget ? `data-metric-over="true"` : ""}>
             <span class="metric-label">Calories</span>
             <strong>${formatInt(roundedCalories)} <small>kcal</small></strong>
             <span class="metric-note ${deficitOverTarget > 0 || caloriePerfect || calorieAlmostThere ? "reward" : calorieResult.isSurplus ? "negative" : ""}">${calorieMetricText}</span>
           </button>
-          <button class="daily-metric metric-button ${proteinMetricTone}" type="button" data-edit-field="protein" aria-label="Edit protein" style="--metric-progress:${proteinResult.progress}%;--metric-overflow:${Math.min(40, Math.max(0, Math.round((roundedProtein - entryProteinTarget) / entryProteinTarget * 100)))}%">
+          <button class="daily-metric metric-button ${proteinMetricTone}" type="button" data-edit-field="protein" aria-label="Edit protein" style="--metric-progress:${proteinOverTarget > 0 ? Math.min(50, Math.round(proteinOverTarget / entryProteinTarget * 100)) : proteinResult.progress}%" ${proteinOverTarget > 0 ? `data-metric-over="true"` : ""}>
             <span class="metric-label">Protein</span>
             <strong>${formatInt(roundedProtein)} <small>g</small></strong>
             <span class="metric-note ${proteinOverTarget > 0 || proteinPerfect || proteinAlmostThere ? "reward" : ""}">${proteinMetricText}</span>
