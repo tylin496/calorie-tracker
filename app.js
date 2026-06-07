@@ -2424,7 +2424,7 @@ function renderSummary(summary) {
         </div>
 
         <div class="daily-metrics">
-          <button class="daily-metric metric-button ${calorieMetricTone}" type="button" data-edit-field="calories" aria-label="Edit calories" style="--metric-progress:${calorieResult.progress}%">
+          <button class="daily-metric metric-button ${calorieMetricTone}" type="button" data-edit-field="calories" aria-label="Edit calories" style="--metric-progress:${Math.min(100, Math.round(roundedCalories / calorieIntakeTarget * 100))}%">
             <span class="metric-label">Calories</span>
             <strong>${formatInt(roundedCalories)} <small>kcal</small></strong>
             <span class="metric-note ${deficitOverTarget > 0 || caloriePerfect || calorieAlmostThere ? "reward" : calorieResult.isSurplus ? "negative" : ""}">${calorieMetricText}</span>
