@@ -2397,11 +2397,14 @@ function renderSummary(summary) {
     const proteinMetricTone = (proteinOverTarget > 0 || proteinPerfect) ? "rewarded" : proteinResult.celebrated ? "on-track" : "";
     const calorieAlmostThere = calorieResult.celebrated && !calorieResult.isSurplus && deficitOverTarget === 0 && !caloriePerfect;
     const proteinAlmostThere = proteinResult.celebrated && roundedProtein < entryProteinTarget;
+    const calorieOverIntake = !calorieResult.isSurplus && roundedCalories > calorieIntakeTarget;
     const calorieMetricText = calorieResult.isSurplus
       ? formatCalorieSurplusNote(calorieResult.surplus)
       : caloriePerfect
         ? METRIC_NOTE_PERFECT
-        : `${formatInt(calorieResult.deficit)} kcal deficit`;
+        : calorieOverIntake
+          ? `over by ${formatInt(roundedCalories - calorieIntakeTarget)} kcal`
+          : `${formatInt(calorieResult.deficit)} kcal deficit`;
     const proteinDelta = roundedProtein - entryProteinTarget;
     const proteinMetricText = proteinPerfect
       ? METRIC_NOTE_PERFECT
@@ -2425,7 +2428,7 @@ function renderSummary(summary) {
         </div>
 
         <div class="daily-metrics">
-          <button class="daily-metric metric-button ${calorieMetricTone}" type="button" data-edit-field="calories" aria-label="Edit calories" style="--metric-progress:${(() => { const over = !calorieResult.isSurplus && roundedCalories > calorieIntakeTarget; return calorieResult.isSurplus ? 100 : over ? toWaterStage(Math.min(50, Math.round((roundedCalories - calorieIntakeTarget) / calorieIntakeTarget * 100))) : toWaterStage(Math.min(100, Math.round(roundedCalories / calorieIntakeTarget * 100))); })()}%" ${!calorieResult.isSurplus && roundedCalories > calorieIntakeTarget ? `data-metric-over="true"` : ""}>
+          <button class="daily-metric metric-button ${calorieMetricTone}" type="button" data-edit-field="calories" aria-label="Edit calories" style="--metric-progress:${calorieResult.isSurplus ? 100 : calorieOverIntake ? 100 : toWaterStage(Math.min(100, Math.round(roundedCalories / calorieIntakeTarget * 100)))}%" ${calorieOverIntake ? `data-metric-over="true"` : ""}>
             <span class="metric-label">Calories</span>
             <strong>${formatInt(roundedCalories)} <small>kcal</small></strong>
             <span class="metric-note ${deficitOverTarget > 0 || caloriePerfect || calorieAlmostThere ? "reward" : calorieResult.isSurplus ? "negative" : ""}">${calorieMetricText}</span>
