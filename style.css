@@ -2285,6 +2285,28 @@ input[type="number"] {
   animation: none;
 }
 
+.week-card.double-hit {
+  border-color: color-mix(in srgb, var(--gold) 28%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--gold-soft) 34%, transparent), transparent 46%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 72%, transparent), var(--surface)),
+    var(--surface);
+  box-shadow:
+    var(--shadow),
+    0 0 22px color-mix(in srgb, var(--gold) 10%, transparent);
+}
+
+.week-card.double-hit .week-snapshot .metric.rewarded {
+  border-color: color-mix(in srgb, var(--gold) 38%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--gold-soft) 62%, transparent), transparent),
+    color-mix(in srgb, var(--surface-muted) 76%, transparent);
+}
+
+.week-card.double-hit .week-snapshot .metric.rewarded::before {
+  display: none;
+}
+
 .week-trend-panel {
   margin-top: var(--divider-gap);
   border-top: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
