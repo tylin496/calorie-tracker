@@ -1624,7 +1624,10 @@ input[type="number"] {
   left: -50%;
   width: 200%;
   height: var(--metric-fill, var(--metric-progress, 0%));
-  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--accent) 10%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 18%, transparent) 100%
+  );
   border-radius: 44% 56% 0 0 / 8px 8px 0 0;
   transition: height 600ms cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 0;
@@ -1678,7 +1681,10 @@ input[type="number"] {
 .daily-metric.rewarded::before,
 .daily-metric.on-track::before {
   --metric-fill: 100%;
-  background: color-mix(in srgb, var(--accent) 26%, transparent);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--accent) 14%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 26%, transparent) 100%
+  );
   animation: metric-water-flow 5s ease-in-out infinite;
 }
 
@@ -1704,7 +1710,10 @@ input[type="number"] {
 .daily-card.double-hit .daily-metric.rewarded::before,
 .daily-card.double-hit .daily-metric.on-track::before {
   --metric-fill: 100%;
-  background: color-mix(in srgb, var(--gold) 20%, transparent);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--gold) 10%, transparent) 0%,
+    color-mix(in srgb, var(--gold) 22%, transparent) 100%
+  );
   animation: metric-water-flow 5s ease-in-out infinite;
 }
 
@@ -1720,7 +1729,10 @@ input[type="number"] {
 
 .daily-metric.caution::before {
   --metric-fill: 100%;
-  background: color-mix(in srgb, var(--danger) 22%, transparent);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--danger) 10%, transparent) 0%,
+    color-mix(in srgb, var(--danger) 22%, transparent) 100%
+  );
   animation: metric-water-flow 5s ease-in-out infinite;
 }
 
