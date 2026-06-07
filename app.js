@@ -2408,9 +2408,11 @@ function renderSummary(summary) {
     const proteinDelta = roundedProtein - entryProteinTarget;
     const proteinMetricText = proteinPerfect
       ? METRIC_NOTE_PERFECT
-      : proteinDelta >= 0
-        ? `+${formatInt(proteinDelta)} g`
-        : `${formatInt(Math.abs(proteinDelta))} g short`;
+      : proteinDelta > 0
+        ? `over by ${formatInt(proteinDelta)} g`
+        : proteinDelta === 0
+          ? METRIC_NOTE_PERFECT
+          : `${formatInt(Math.abs(proteinDelta))} g short`;
 
     dailyHtml = `
       <section class="daily-card ${calorieResult.tone} ${doubleHit ? "double-hit" : ""}">
