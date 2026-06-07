@@ -1710,8 +1710,8 @@ input[type="number"] {
 .daily-card.double-hit .daily-metric.on-track::before {
   --metric-fill: 100%;
   background: linear-gradient(180deg,
-    color-mix(in srgb, var(--gold) 6%, transparent) 0%,
-    color-mix(in srgb, var(--gold) 14%, transparent) 100%
+    color-mix(in srgb, var(--gold) 12%, transparent) 0%,
+    color-mix(in srgb, var(--gold) 24%, transparent) 100%
   );
   animation: metric-water-flow 5s ease-in-out infinite;
 }
