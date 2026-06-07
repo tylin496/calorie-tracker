@@ -1663,7 +1663,8 @@ input[type="number"] {
   border-color: rgba(0, 122, 255, 0.5);
 }
 
-.daily-metric.rewarded {
+.daily-metric.rewarded,
+.daily-metric.on-track {
   border-color: color-mix(in srgb, var(--accent) 26%, var(--border));
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 42%, transparent), transparent),
