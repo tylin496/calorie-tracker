@@ -2463,6 +2463,26 @@ function renderSummary(summary) {
   }
 
   const cutLabel = getWeekCutPhaseLabel(summary);
+
+  // Weekly metric water levels
+  const weekCalorieTarget = Math.max(1, Math.round(TDEE - DEFICIT_TARGET));
+  const weekAvgCal = roundInt(summary.averageCalories || 0);
+  const weekAvgProtein = roundInt(summary.averageProtein || 0);
+  const weekFatLossKg = summary.fatLossKg || 0;
+  const weekFatLossTarget = (DEFICIT_TARGET * 7) / 7700;
+
+  const weekCalOverTarget = weekAvgCal > weekCalorieTarget && (TDEE - weekAvgCal) > 0;
+  const weekCalProgress = weekCalOverTarget
+    ? Math.min(50, Math.round((weekAvgCal - weekCalorieTarget) / weekCalorieTarget * 100))
+    : Math.min(100, Math.round(weekAvgCal / weekCalorieTarget * 100));
+  const weekCalRewarded = !weekCalOverTarget && (TDEE - weekAvgCal) >= DEFICIT_TARGET * 0.9;
+  const weekCalOver = weekCalOverTarget;
+
+  const weekProteinProgress = Math.min(100, Math.round(weekAvgProtein / Math.max(1, PROTEIN_TARGET) * 100));
+  const weekProteinRewarded = weekAvgProtein >= PROTEIN_TARGET;
+
+  const weekFatRewarded = weekFatLossKg >= weekFatLossTarget * 0.9;
+
   const weekHtml = `
     <section class="card week-card">
       <div class="card-header">
@@ -2478,15 +2498,15 @@ function renderSummary(summary) {
         </div>
       </div>
       <div class="week-snapshot">
-        <div class="metric">
+        <div class="metric ${weekCalRewarded ? "rewarded" : ""}" style="--metric-progress:${weekCalProgress}%"${weekCalOver ? ` data-metric-over="true"` : ""}>
           <span class="metric-label">Avg calories</span>
           <span class="metric-value">${formatInt(summary.averageCalories || 0)} <small>kcal</small></span>
         </div>
-        <div class="metric">
+        <div class="metric ${weekProteinRewarded ? "rewarded" : ""}" style="--metric-progress:${weekProteinProgress}%">
           <span class="metric-label">Avg protein</span>
           <span class="metric-value">${formatInt(summary.averageProtein || 0)} <small>g</small></span>
         </div>
-        <div class="metric">
+        <div class="metric ${weekFatRewarded ? "rewarded" : ""}" style="--metric-progress:100%">
           <span class="metric-label">Fat loss</span>
           <span class="metric-value">${formatFatLossKg(summary.fatLossKg || 0)} <small>kg</small></span>
         </div>
