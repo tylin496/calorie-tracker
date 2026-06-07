@@ -2490,6 +2490,7 @@ function renderSummary(summary) {
   const weekFatRewarded = weekFatLossKg >= weekFatLossTarget * 0.9;
   const isFullWeek = loggedDays >= 7;
   const weekDoubleHit = isFullWeek && weekCalRewarded && weekProteinRewarded && weekFatRewarded;
+  const weekShowRewards = isFullWeek;
 
   const weekHtml = `
     <section class="card week-card ${weekDoubleHit ? "double-hit" : ""}">
@@ -2506,15 +2507,15 @@ function renderSummary(summary) {
         </div>
       </div>
       <div class="week-snapshot">
-        <div class="metric ${weekCalRewarded ? "rewarded" : ""}" style="--metric-progress:${toWaterStage(weekCalProgress)}%"${weekCalOver ? ` data-metric-over="true"` : ""}>
+        <div class="metric ${weekShowRewards && weekCalRewarded ? "rewarded" : ""}" style="--metric-progress:${toWaterStage(weekCalProgress)}%"${weekCalOver ? ` data-metric-over="true"` : ""}>
           <span class="metric-label">Avg calories</span>
           <span class="metric-value">${formatInt(summary.averageCalories || 0)} <small>kcal</small></span>
         </div>
-        <div class="metric ${weekProteinRewarded ? "rewarded" : ""}" style="--metric-progress:${toWaterStage(weekProteinProgress)}%">
+        <div class="metric ${weekShowRewards && weekProteinRewarded ? "rewarded" : ""}" style="--metric-progress:${toWaterStage(weekProteinProgress)}%">
           <span class="metric-label">Avg protein</span>
           <span class="metric-value">${formatInt(summary.averageProtein || 0)} <small>g</small></span>
         </div>
-        <div class="metric ${weekFatRewarded ? "rewarded" : ""}" style="--metric-progress:100%">
+        <div class="metric ${weekShowRewards && weekFatRewarded ? "rewarded" : ""}" style="--metric-progress:100%">
           <span class="metric-label">Fat loss</span>
           <span class="metric-value">${formatFatLossKg(summary.fatLossKg || 0)} <small>kg</small></span>
         </div>
