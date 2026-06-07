@@ -8,6 +8,7 @@ const API_BASE = (() => {
   return "https://calorie-tracker-omega-ten.vercel.app";
 })();
 let authUser = null;
+function toWaterStage(p) { return Math.round(p / 20) * 20; }
 const AUTH_TOKEN_STORAGE_KEY = "calorieTrackerAuthToken";
 function getStoredAuthToken() {
   try {
@@ -2424,12 +2425,12 @@ function renderSummary(summary) {
         </div>
 
         <div class="daily-metrics">
-          <button class="daily-metric metric-button ${calorieMetricTone}" type="button" data-edit-field="calories" aria-label="Edit calories" style="--metric-progress:${(() => { const over = !calorieResult.isSurplus && roundedCalories > calorieIntakeTarget; return calorieResult.isSurplus ? 100 : over ? Math.min(50, Math.round((roundedCalories - calorieIntakeTarget) / calorieIntakeTarget * 100)) : Math.min(100, Math.round(roundedCalories / calorieIntakeTarget * 100)); })()}%" ${!calorieResult.isSurplus && roundedCalories > calorieIntakeTarget ? `data-metric-over="true"` : ""}>
+          <button class="daily-metric metric-button ${calorieMetricTone}" type="button" data-edit-field="calories" aria-label="Edit calories" style="--metric-progress:${(() => { const over = !calorieResult.isSurplus && roundedCalories > calorieIntakeTarget; return calorieResult.isSurplus ? 100 : over ? toWaterStage(Math.min(50, Math.round((roundedCalories - calorieIntakeTarget) / calorieIntakeTarget * 100))) : toWaterStage(Math.min(100, Math.round(roundedCalories / calorieIntakeTarget * 100))); })()}%" ${!calorieResult.isSurplus && roundedCalories > calorieIntakeTarget ? `data-metric-over="true"` : ""}>
             <span class="metric-label">Calories</span>
             <strong>${formatInt(roundedCalories)} <small>kcal</small></strong>
             <span class="metric-note ${deficitOverTarget > 0 || caloriePerfect || calorieAlmostThere ? "reward" : calorieResult.isSurplus ? "negative" : ""}">${calorieMetricText}</span>
           </button>
-          <button class="daily-metric metric-button ${proteinMetricTone}" type="button" data-edit-field="protein" aria-label="Edit protein" style="--metric-progress:${proteinResult.progress}%">
+          <button class="daily-metric metric-button ${proteinMetricTone}" type="button" data-edit-field="protein" aria-label="Edit protein" style="--metric-progress:${toWaterStage(proteinResult.progress)}%">
             <span class="metric-label">Protein</span>
             <strong>${formatInt(roundedProtein)} <small>g</small></strong>
             <span class="metric-note ${proteinOverTarget > 0 || proteinPerfect || proteinAlmostThere ? "reward" : ""}">${proteinMetricText}</span>
@@ -2498,11 +2499,11 @@ function renderSummary(summary) {
         </div>
       </div>
       <div class="week-snapshot">
-        <div class="metric ${weekCalRewarded ? "rewarded" : ""}" style="--metric-progress:${weekCalProgress}%"${weekCalOver ? ` data-metric-over="true"` : ""}>
+        <div class="metric ${weekCalRewarded ? "rewarded" : ""}" style="--metric-progress:${toWaterStage(weekCalProgress)}%"${weekCalOver ? ` data-metric-over="true"` : ""}>
           <span class="metric-label">Avg calories</span>
           <span class="metric-value">${formatInt(summary.averageCalories || 0)} <small>kcal</small></span>
         </div>
-        <div class="metric ${weekProteinRewarded ? "rewarded" : ""}" style="--metric-progress:${weekProteinProgress}%">
+        <div class="metric ${weekProteinRewarded ? "rewarded" : ""}" style="--metric-progress:${toWaterStage(weekProteinProgress)}%">
           <span class="metric-label">Avg protein</span>
           <span class="metric-value">${formatInt(summary.averageProtein || 0)} <small>g</small></span>
         </div>

@@ -1669,14 +1669,12 @@ input[type="number"] {
   border-color: rgba(0, 122, 255, 0.5);
 }
 
-.daily-metric.rewarded,
-.daily-metric.on-track {
+.daily-metric.rewarded {
   border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
   background: color-mix(in srgb, var(--surface-muted) 76%, transparent);
 }
 
-.daily-metric.rewarded::before,
-.daily-metric.on-track::before {
+.daily-metric.rewarded::before {
   background: linear-gradient(180deg,
     color-mix(in srgb, var(--accent) 12%, transparent) 0%,
     color-mix(in srgb, var(--accent) 22%, transparent) 100%
