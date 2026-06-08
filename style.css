@@ -1619,18 +1619,20 @@ input[type="number"] {
 .daily-metric::before {
   content: '';
   position: absolute;
-  top: 0;
+  bottom: 0;
   left: 0;
   width: 100%;
-  height: calc(100% - var(--metric-fill, var(--metric-progress, 0%)));
-  background: linear-gradient(to bottom, rgb(255 255 255 / 72%) 0%, transparent 100%);
-  border-radius: 12px 12px 0 0;
+  height: var(--metric-fill, var(--metric-progress, 0%));
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  box-shadow: 0 -1px 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  border-radius: 0 0 12px 12px;
   transition: height 600ms cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 0;
 }
 
 .daily-metric[data-metric-over]::before {
-  background: linear-gradient(to bottom, rgb(255 255 255 / 72%) 0%, transparent 100%);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  box-shadow: 0 -1px 3px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .daily-metric.rewarded[data-metric-over]::before,
@@ -1670,10 +1672,6 @@ input[type="number"] {
     color-mix(in srgb, var(--surface-muted) 76%, transparent);
 }
 
-.daily-metric.rewarded::before {
-  height: 0;
-  animation: none;
-}
 
 .daily-card.double-hit {
   border-color: color-mix(in srgb, var(--gold) 28%, var(--border));
@@ -2259,18 +2257,20 @@ input[type="number"] {
 .week-snapshot .metric::before {
   content: '';
   position: absolute;
-  top: 0;
+  bottom: 0;
   left: 0;
   width: 100%;
-  height: calc(100% - var(--metric-progress, 0%));
-  background: linear-gradient(to bottom, rgb(255 255 255 / 72%) 0%, transparent 100%);
-  border-radius: 12px 12px 0 0;
+  height: var(--metric-progress, 0%);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  box-shadow: 0 -1px 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  border-radius: 0 0 12px 12px;
   transition: height 600ms cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 0;
 }
 
 .week-snapshot .metric[data-metric-over]::before {
-  background: linear-gradient(to bottom, rgb(255 255 255 / 72%) 0%, transparent 100%);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  box-shadow: 0 -1px 3px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .week-snapshot .metric.rewarded {
@@ -2280,10 +2280,6 @@ input[type="number"] {
     var(--surface-muted);
 }
 
-.week-snapshot .metric.rewarded::before {
-  height: 0;
-  animation: none;
-}
 
 .week-card.double-hit {
   border-color: color-mix(in srgb, var(--gold) 28%, var(--border));
