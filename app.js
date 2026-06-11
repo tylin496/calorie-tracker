@@ -2430,7 +2430,7 @@ function renderSummary(summary) {
         </div>
 
         <div class="daily-metrics">
-          <button class="daily-metric metric-button ${calorieMetricTone}" type="button" data-edit-field="calories" aria-label="Edit calories" style="--metric-progress:${calorieResult.isSurplus ? 100 : calorieOverIntake ? 100 : toWaterStage(Math.min(100, Math.round(roundedCalories / calorieIntakeTarget * 100)))}%" ${calorieOverIntake ? `data-metric-over="true"` : ""}>
+          <button class="daily-metric metric-button ${calorieMetricTone}" type="button" data-edit-field="calories" aria-label="Edit calories" style="--metric-progress:${calorieResult.isSurplus ? 100 : calorieOverIntake ? 100 : toWaterStage(Math.min(100, Math.round(roundedCalories / calorieIntakeTarget * 100)))}%" ${calorieOverIntake && !calorieMetricTone ? `data-metric-over="true"` : ""}>
             <span class="metric-label">Calories</span>
             <strong>${formatInt(roundedCalories)} <small>kcal</small></strong>
             <span class="metric-note ${deficitOverTarget > 0 || caloriePerfect || calorieAlmostThere ? "reward" : calorieResult.isSurplus ? "negative" : ""}">${calorieMetricText}</span>
