@@ -2393,7 +2393,7 @@ function renderSummary(summary) {
     const doubleHit = (deficitOverTarget > 0 || caloriePerfect) && (proteinOverTarget > 0 || proteinPerfect);
     const statusPillText = doubleHit ? "Double hit" : "Logged";
     // Reward tone: calories and protein cards — deficit card is always plain
-    const calorieMetricTone = calorieResult.isSurplus ? "caution" : (deficitOverTarget > 0 || caloriePerfect) ? "rewarded" : calorieResult.celebrated ? "on-track" : "";
+    const calorieMetricTone = calorieResult.isSurplus ? "caution" : (deficitOverTarget > 0 || caloriePerfect || calorieResult.celebrated) ? "rewarded" : "";
     const proteinMetricTone = (proteinOverTarget > 0 || proteinPerfect) ? "rewarded" : proteinResult.celebrated ? "on-track" : "";
     const calorieAlmostThere = calorieResult.celebrated && !calorieResult.isSurplus && deficitOverTarget === 0 && !caloriePerfect;
     const proteinAlmostThere = proteinResult.celebrated && roundedProtein < entryProteinTarget;
